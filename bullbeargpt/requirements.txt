@@ -1,0 +1,13 @@
+# Flask & Extensions
+Flask==3.0.0
+Flask-CORS==4.0.0
+
+# AI/LLM
+openai==1.6.1
+anthropic==0.40.0
+
+# Utils
+python-dotenv==1.0.0
+pydantic==2.5.2
+gunicorn==21.2.0
+requests==2.31.0

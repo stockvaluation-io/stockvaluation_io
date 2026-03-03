@@ -1,0 +1,184 @@
+@use '../../../../../../styles/_design-system-v2' as ds;
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  
+  &.error-small {
+    padding: var(--space-4);
+    gap: var(--space-2);
+  }
+  
+  &.error-medium {
+    padding: var(--space-8);
+    gap: var(--space-3);
+  }
+  
+  &.error-large {
+    padding: var(--space-12);
+    gap: var(--space-4);
+  }
+}
+
+.error-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.1);
+  
+  .error-small & {
+    width: 32px;
+    height: 32px;
+    
+    i {
+      font-size: 16px;
+      color: #EF4444;
+    }
+  }
+  
+  .error-medium & {
+    width: 48px;
+    height: 48px;
+    
+    i {
+      font-size: 24px;
+      color: #EF4444;
+    }
+  }
+  
+  .error-large & {
+    width: 64px;
+    height: 64px;
+    
+    i {
+      font-size: 32px;
+      color: #EF4444;
+    }
+  }
+}
+
+.error-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  
+  .error-small & {
+    font-size: 16px;
+  }
+  
+  .error-medium & {
+    font-size: 18px;
+  }
+  
+  .error-large & {
+    font-size: 20px;
+  }
+}
+
+.error-message {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 400px;
+  
+  .error-small & {
+    font-size: 12px;
+  }
+  
+  .error-medium & {
+    font-size: 14px;
+  }
+  
+  .error-large & {
+    font-size: 16px;
+  }
+}
+
+.error-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  
+  @include ds.mobile {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}
+
+.retry-btn,
+.support-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  
+  &:hover {
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  i {
+    font-size: 12px;
+  }
+  
+  @include ds.mobile {
+    padding: var(--space-2) var(--space-3);
+    font-size: 13px;
+  }
+}
+
+.retry-btn {
+  background: var(--color-primary);
+  color: var(--text-dark);
+  
+  &:hover {
+    background: #1BC767;
+  }
+}
+
+.support-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
+// Focus styles for accessibility
+.retry-btn:focus,
+.support-btn:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .error-container {
+    border-color: #EF4444;
+    border-width: 2px;
+  }
+  
+  .retry-btn,
+  .support-btn {
+    border-width: 2px;
+  }
+}

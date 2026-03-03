@@ -1,0 +1,86 @@
+@use '../../../../../../styles/_design-system-v2' as ds;
+
+.disclaimer-banner {
+  background: rgba(32, 223, 127, 0.05);
+  border: 1px solid rgba(32, 223, 127, 0.2);
+  border-radius: 8px;
+  padding: var(--space-3) var(--space-4);
+  position: relative;
+  overflow: hidden;
+  animation: slideDown 0.3s ease-out;
+  
+  @include ds.mobile {
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+.disclaimer-content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  
+  @include ds.mobile {
+    gap: var(--space-2);
+  }
+}
+
+.disclaimer-icon {
+  color: var(--color-primary);
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+  margin-top: 2px;
+  
+  @include ds.mobile {
+    font-size: var(--font-size-base);
+  }
+}
+
+.disclaimer-text {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  flex: 1;
+  
+  @include ds.mobile {
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+  }
+}
+
+.dismiss-button {
+  background: transparent;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: var(--space-1);
+  margin: calc(var(--space-1) * -1);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  
+  &:hover {
+    color: var(--color-text-primary);
+    background: var(--color-bg-hover);
+  }
+  
+  &:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  
+  i {
+    font-size: var(--font-size-base);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

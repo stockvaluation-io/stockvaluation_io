@@ -1,0 +1,14 @@
+{
+    "/bullbeargpt": {
+        "target": "http://bullbeargpt:5000",
+        "secure": false,
+        "changeOrigin": true,
+        "logLevel": "info",
+        "pathRewrite": {},
+        "headers": {
+            "Connection": "keep-alive"
+        },
+        "proxyTimeout": 300000,
+        "timeout": 300000
+    }
+}

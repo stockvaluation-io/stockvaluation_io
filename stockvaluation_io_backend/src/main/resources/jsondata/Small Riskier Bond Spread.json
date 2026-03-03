@@ -1,0 +1,92 @@
+[
+  {
+    "coverageRatioMin": -100000.0,
+    "coverageRatioMax": 0.499999,
+    "rating": "D2/D",
+    "spread": 19.0
+  },
+  {
+    "coverageRatioMin": 0.5,
+    "coverageRatioMax": 0.799999,
+    "rating": "C2/C",
+    "spread": 15.5
+  },
+  {
+    "coverageRatioMin": 0.8,
+    "coverageRatioMax": 1.249999,
+    "rating": "Ca2/CC",
+    "spread": 10.100000000000001
+  },
+  {
+    "coverageRatioMin": 1.25,
+    "coverageRatioMax": 1.499999,
+    "rating": "Caa/CCC",
+    "spread": 7.28
+  },
+  {
+    "coverageRatioMin": 1.5,
+    "coverageRatioMax": 1.999999,
+    "rating": "B3/B-",
+    "spread": 4.42
+  },
+  {
+    "coverageRatioMin": 2.0,
+    "coverageRatioMax": 2.499999,
+    "rating": "B2/B",
+    "spread": 3.0
+  },
+  {
+    "coverageRatioMin": 2.5,
+    "coverageRatioMax": 2.999999,
+    "rating": "B1/B+",
+    "spread": 2.6100000000000003
+  },
+  {
+    "coverageRatioMin": 3.0,
+    "coverageRatioMax": 3.499999,
+    "rating": "Ba2/BB",
+    "spread": 1.83
+  },
+  {
+    "coverageRatioMin": 3.5,
+    "coverageRatioMax": 3.9999999,
+    "rating": "Ba1/BB+",
+    "spread": 1.55
+  },
+  {
+    "coverageRatioMin": 4.0,
+    "coverageRatioMax": 4.499999,
+    "rating": "Baa2/BBB",
+    "spread": 1.2
+  },
+  {
+    "coverageRatioMin": 4.5,
+    "coverageRatioMax": 5.999999,
+    "rating": "A3/A-",
+    "spread": 0.95
+  },
+  {
+    "coverageRatioMin": 6.0,
+    "coverageRatioMax": 7.499999,
+    "rating": "A2/A",
+    "spread": 0.8500000000000001
+  },
+  {
+    "coverageRatioMin": 7.5,
+    "coverageRatioMax": 9.499999,
+    "rating": "A1/A+",
+    "spread": 0.77
+  },
+  {
+    "coverageRatioMin": 9.5,
+    "coverageRatioMax": 12.499999,
+    "rating": "Aa2/AA",
+    "spread": 0.6
+  },
+  {
+    "coverageRatioMin": 12.5,
+    "coverageRatioMax": 100000.0,
+    "rating": "Aaa/AAA",
+    "spread": 0.44999999999999996
+  }
+]

@@ -1,0 +1,79 @@
+.page_spinner {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    z-index: 999999999999999999999;
+    justify-content: center;
+    align-items: center;
+    // background: #e7e5e570;
+}
+
+::ng-deep .p-progress-spinner circle {
+    stroke: #3AE180 !important;
+}
+
+::ng-deep .p-toast-message-content {
+    padding: .5rem;
+    font-size: 1.1em;
+    background-color: #FFF;
+
+    .p-toast-message-icon {
+        display: none;
+    }
+}
+
+::ng-deep .p-toast-top-right {
+    width: 25em;
+}
+
+:host ::ng-deep .p-datatable-thead > .headRow > th {
+    background-color: #414040;
+    color: #fff;
+    font-weight: 400;
+    border-top: 1px solid #20DF7F;
+    border-bottom: 1px solid #20DF7F;
+    // padding: 10px;
+
+    &:first-child {}
+
+    &:last-child {}
+}
+
+@media (max-width: 768px) {
+    ::ng-deep .p-toast-top-right {
+        width: 90%; /* Adjust width for smaller screens */
+    }
+
+    ::ng-deep .p-toast-message-content {
+        font-size: 1em; /* Adjust font size for better readability */
+    }
+
+    :host ::ng-deep .p-datatable-thead > .headRow > th {
+        font-size: 0.9em; /* Reduce font size on mobile */
+        padding: 8px; /* Reduce padding to save space */
+    }
+}
+
+@media (max-width: 480px) {
+    .page_spinner {
+        justify-content: flex-start;
+        padding-top: 2rem;
+    }
+
+    ::ng-deep .p-toast-top-right {
+        width: 100%; /* Full width on very small screens */
+    }
+
+    ::ng-deep .p-toast-message-content {
+        font-size: 0.9em;
+        padding: 0.4rem;
+    }
+
+    :host ::ng-deep .p-datatable-thead > .headRow > th {
+        font-size: 0.8em;
+        padding: 5px;
+    }
+}

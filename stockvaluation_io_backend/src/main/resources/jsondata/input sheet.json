@@ -1,0 +1,86 @@
+{
+  "dateOfValuation": "01/02/24",
+  "companyName": "Amazon",
+  "countryOfIncorporation": "United States",
+  "industryUS": "Retail (General)",
+  "IndustryGlo": "Retail (General)",
+  "revenue": {
+    "mostRecent12Months": 574785,
+    "last10KBeforeLTM": 513983,
+    "yearsSinceLast10K": 1
+  },
+  "Ebit": {
+    "mostRecent12Months": 36852,
+    "last10KBeforeLTM": 12248,
+    "yearsSinceLast10K": 1
+  },
+  "interestExpense": {
+    "mostRecent12Months": 3182,
+    "last10KBeforeLTM": 2367,
+    "yearsSinceLast10K": 1
+  },
+  "bookValueOfEquity": {
+    "mostRecent12Months": 201875,
+    "last10KBeforeLTM": 146043,
+    "yearsSinceLast10K": 1
+  },
+  "bookValueOfDebt": {
+    "mostRecent12Months": 161574,
+    "last10KBeforeLTM": 169938,
+    "yearsSinceLast10K": 1
+  },
+  "hasRAndDExpensesToCapitalize": "Yes",
+  "hasOperatingLeaseCommitments": "No",
+  "cashAndMarketableSecurities": {
+    "mostRecent12Months": 86780,
+    "last10KBeforeLTM": 70026,
+    "yearsSinceLast10K": null
+  },
+  "crossHoldings": {
+    "mostRecent12Months": 2954,
+    "last10KBeforeLTM": 2815,
+    "yearsSinceLast10K": null
+  },
+  "minorityInterests": {
+    "mostRecent12Months": 0,
+    "last10KBeforeLTM": 0,
+    "yearsSinceLast10K": null
+  },
+  "numberOfSharesOutstanding": 10492,
+  "currentStockPrice": 169,
+  "effectiveTaxRate": 19,
+  "marginalTaxRate": 25,
+  "revenueGrowthRateNextYear": 12,
+  "operatingMarginNextYear": 0,
+  "compoundedAnnualGrowthRateYears2To5": 12,
+  "targetPreTaxOperatingMargin": 14,
+  "yearOfConvergenceForMargin": 5,
+  "salesToCapitalRatioYears1To5": 1.5,
+  "salesToCapitalRatioYears6To10": 1.5,
+  "riskFreeRate": 4.08,
+  "initialCostOfCapital": 8.6,
+  "hasEmployeeOptionsOutstanding": "No",
+  "numberOfOptionsOutstanding": 7.72,
+  "averageStrikePrice": 1.29,
+  "averageMaturity": 7,
+  "stockPriceStandardDeviation": 45,
+  "hasoverrideCostOfCapitalAfterYear10": "No",
+  "costOfCapitalAfterYear10": 8,
+  "hasoverrideReturnOnCapitalAfterYear10": "No",
+  "returnOnCapitalAfterYear10": 15,
+  "hasAssumeNoFailure": "No",
+  "probabilityOfFailure": 12,
+  "proceedsInFailureTieTo": "V",
+  "distressProceedsAsPercentage": 50,
+  "overrideReinvestmentLag": "No",
+  "zreinvestmentLag": 1,
+  "overridenolThatYouAreCarryingOverIntoYear1": "No",
+  "nolThatYouAreCarryingOverIntoYear1": 731.4,
+  "overrideRiskFreeRateAfterYear10": "No",
+  "riskFreeRateAfterYear10": 2,
+  "overrideGrowthRateInPerpetuity": "No",
+  "growthRateInPerpetuity": -5,
+  "overrideTrappedCash": "No",
+  "trappedCash": 140000,
+  "averageForeignTaxRate": 15
+}

@@ -1,0 +1,329 @@
+@use '../../../../../../styles/_design-system-v2' as ds;
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+  
+  @supports not (backdrop-filter: blur(4px)) {
+    background: rgba(0, 0, 0, 0.9);
+  }
+}
+
+.modal-container {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  
+  @include ds.mobile {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    margin: 0;
+  }
+}
+
+.modal-header {
+  padding: var(--space-6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+  @include ds.mobile {
+    padding: var(--space-4);
+  }
+}
+
+.modal-title {
+  @include ds.text-section-title;
+  & {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--text-primary);
+    font-size: 24px;
+  }
+  
+  i {
+    color: var(--color-primary);
+    font-size: 28px;
+  }
+  
+  @include ds.mobile {
+    font-size: 20px;
+    
+    i {
+      font-size: 24px;
+    }
+  }
+}
+
+.close-btn {
+  @include ds.secondary-button;
+  & {
+    padding: var(--space-2);
+    border-radius: 8px;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.modal-content {
+  padding: var(--space-6);
+  
+  @include ds.mobile {
+    padding: var(--space-4);
+  }
+}
+
+.feature-highlight {
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+.feature-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-4);
+  
+  i {
+    font-size: 36px;
+    color: var(--color-black);
+  }
+}
+
+.feature-highlight h3 {
+  @include ds.text-section-title;
+  & {
+    color: var(--text-primary);
+    margin: 0 0 var(--space-3) 0;
+    font-size: 20px;
+  }
+
+  @include ds.mobile {
+    font-size: 18px;
+  }
+}
+
+.feature-highlight p {
+  @include ds.text-body;
+  & {
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+    line-height: 1.6;
+  }
+}
+
+.benefits-list {
+  margin-bottom: var(--space-6);
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  i {
+    color: var(--color-primary);
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  
+  span {
+    @include ds.text-body;
+    & {
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+  }
+}
+
+.signup-form {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: var(--space-6);
+  margin-bottom: var(--space-4);
+  
+  @include ds.mobile {
+    padding: var(--space-4);
+  }
+  
+  h4 {
+    @include ds.text-body;
+    & {
+      color: var(--text-primary);
+      margin: 0 0 var(--space-4) 0;
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    @include ds.mobile {
+      font-size: 16px;
+    }
+  }
+}
+
+.form-group {
+  margin-bottom: var(--space-4);
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.form-input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 16px;
+  transition: all 0.3s ease;
+  
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(32, 223, 127, 0.1);
+  }
+  
+  &.error {
+    border-color: #EF4444;
+    background: rgba(239, 68, 68, 0.05);
+    
+    &:focus {
+      border-color: #EF4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+  }
+}
+
+.error-message {
+  @include ds.text-small;
+  & {
+    color: #EF4444;
+    margin-top: var(--space-2);
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+}
+
+.form-actions {
+  margin-top: var(--space-6);
+}
+
+.signup-btn {
+  @include ds.primary-button;
+  & {
+    width: 100%;
+    padding: var(--space-4) var(--space-6);
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    border: 1px solid var(--color-primary);
+    color: var(--color-black);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    transition: all 0.3s ease;
+  }
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(32, 223, 127, 0.3);
+  }
+  
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  i {
+    font-size: 16px;
+  }
+}
+
+.footer-note {
+  text-align: center;
+  
+  p {
+    @include ds.text-small;
+    & {
+      color: rgba(255, 255, 255, 0.6);
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      line-height: 1.5;
+    }
+
+    i {
+      color: var(--color-primary);
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+  }
+}
+
+// Custom scrollbar for modal content
+.modal-container {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  }
+}

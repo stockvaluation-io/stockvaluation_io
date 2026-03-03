@@ -1,0 +1,515 @@
+@use '../../../styles/_design-system-v2' as ds;
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  transition: var(--transition-base);
+  
+  &.layout-horizontal {
+    flex-direction: row;
+    gap: var(--space-4);
+  }
+  
+  &.layout-vertical {
+    flex-direction: column;
+    gap: var(--space-3);
+    text-align: center;
+  }
+  
+  &.variant-centered {
+    justify-content: center;
+  }
+  
+  &.variant-nav {
+    cursor: pointer;
+    
+    &:hover .logo {
+      transform: scale(1.05);
+    }
+  }
+  
+  &.variant-footer {
+    .logo-wrapper.footer-wrapper {
+      position: relative;
+      padding: var(--space-2);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(45deg, transparent, rgba(var(--color-primary-rgb), 0.1), transparent);
+        opacity: 0;
+        transition: opacity var(--transition-base);
+      }
+      
+      &:hover::before {
+        opacity: 1;
+      }
+      
+      .logo {
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+        
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+    }
+    
+    .brand-text {
+      .brand-name {
+        font-family: var(--font-primary);
+        font-size: var(--font-size-xl);
+        color: var(--text-primary);
+        margin: 0 0 var(--space-1) 0;
+        
+        .brand-link {
+          text-decoration: none;
+          color: inherit;
+          transition: var(--transition-base);
+          
+          &:hover {
+            color: var(--color-primary);
+          }
+        }
+      }
+      
+      .footer-tagline {
+        font-size: var(--font-size-sm);
+        color: var(--text-secondary);
+        margin: 0;
+        font-weight: var(--font-weight-normal);
+        line-height: 1.4;
+      }
+    }
+  }
+}
+
+// Logo container for picture element
+.logo-picture {
+  display: block;
+  transition: var(--transition-base);
+}
+
+// Logo sizes - applies to both legacy and new logos
+.logo {
+  display: block;
+  transition: var(--transition-base);
+  
+  &.logo-sm {
+    height: 24px;
+    width: auto;
+  }
+  
+  &.logo-md {
+    height: 32px;
+    width: auto;
+  }
+  
+  &.logo-lg {
+    height: 48px;
+    width: auto;
+  }
+  
+  &.logo-xl {
+    height: 64px;
+    width: auto;
+  }
+  
+  &.logo-2xl {
+    height: 80px;
+    width: auto;
+  }
+  
+  &.logo-3xl {
+    height: 96px;
+    width: auto;
+  }
+}
+
+// Versioned logo specific styles
+.versioned-logo {
+  // Versioned logos include text in the image file
+  // No additional text styling needed
+}
+
+// Legacy logo specific styles  
+.legacy-logo {
+  // Legacy logos need separate text elements
+}
+
+// Brand text
+.brand-text {
+  font-family: var(--font-primary);
+  font-weight: var(--font-weight-medium);
+  transition: var(--transition-base);
+  
+  &.text-sm {
+    font-size: var(--font-size-sm);
+  }
+  
+  &.text-md {
+    font-size: var(--font-size-lg);
+  }
+  
+  &.text-lg {
+    font-size: var(--font-size-xl);
+  }
+  
+  &.text-xl {
+    font-size: var(--font-size-2xl);
+  }
+  
+  &.text-2xl {
+    font-size: var(--font-size-3xl);
+  }
+  
+  &.text-3xl {
+    font-size: var(--font-size-4xl);
+  }
+}
+
+// Logo link wrapper for entire logo
+.logo-link {
+  display: inline-block;
+  text-decoration: none;
+  transition: var(--transition-base);
+  
+  &:hover {
+    .logo {
+      transform: scale(1.05);
+    }
+  }
+}
+
+// Brand text link
+.brand-link {
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: var(--transition-base);
+  
+  &:hover {
+    color: var(--color-primary);
+  }
+  
+  &.link-sm {
+    font-size: var(--font-size-sm);
+  }
+  
+  &.link-md {
+    font-size: var(--font-size-lg);
+  }
+  
+  &.link-lg {
+    font-size: var(--font-size-xl);
+  }
+  
+  &.link-xl {
+    font-size: var(--font-size-2xl);
+  }
+  
+  &.link-2xl {
+    font-size: var(--font-size-3xl);
+  }
+  
+  &.link-3xl {
+    font-size: var(--font-size-4xl);
+  }
+}
+
+// Brand text without link (when linkTo is not provided)
+.brand-text-only {
+  color: var(--text-primary);
+  font-family: var(--font-primary);
+  font-weight: var(--font-weight-medium);
+  
+  &.link-sm {
+    font-size: var(--font-size-sm);
+  }
+  
+  &.link-md {
+    font-size: var(--font-size-lg);
+  }
+  
+  &.link-lg {
+    font-size: var(--font-size-xl);
+  }
+  
+  &.link-xl {
+    font-size: var(--font-size-2xl);
+  }
+  
+  &.link-2xl {
+    font-size: var(--font-size-3xl);
+  }
+  
+  &.link-3xl {
+    font-size: var(--font-size-4xl);
+  }
+}
+
+// Size combinations for different use cases
+.brand-logo {
+  &.size-sm {
+    .brand-text {
+      font-size: var(--font-size-sm);
+    }
+    
+    &.layout-horizontal {
+      gap: var(--space-2);
+    }
+    
+    &.layout-vertical {
+      gap: var(--space-2);
+    }
+  }
+  
+  &.size-md {
+    .brand-text {
+      font-size: var(--font-size-lg);
+    }
+    
+    &.layout-horizontal {
+      gap: var(--space-3);
+    }
+    
+    &.layout-vertical {
+      gap: var(--space-3);
+    }
+  }
+  
+  &.size-lg {
+    .brand-text {
+      font-size: var(--font-size-xl);
+    }
+    
+    &.layout-horizontal {
+      gap: var(--space-4);
+    }
+    
+    &.layout-vertical {
+      gap: var(--space-4);
+    }
+  }
+  
+  &.size-xl {
+    .brand-text {
+      font-size: var(--font-size-2xl);
+    }
+    
+    &.layout-horizontal {
+      gap: var(--space-6);
+    }
+    
+    &.layout-vertical {
+      gap: var(--space-6);
+    }
+  }
+  
+  &.size-2xl {
+    .brand-text {
+      font-size: var(--font-size-3xl);
+    }
+    
+    &.layout-horizontal {
+      gap: var(--space-8);
+    }
+    
+    &.layout-vertical {
+      gap: var(--space-8);
+    }
+  }
+  
+  &.size-3xl {
+    .brand-text {
+      font-size: var(--font-size-4xl);
+    }
+    
+    &.layout-horizontal {
+      gap: var(--space-10);
+    }
+    
+    &.layout-vertical {
+      gap: var(--space-10);
+    }
+  }
+}
+
+// Special styles for centered variant
+.brand-logo.variant-centered {
+  &.size-lg, &.size-xl, &.size-2xl, &.size-3xl {
+    .brand-text {
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+}
+
+// Versioned logo variant styles
+.brand-logo {
+  // Horizontal logo variant - logo and text in same image
+  &.logo-variant-horizontal {
+    // No special layout needed as text is embedded in logo
+    .brand-text {
+      display: none; // Hide separate text since it's in the logo
+    }
+  }
+  
+  // Stacked logo variant - logo and text stacked in same image  
+  &.logo-variant-stacked {
+    // No special layout needed as text is embedded in logo
+    .brand-text {
+      display: none; // Hide separate text since it's in the logo
+    }
+  }
+  
+  // Version-specific styles for future extensibility
+  &.version-v1 {
+    // V1 specific styles if needed
+  }
+  
+  &.version-v2 {
+    // V2 specific styles when available
+  }
+  
+  &.version-v3 {
+    // V3 specific styles when available
+  }
+  
+  // Theme-specific adjustments
+  &.theme-light {
+    // Light theme specific styles if needed
+  }
+  
+  &.theme-dark {
+    // Dark theme specific styles if needed
+  }
+}
+
+// Enhanced responsive adjustments for mobile optimization
+@media (max-width: 768px) {
+  .brand-logo {
+    &.size-lg {
+      .logo-lg {
+        height: 40px;
+      }
+      
+      .brand-text {
+        font-size: var(--font-size-lg);
+      }
+    }
+    
+    &.size-xl {
+      .logo-xl {
+        height: 48px;
+      }
+      
+      .brand-text {
+        font-size: var(--font-size-xl);
+      }
+    }
+    
+    &.size-2xl {
+      .logo-2xl {
+        height: 56px; // Reduced from 60px for better mobile proportions
+      }
+      
+      .brand-text {
+        font-size: var(--font-size-xl); // Reduced from 2xl for mobile
+      }
+      
+      // Reduce gaps for mobile
+      &.layout-horizontal {
+        gap: var(--space-4); // Reduced from space-8
+      }
+      
+      &.layout-vertical {
+        gap: var(--space-3); // Reduced from space-8
+      }
+    }
+    
+    &.size-3xl {
+      .logo-3xl {
+        height: 64px; // Reduced from 72px for better mobile proportions
+      }
+      
+      .brand-text {
+        font-size: var(--font-size-2xl); // Reduced from 3xl for mobile
+      }
+      
+      // Reduce gaps for mobile
+      &.layout-horizontal {
+        gap: var(--space-6); // Reduced from space-10
+      }
+      
+      &.layout-vertical {
+        gap: var(--space-4); // Reduced from space-10
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .brand-logo {
+    &.size-lg {
+      .logo-lg {
+        height: 32px;
+      }
+      
+      .brand-text {
+        font-size: var(--font-size-base);
+      }
+    }
+    
+    &.size-xl {
+      .logo-xl {
+        height: 40px;
+      }
+      
+      .brand-text {
+        font-size: var(--font-size-lg);
+      }
+    }
+    
+    &.size-2xl {
+      .logo-2xl {
+        height: 44px; // Further reduced for small screens
+      }
+      
+      .brand-text {
+        font-size: var(--font-size-lg); // Further reduced for small screens
+      }
+      
+      // Further reduce gaps for small screens
+      &.layout-horizontal {
+        gap: var(--space-3);
+      }
+      
+      &.layout-vertical {
+        gap: var(--space-2);
+      }
+    }
+    
+    &.size-3xl {
+      .logo-3xl {
+        height: 52px; // Further reduced for small screens
+      }
+      
+      .brand-text {
+        font-size: var(--font-size-xl); // Further reduced for small screens
+      }
+      
+      // Further reduce gaps for small screens
+      &.layout-horizontal {
+        gap: var(--space-4);
+      }
+      
+      &.layout-vertical {
+        gap: var(--space-3);
+      }
+    }
+  }
+}

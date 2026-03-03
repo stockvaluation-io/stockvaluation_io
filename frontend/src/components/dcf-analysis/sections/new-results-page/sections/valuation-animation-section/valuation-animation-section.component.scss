@@ -1,0 +1,189 @@
+@use '../section-base.scss';
+
+.valuation-animation-section {
+    border-radius: 16px;
+    padding: 24px;
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            .section-icon {
+                font-size: 1.5rem;
+                color: var(--primary-color);
+            }
+
+            .section-title {
+                margin: 0;
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: var(--text-color);
+            }
+
+            .section-subtitle {
+                display: block;
+                font-size: 0.875rem;
+                color: var(--text-color-secondary);
+                margin-top: 2px;
+            }
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+
+            .action-btn {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                border: 1px solid var(--surface-border);
+                background: var(--surface-ground);
+                color: var(--text-color);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+
+                &:hover {
+                    background: var(--primary-color);
+                    color: white;
+                    border-color: var(--primary-color);
+                }
+
+                i {
+                    font-size: 0.875rem;
+                }
+            }
+        }
+    }
+
+    .video-container {
+        position: relative;
+        width: 100%;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #000;
+        aspect-ratio: 16 / 9;
+
+        .animation-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+            cursor: pointer;
+            transition: background 0.3s ease;
+
+            &:hover {
+                background: rgba(0, 0, 0, 0.4);
+
+                .play-button {
+                    transform: scale(1.1);
+                }
+            }
+
+            .play-button {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                background: var(--primary-color);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: transform 0.3s ease;
+
+                i {
+                    font-size: 2rem;
+                    color: white;
+                    margin-left: 4px; // Visual centering for play icon
+                }
+            }
+
+            .overlay-text {
+                margin-top: 16px;
+                color: white;
+                font-size: 0.875rem;
+                opacity: 0.9;
+            }
+        }
+    }
+
+    .animation-description {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--surface-border);
+
+        .description-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.875rem;
+            color: var(--text-color-secondary);
+
+            i {
+                color: var(--primary-color);
+                font-size: 1rem;
+                margin-top: 2px;
+                flex-shrink: 0;
+            }
+        }
+    }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+    .valuation-animation-section {
+        padding: 16px;
+
+        .section-header {
+            flex-direction: column;
+            gap: 12px;
+
+            .header-actions {
+                align-self: flex-start;
+            }
+        }
+
+        .video-container {
+            .video-overlay {
+                .play-button {
+                    width: 60px;
+                    height: 60px;
+
+                    i {
+                        font-size: 1.5rem;
+                    }
+                }
+            }
+        }
+
+        .animation-description {
+            grid-template-columns: 1fr;
+        }
+    }
+}

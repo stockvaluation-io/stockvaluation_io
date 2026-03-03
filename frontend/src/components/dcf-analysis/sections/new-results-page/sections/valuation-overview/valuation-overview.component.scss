@@ -1,0 +1,516 @@
+@use '../../../../../../styles/_design-system-v2' as ds;
+
+// ==========================================================================
+// VALUATION OVERVIEW SECTION LAYOUT
+// ==========================================================================
+
+.valuation-overview-section {
+  margin-bottom: var(--space-8);
+  
+  @include ds.mobile {
+    margin-bottom: var(--space-6);
+  }
+}
+
+.section-title {
+  @include ds.text-section-title;
+  & {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-6) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  
+  @include ds.mobile {
+    & {
+      font-size: var(--font-size-xl);
+      gap: var(--space-2);
+    }
+  }
+}
+
+.section-icon {
+  color: var(--color-primary-text);
+  font-size: var(--font-size-lg);
+  
+  @include ds.mobile {
+    font-size: var(--font-size-base);
+  }
+}
+
+// ==========================================================================
+// STORY-DRIVEN SECTION LAYOUT
+// ==========================================================================
+
+.story-section-header {
+  margin-bottom: var(--space-8);
+  text-align: left;
+  
+  @include ds.mobile {
+    margin-bottom: var(--space-6);
+  }
+}
+
+.story-section-title {
+  @include ds.text-section-title;
+  & {
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-3) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  
+  i {
+    color: var(--color-primary-text);
+    font-size: var(--font-size-3xl);
+  }
+  
+  @include ds.mobile {
+    font-size: var(--font-size-3xl);
+    gap: var(--space-2);
+    
+    i {
+      font-size: var(--font-size-2xl);
+    }
+  }
+}
+
+.story-section-description {
+  @include ds.text-body;
+  & {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: var(--leading-relaxed);
+  }
+  
+  @include ds.mobile {
+    font-size: var(--font-size-base);
+  }
+}
+
+.story-content-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  
+  @include ds.mobile {
+    gap: var(--space-5);
+  }
+}
+
+// ==========================================================================
+// HERO INVESTMENT DECISION CARD
+// ==========================================================================
+
+.hero-decision-card {
+  background: linear-gradient(135deg, var(--color-bg-button-primary-alpha) 0%, var(--color-bg-button-primary-alpha-hover) 100%);
+  border: 1px solid var(--color-border-button-primary-alpha);
+  border-radius: 16px;
+  padding: var(--space-8);
+  box-shadow: var(--shadow-lg);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: var(--shadow-xl);
+    border-color: var(--color-border-button-primary-alpha-hover);
+  }
+  
+  @include ds.mobile {
+    padding: var(--space-6);
+    border-radius: 12px;
+  }
+}
+
+.decision-header {
+  margin-bottom: var(--space-6);
+  
+  @include ds.mobile {
+    margin-bottom: var(--space-5);
+  }
+}
+
+.company-context {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  
+  @include ds.mobile {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+}
+
+.company-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.company-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: var(--color-bg-tertiary);
+  padding: var(--space-1);
+  
+  @include ds.mobile {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.company-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.company-name {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  
+  @include ds.mobile {
+    font-size: var(--font-size-xl);
+  }
+}
+
+.company-details {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.company-symbol {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary-text);
+  font-weight: var(--font-weight-semibold);
+  background: var(--color-primary-alpha);
+  padding: var(--space-1) var(--space-2);
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.company-sector {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-weight-medium);
+}
+
+.current-price {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.price-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: var(--font-weight-medium);
+}
+
+.price-value {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.decision-core {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--space-8);
+  align-items: center;
+  margin-bottom: var(--space-6);
+  
+  @include ds.mobile {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    text-align: center;
+  }
+}
+
+.fair-value-section {
+  text-align: center;
+}
+
+.fair-value-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: var(--font-weight-medium);
+}
+
+.fair-value-amount {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-primary-text);
+  
+  @include ds.mobile {
+    font-size: var(--font-size-3xl);
+  }
+}
+
+.upside-section {
+  text-align: center;
+}
+
+.upside-indicator {
+  padding: var(--space-4);
+  border-radius: 12px;
+  
+  &.positive {
+    background: var(--color-bg-success-alpha);
+    border: 2px solid var(--color-border-success-alpha);
+  }
+  
+  &.negative {
+    background: var(--color-bg-error-alpha);
+    border: 2px solid var(--color-border-error-alpha);
+  }
+}
+
+.upside-percentage {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  margin-bottom: var(--space-1);
+  
+  .positive & {
+    color: var(--color-success);
+  }
+  
+  .negative & {
+    color: var(--color-error);
+  }
+  
+  @include ds.mobile {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+.upside-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: var(--font-weight-medium);
+}
+
+.decision-insight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-bg-tertiary);
+  border-radius: 8px;
+  border-left: 4px solid var(--color-primary-accent);
+  
+  i {
+    color: var(--color-primary-text);
+    font-size: var(--font-size-lg);
+    flex-shrink: 0;
+  }
+  
+  span {
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
+    line-height: var(--leading-relaxed);
+    font-style: italic;
+  }
+  
+  @include ds.mobile {
+    padding: var(--space-3);
+    gap: var(--space-2);
+    
+    span {
+      font-size: var(--font-size-sm);
+    }
+  }
+}
+
+
+// ==========================================================================
+// VALUATION OVERVIEW STORY CARDS
+// ==========================================================================
+
+.valuation-overview-stories {
+  margin-bottom: var(--space-8);
+  
+  @include ds.mobile {
+    margin-bottom: var(--space-6);
+  }
+}
+
+.story-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-6);
+  
+  @include ds.tablet {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-5);
+  }
+  
+  @include ds.mobile {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+}
+
+.story-card-compact {
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 16px;
+  padding: var(--space-5);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  
+  &:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-primary);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+  }
+  
+  @include ds.mobile {
+    padding: var(--space-4);
+  }
+}
+
+.story-content-top {
+  flex: 0 0 auto;
+  margin-bottom: var(--space-4);
+  
+  @include ds.mobile {
+    margin-bottom: var(--space-3);
+  }
+}
+
+.story-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+  
+  @include ds.mobile {
+    margin-bottom: var(--space-2);
+    gap: var(--space-2);
+  }
+}
+
+.story-icon {
+  color: var(--color-primary-text);
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+  
+  @include ds.mobile {
+    font-size: var(--font-size-base);
+  }
+}
+
+.story-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  
+  @include ds.mobile {
+    font-size: var(--font-size-base);
+  }
+}
+
+.story-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+  
+  @include ds.mobile {
+    font-size: var(--font-size-xs);
+    line-height: var(--leading-normal);
+  }
+}
+
+.story-chart-bottom {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  
+  @include ds.mobile {
+    min-height: 160px;
+  }
+}
+
+// ==========================================================================
+// SECTION SPACING
+// ==========================================================================
+
+.valuation-overview-stories {
+  margin-bottom: var(--space-8);
+  
+  @include ds.mobile {
+    margin-bottom: var(--space-6);
+  }
+}
+
+// ==========================================================================
+// RESPONSIVE DESIGN
+// ==========================================================================
+
+@include ds.large-desktop {
+  .story-content-layout {
+    gap: var(--space-12);
+  }
+  
+  .hero-decision-card {
+    padding: var(--space-10);
+  }
+  
+}
+
+// ==========================================================================
+// ANIMATIONS
+// ==========================================================================
+
+.valuation-overview-section {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.hero-decision-card,
+.story-card-compact {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+
+.story-card-compact:nth-child(1) { animation-delay: 0.2s; }
+.story-card-compact:nth-child(2) { animation-delay: 0.3s; }
+.story-card-compact:nth-child(3) { animation-delay: 0.4s; }
+.story-card-compact:nth-child(4) { animation-delay: 0.5s; }
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

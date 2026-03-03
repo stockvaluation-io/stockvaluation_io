@@ -1,0 +1,175 @@
+.bg-nav {
+    background-color: #1a1d21;
+    color: white;
+}
+
+.p-input-icon-left>i {
+    font-size: 1.2rem;
+    top: 9px;
+}
+
+.header-text {
+    font-weight: 500;
+    font-size: 20px;
+    text-decoration: none;
+    color: #fff;
+}
+
+/* Media Query for Mobile Devices */
+@media (max-width: 768px) {
+    .header-text {
+        font-size: 16px; /* Reduced font size for mobile */
+    }
+
+    .p-input-icon-left>i {
+        font-size: 1rem; /* Smaller icon font size */
+    }
+
+    .dropdown-menu {
+        min-width: 120px; /* Reduce dropdown width on mobile */
+    }
+
+    #searchGlobal {
+        color: #212529; /* Adjust color for better contrast on mobile */
+    }
+
+    .section_main {
+        padding: 5px;  /* Reduced padding for mobile */
+        margin: 0.5em;  /* Reduced margin for better fit */
+    }
+
+    .route_container {
+        width: 100% !important;  /* Ensure full width on mobile */
+    }
+
+    ::ng-deep .p-tooltip {
+        max-width: 300px;  /* Reduce max-width for tooltips on mobile */
+    }
+
+    ul {
+        box-shadow: none; /* Simplify box-shadow for better rendering on mobile */
+        border-radius: 4px; /* Slightly reduce corner rounding for smaller screens */
+    }
+
+    li {
+        padding: 10px 15px; /* Adjust spacing for mobile */
+        font-size: 14px; /* Reduce font size for better fit */
+    }
+
+    .top_nav {
+        height: 50px; /* Adjust height for smaller screens */
+    }
+
+    p {
+        font-size: 1rem; /* Reduce paragraph font size */
+    }
+}
+
+.section_main_body {
+    width: 100vw;
+    overflow: hidden;
+    color: #fff !important;
+    font-family: Nunito, serif !important;
+
+    .top_nav {
+        height: 60px;
+        width: 100%;
+        background-color: #1a1d21;
+    }
+
+    .main_container {
+        display: flex;
+        width: 100%;
+        height: calc(90% - 1em);
+
+        .route_container {
+            width: 100%;
+            height: 100%;
+            line-height: 1.6;
+        }
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    .route_container {
+        width: 100% !important;
+        line-height: 1.6;
+    }
+
+    .section_main {
+        padding: 8px; /* Adjust padding for medium screens */
+        margin: 1em; /* Adjust margin for better fit */
+    }
+
+    .header-text {
+        font-size: 18px; /* Slightly reduce font size */
+    }
+
+    ul {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Adjust shadow for medium screens */
+        border-radius: 6px; /* Reduce border radius */
+    }
+
+    li {
+        padding: 12px 18px; /* Adjust spacing */
+        font-size: 15px; /* Slightly reduce font size */
+    }
+
+    p {
+        font-size: 1.1rem; /* Slightly reduce paragraph font size */
+    }
+}
+
+.section_main {
+    position: relative;
+    /* background-color: #414040; */
+    height: calc(100% - 1rem);
+    padding: 10px;
+    margin: 1.2em;
+    border-radius: 10px;
+    color: #fff !important;
+    font-family: Nunito, serif !important;
+}
+
+.heading {
+    color: #20df7f;
+}
+
+p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 18px;
+    font-weight: 500;
+    font-size: 1.2rem;
+}
+
+/* General Styles */
+ul {
+    list-style-type: none; /* Remove default bullets */
+    padding: 0; /* Remove default padding */
+    margin: 0; /* Remove default margin */
+    border: 1px solid #ddd; /* Border for better visibility */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    overflow: hidden; /* Ensure no content spills out */
+}
+
+/* List Item Styles */
+li {
+    padding: 15px 20px; /* Add space around items */
+    font-size: 16px; /* Increase font size */
+    border-bottom: 1px solid #ddd; /* Separate items with a line */
+    transition: background-color 0.3s, color 0.3s; /* Smooth hover transition */
+}
+
+/* Last Item Adjustment */
+li:last-child {
+    border-bottom: none; /* Remove border from last item */
+}
+
+/* Hover Effects */
+li:hover {
+    background-color: #f0f0f0; /* Change background on hover */
+    color: #007BFF; /* Highlight text on hover */
+    cursor: pointer; /* Indicate interactivity */
+}

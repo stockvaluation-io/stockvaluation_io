@@ -1,0 +1,75 @@
+@use '../../../styles/_design-system-v2' as ds;
+
+.theme-toggle-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 44px;
+}
+
+.theme-toggle-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 6px 4px;
+  border: none;
+  border-radius: 6px;
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  gap: 2px;
+  
+  &:hover {
+    background-color: var(--color-surface-hover);
+    color: var(--color-text-primary);
+    
+    .theme-label {
+      opacity: 1;
+      color: var(--color-text-secondary);
+    }
+  }
+  
+  &:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    
+    .theme-label {
+      opacity: 1;
+      color: var(--color-text-secondary);
+    }
+  }
+  
+  &:active {
+    transform: scale(0.95);
+    
+    .theme-label {
+      opacity: 1;
+      color: var(--color-text-primary);
+    }
+  }
+}
+
+.theme-toggle-icon {
+  transition: transform 0.2s ease;
+}
+
+.theme-toggle-btn:hover .theme-toggle-icon {
+  transform: rotate(15deg);
+}
+
+.theme-label {
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.75px;
+  line-height: 1;
+  user-select: none;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+}

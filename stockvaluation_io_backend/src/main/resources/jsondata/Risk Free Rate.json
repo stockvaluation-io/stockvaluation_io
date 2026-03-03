@@ -1,0 +1,346 @@
+[
+  {
+    "currency": "Australian $",
+    "govtBondRate": 3.96,
+    "bondRating": "Aaa",
+    "riskfreeRate": 3.96,
+    "defaultSpread": 0.00,
+    "currencyCode": "AUD"
+  },
+  {
+    "currency": "Brazilian Reai",
+    "govtBondRate": 10.35,
+    "bondRating": "Ba2",
+    "riskfreeRate": 7.07,
+    "defaultSpread": 3.28,
+    "currencyCode": "BRL"
+  },
+  {
+    "currency": "British Pound",
+    "govtBondRate": 3.53,
+    "bondRating": "Aa3",
+    "riskfreeRate": 2.88,
+    "defaultSpread": 0.65,
+    "currencyCode": "GBP"
+  },
+  {
+    "currency": "Bulgarian Lev",
+    "govtBondRate": 4.50,
+    "bondRating": "Baa1",
+    "riskfreeRate": 2.76,
+    "defaultSpread": 1.74,
+    "currencyCode": "BGN"
+  },
+  {
+    "currency": "Canadian $",
+    "govtBondRate": 3.09,
+    "bondRating": "Aaa",
+    "riskfreeRate": 3.09,
+    "defaultSpread": 0.00,
+    "currencyCode": "CAD"
+  },
+  {
+    "currency": "Chilean Peso",
+    "govtBondRate": 5.35,
+    "bondRating": "A2",
+    "riskfreeRate": 4.43,
+    "defaultSpread": 0.92,
+    "currencyCode": "CLP"
+  },
+  {
+    "currency": "Chinese Yuan",
+    "govtBondRate": 2.58,
+    "bondRating": "A1",
+    "riskfreeRate": 1.81,
+    "defaultSpread": 0.77,
+    "currencyCode": "CNY"
+  },
+  {
+    "currency": "Colombian Peso",
+    "govtBondRate": 9.88,
+    "bondRating": "Baa2",
+    "riskfreeRate": 7.80,
+    "defaultSpread": 2.07,
+    "currencyCode": "COP"
+  },
+  {
+    "currency": "Croatian Kuna",
+    "govtBondRate": 3.31,
+    "bondRating": "Baa2",
+    "riskfreeRate": 1.23,
+    "defaultSpread": 2.07,
+    "currencyCode": "HRK"
+  },
+  {
+    "currency": "Czech Koruna",
+    "govtBondRate": 3.72,
+    "bondRating": "Aa3",
+    "riskfreeRate": 3.07,
+    "defaultSpread": 0.65,
+    "currencyCode": "CZK"
+  },
+  {
+    "currency": "Danish Krone",
+    "govtBondRate": 2.22,
+    "bondRating": "Aaa",
+    "riskfreeRate": 2.22,
+    "defaultSpread": 0.00,
+    "currencyCode": "DKK"
+  },
+  {
+    "currency": "Euro",
+    "govtBondRate": 2.03,
+    "bondRating": "Aaa",
+    "riskfreeRate": 2.03,
+    "defaultSpread": 0.00,
+    "currencyCode": "EUR"
+  },
+  {
+    "currency": "HK $",
+    "govtBondRate": 3.27,
+    "bondRating": "Aa3",
+    "riskfreeRate": 2.61,
+    "defaultSpread": 0.65,
+    "currencyCode": "HKD"
+  },
+  {
+    "currency": "Hungarian Forint",
+    "govtBondRate": 5.89,
+    "bondRating": "Baa2",
+    "riskfreeRate": 3.82,
+    "defaultSpread": 2.07,
+    "currencyCode": "HUF"
+  },
+  {
+    "currency": "Iceland Krona",
+    "govtBondRate": 6.98,
+    "bondRating": "A2",
+    "riskfreeRate": 6.06,
+    "defaultSpread": 0.92,
+    "currencyCode": "ISK"
+  },
+  {
+    "currency": "Indian Rupee",
+    "govtBondRate": 7.18,
+    "bondRating": "Baa3",
+    "riskfreeRate": 4.78,
+    "defaultSpread": 2.39,
+    "currencyCode": "INR"
+  },
+  {
+    "currency": "Indonesian Rupiah",
+    "govtBondRate": 6.49,
+    "bondRating": "Baa2",
+    "riskfreeRate": 4.41,
+    "defaultSpread": 2.07,
+    "currencyCode": "IDR"
+  },
+  {
+    "currency": "Israeli Shekel",
+    "govtBondRate": 3.96,
+    "bondRating": "A1",
+    "riskfreeRate": 3.19,
+    "defaultSpread": 0.77,
+    "currencyCode": "ILS"
+  },
+  {
+    "currency": "Japanese Yen",
+    "govtBondRate": 0.62,
+    "bondRating": "A1",
+    "riskfreeRate": -0.15,
+    "defaultSpread": 0.77,
+    "currencyCode": "JPY"
+  },
+  {
+    "currency": "Kenyan Shilling",
+    "govtBondRate": 17.72,
+    "bondRating": "B3",
+    "riskfreeRate": 10.64,
+    "defaultSpread": 7.08,
+    "currencyCode": "KES"
+  },
+  {
+    "currency": "Korean Won",
+    "govtBondRate": 3.18,
+    "bondRating": "Aa2",
+    "riskfreeRate": 2.64,
+    "defaultSpread": 0.54,
+    "currencyCode": "KRW"
+  },
+  {
+    "currency": "Malyasian Ringgit",
+    "govtBondRate": 3.73,
+    "bondRating": "A3",
+    "riskfreeRate": 2.43,
+    "defaultSpread": 1.31,
+    "currencyCode": "MYR"
+  },
+  {
+    "currency": "Mexican Peso",
+    "govtBondRate": 9.07,
+    "bondRating": "Baa2",
+    "riskfreeRate": 7.00,
+    "defaultSpread": 2.07,
+    "currencyCode": "MXN"
+  },
+  {
+    "currency": "Nigerian Naira",
+    "govtBondRate": 14.58,
+    "bondRating": "Caa1",
+    "riskfreeRate": 6.41,
+    "defaultSpread": 8.17,
+    "currencyCode": "NGN"
+  },
+  {
+    "currency": "Norwegian Krone",
+    "govtBondRate": 3.28,
+    "bondRating": "Aaa",
+    "riskfreeRate": 3.28,
+    "defaultSpread": 0.00,
+    "currencyCode": "NOK"
+  },
+  {
+    "currency": "NZ $",
+    "govtBondRate": 4.39,
+    "bondRating": "Aaa",
+    "riskfreeRate": 4.39,
+    "defaultSpread": 0.00,
+    "currencyCode": "NZD"
+  },
+  {
+    "currency": "Pakistani Rupee",
+    "govtBondRate": 15.08,
+    "bondRating": "Caa3",
+    "riskfreeRate": 4.18,
+    "defaultSpread": 10.90,
+    "currencyCode": "PKR"
+  },
+  {
+    "currency": "Peruvian Sol",
+    "govtBondRate": 5.87,
+    "bondRating": "Baa1",
+    "riskfreeRate": 4.13,
+    "defaultSpread": 1.74,
+    "currencyCode": "PEN"
+  },
+  {
+    "currency": "Phillipine Peso",
+    "govtBondRate": 6.02,
+    "bondRating": "Baa2",
+    "riskfreeRate": 3.95,
+    "defaultSpread": 2.07,
+    "currencyCode": "PHP"
+  },
+  {
+    "currency": "Polish Zloty",
+    "govtBondRate": 5.25,
+    "bondRating": "A2",
+    "riskfreeRate": 4.33,
+    "defaultSpread": 0.92,
+    "currencyCode": "PLN"
+  },
+  {
+    "currency": "Qatari Dinar",
+    "govtBondRate": 4.07,
+    "bondRating": "Aa3",
+    "riskfreeRate": 3.42,
+    "defaultSpread": 0.65,
+    "currencyCode": "QAR"
+  },
+  {
+    "currency": "Romanian Lev",
+    "govtBondRate": 6.30,
+    "bondRating": "Baa3",
+    "riskfreeRate": 3.91,
+    "defaultSpread": 2.39,
+    "currencyCode": "RON"
+  },
+  {
+    "currency": "Russian Ruble",
+    "govtBondRate": 12.30,
+    "bondRating": "Baa3",
+    "riskfreeRate": 9.91,
+    "defaultSpread": 2.39,
+    "currencyCode": "RUB"
+  },
+  {
+    "currency": "Singapore $",
+    "govtBondRate": 2.70,
+    "bondRating": "Aaa",
+    "riskfreeRate": 2.70,
+    "defaultSpread": 0.00,
+    "currencyCode": "SGD"
+  },
+  {
+    "currency": "South African Rand",
+    "govtBondRate": 9.77,
+    "bondRating": "Ba2",
+    "riskfreeRate": 6.49,
+    "defaultSpread": 3.28,
+    "currencyCode": "ZAR"
+  },
+  {
+    "currency": "Swedish Krona",
+    "govtBondRate": 2.07,
+    "bondRating": "Aaa",
+    "riskfreeRate": 2.07,
+    "defaultSpread": 0.00,
+    "currencyCode": "SEK"
+  },
+  {
+    "currency": "Swiss Franc",
+    "govtBondRate": 0.70,
+    "bondRating": "Aaa",
+    "riskfreeRate": 0.70,
+    "defaultSpread": 0.00,
+    "currencyCode": "CHF"
+  },
+  {
+    "currency": "Taiwanese $",
+    "govtBondRate": 1.17,
+    "bondRating": "Aa3",
+    "riskfreeRate": 0.52,
+    "defaultSpread": 0.65,
+    "currencyCode": "TWD"
+  },
+  {
+    "currency": "Thai Baht",
+    "govtBondRate": 2.74,
+    "bondRating": "Baa1",
+    "riskfreeRate": 1.00,
+    "defaultSpread": 1.74,
+    "currencyCode": "THB"
+  },
+  {
+    "currency": "Turkish Lira",
+    "govtBondRate": 23.69,
+    "bondRating": "B3",
+    "riskfreeRate": 16.61,
+    "defaultSpread": 7.08,
+    "currencyCode": "TRY"
+  },
+  {
+    "currency": "US $",
+    "govtBondRate": 3.85,
+    "bondRating": "Aaa",
+    "riskfreeRate": 3.85,
+    "defaultSpread": 0.00,
+    "currencyCode": "USD"
+  },
+  {
+    "currency": "Vietnamese Dong",
+    "govtBondRate": 2.39,
+    "bondRating": "Ba2",
+    "riskfreeRate": -0.89,
+    "defaultSpread": 3.28,
+    "currencyCode": "VND"
+  },
+  {
+    "currency": "Zambian kwacha",
+    "govtBondRate": 25.50,
+    "bondRating": "Caa3",
+    "riskfreeRate": 14.60,
+    "defaultSpread": 10.90,
+    "currencyCode": "ZMW"
+  }
+]

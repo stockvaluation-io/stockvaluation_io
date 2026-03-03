@@ -1,0 +1,172 @@
+@use '../../../../../../styles/_design-system-v2' as ds;
+
+// ==========================================================================
+// TERMINAL VALUE SECTION LAYOUT
+// ==========================================================================
+
+.terminal-value-section {
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-8);
+  
+  @include ds.mobile {
+    margin-top: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+}
+
+.section-title {
+  @include ds.text-section-title;
+  & {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-6) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  
+  @include ds.mobile {
+    font-size: var(--font-size-xl);
+    gap: var(--space-2);
+  }
+}
+
+.section-icon {
+  color: var(--color-primary);
+  font-size: var(--font-size-lg);
+  
+  @include ds.mobile {
+    font-size: var(--font-size-base);
+  }
+}
+
+// ==========================================================================
+// COMPACT TERMINAL VALUE LAYOUT
+// ==========================================================================
+
+.compact-terminal-container {
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 12px;
+  padding: var(--space-4);
+}
+
+.terminal-metrics-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  
+  @include ds.tablet {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+  
+  @include ds.mobile {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background: var(--color-bg-hover);
+  }
+  
+  &.primary {
+    background: var(--color-bg-button-primary-alpha);
+    border: 1px solid var(--color-border-button-primary-alpha);
+    
+    .metric-value {
+      color: var(--color-primary);
+    }
+  }
+}
+
+.metric-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-value {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  
+  @include ds.mobile {
+    font-size: var(--font-size-base);
+  }
+}
+
+
+.terminal-summary {
+  padding: var(--space-3);
+  background: var(--color-bg-secondary);
+  border-radius: 8px;
+  border-top: 1px solid var(--color-border-tertiary);
+}
+
+.summary-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  font-style: italic;
+  margin: 0;
+}
+
+// ==========================================================================
+// ANIMATIONS
+// ==========================================================================
+
+.terminal-value-section {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.metric-item:nth-child(1) { animation-delay: 0.1s; }
+.metric-item:nth-child(2) { animation-delay: 0.2s; }
+.metric-item:nth-child(3) { animation-delay: 0.3s; }
+.metric-item:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ==========================================================================
+// RESPONSIVE DESIGN
+// ==========================================================================
+
+@include ds.large-desktop {
+  .compact-terminal-container {
+    padding: var(--space-6);
+  }
+  
+  .terminal-metrics-strip {
+    gap: var(--space-6);
+  }
+}
+
+@include ds.mobile {
+  .terminal-summary {
+    padding: var(--space-2);
+  }
+  
+  .summary-text {
+    font-size: var(--font-size-xs);
+  }
+}

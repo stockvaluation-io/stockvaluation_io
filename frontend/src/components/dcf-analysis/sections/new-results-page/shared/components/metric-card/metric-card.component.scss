@@ -1,0 +1,262 @@
+@use '../../../../../../../styles/_design-system-v2' as ds;
+
+.metric-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    border-color: var(--color-border-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  &.loading {
+    .metric-content {
+      opacity: 0.6;
+    }
+  }
+
+  // Size variants
+  &.size-small {
+    padding: var(--space-3);
+    
+    .metric-title {
+      font-size: var(--text-sm);
+    }
+    
+    .metric-value {
+      font-size: var(--text-lg);
+    }
+    
+    @include ds.mobile {
+      padding: var(--space-2);
+      
+      .metric-title {
+        font-size: var(--text-xs);
+      }
+      
+      .metric-value {
+        font-size: var(--text-base);
+      }
+    }
+  }
+
+  &.size-medium {
+    padding: var(--space-4);
+    
+    .metric-title {
+      font-size: var(--text-sm);
+    }
+    
+    .metric-value {
+      font-size: var(--text-xl);
+    }
+    
+    @include ds.mobile {
+      padding: var(--space-3);
+      
+      .metric-title {
+        font-size: var(--text-xs);
+      }
+      
+      .metric-value {
+        font-size: var(--text-lg);
+      }
+    }
+  }
+
+  &.size-large {
+    padding: var(--space-6);
+    
+    @include ds.mobile {
+      padding: var(--space-4);
+    }
+    
+    .metric-title {
+      font-size: var(--text-base);
+    }
+    
+    .metric-value {
+      font-size: var(--text-2xl);
+    }
+  }
+
+  // Status variants
+  &.status-positive {
+    border-left: 4px solid var(--color-success);
+    
+    .metric-value {
+      color: var(--color-success);
+    }
+  }
+
+  &.status-negative {
+    border-left: 4px solid var(--color-danger);
+    
+    .metric-value {
+      color: var(--color-danger);
+    }
+  }
+
+  &.status-warning {
+    border-left: 4px solid var(--color-warning);
+    
+    .metric-value {
+      color: var(--color-warning);
+    }
+  }
+
+  &.status-neutral {
+    border-left: 4px solid var(--color-primary-accent);
+    
+    .metric-value {
+      color: var(--color-primary-text);
+    }
+  }
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.metric-title {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: var(--font-medium);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.metric-icon {
+  color: var(--color-primary-text);
+  font-size: var(--text-base);
+}
+
+.metric-trend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+
+  &.trend-up {
+    color: var(--color-success);
+    background: rgba(var(--color-success-rgb), 0.1);
+  }
+
+  &.trend-down {
+    color: var(--color-danger);
+    background: rgba(var(--color-danger-rgb), 0.1);
+  }
+
+  &.trend-neutral {
+    color: var(--text-secondary);
+    background: var(--surface-100);
+  }
+
+  i {
+    font-size: var(--text-xs);
+  }
+}
+
+.metric-content {
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.metric-value {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  line-height: 1.2;
+  margin-bottom: var(--space-1);
+}
+
+.metric-subtitle {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  margin-top: var(--space-1);
+}
+
+.metric-loading {
+  .loading-skeleton {
+    height: 32px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    background-size: 200px 100%;
+    background-repeat: no-repeat;
+    border-radius: var(--radius-md);
+    animation: loading 1.5s infinite;
+  }
+}
+
+@keyframes loading {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+// Dark mode optimizations
+@media (prefers-color-scheme: dark) {
+  .metric-card {
+    background: var(--surface-900);
+    border-color: var(--surface-700);
+
+    &:hover {
+      border-color: var(--surface-600);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .loading-skeleton {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.05),
+      transparent
+    );
+  }
+}
+
+// Responsive adjustments
+@include ds.mobile {
+  .metric-card {
+    &.size-large {
+      padding: var(--space-4);
+      
+      .metric-value {
+        font-size: var(--text-xl);
+      }
+    }
+  }
+
+  .metric-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+
+  .metric-trend {
+    align-self: flex-end;
+  }
+}

@@ -1,0 +1,172 @@
+// ==========================================================================
+// STORY CARDS COMPONENT
+// ==========================================================================
+
+@use '../../../../../../../styles/_design-system-v2' as ds;
+
+// ==========================================================================
+// ANIMATIONS
+// ==========================================================================
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+// ==========================================================================
+// STORY CARDS CONTAINER
+// ==========================================================================
+
+.story-cards-container {
+  width: 100%;
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-4);
+}
+
+// ==========================================================================
+// DISCLAIMER MARQUEE
+// ==========================================================================
+
+.disclaimer-marquee {
+  background: var(--color-bg-tertiary);
+  border: 1px solid rgba(32, 223, 127, 0.2);
+  border-radius: 8px;
+  padding: var(--space-3);
+  margin-bottom: var(--space-6);
+  overflow: hidden;
+  position: relative;
+
+  .marquee-content {
+    white-space: nowrap;
+    animation: marquee 60s linear infinite;
+    
+    span {
+      @include ds.text-small;
+      & {
+        color: var(--color-text-secondary);
+        line-height: 1.4;
+      }
+    }
+  }
+
+  &:hover .marquee-content {
+    animation-play-state: paused;
+  }
+}
+
+// ==========================================================================
+// STORY CARDS GRID
+// ==========================================================================
+
+.story-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  
+  @include ds.mobile {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+  
+  @include ds.tablet {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @include ds.desktop {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+// ==========================================================================
+// STORY CARD
+// ==========================================================================
+
+.story-card {
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-left: 4px solid var(--color-primary);
+  border-radius: 12px;
+  padding: var(--space-4);
+  transition: all 0.3s ease;
+  position: relative;
+  min-height: 140px;
+
+  &:hover {
+    background: var(--color-bg-secondary);
+    border-color: var(--color-border-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  @include ds.mobile {
+    min-height: 120px;
+    padding: var(--space-3);
+  }
+}
+
+// ==========================================================================
+// CARD CONTENT
+// ==========================================================================
+
+.card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-3);
+  gap: var(--space-3);
+
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-primary-alpha);
+    border-radius: 8px;
+    
+    i {
+      font-size: 18px;
+      color: var(--color-primary-text);
+    }
+    
+    @include ds.mobile {
+      width: 36px;
+      height: 36px;
+      
+      i {
+        font-size: 16px;
+      }
+    }
+  }
+
+  .card-title {
+    @include ds.text-body;
+    & {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+      font-size: 16px;
+    }
+    
+    @include ds.mobile {
+      font-size: 14px;
+    }
+  }
+}
+
+.card-content {
+  .story-text {
+    @include ds.text-body;
+    & {
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+      margin: 0;
+      font-style: italic;
+      font-size: 14px;
+    }
+    
+    @include ds.mobile {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  }
+}

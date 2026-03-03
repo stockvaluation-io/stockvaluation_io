@@ -1,0 +1,129 @@
+{
+  "hero": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know about stock valuation and our platform"
+  },
+  "categories": [
+    {
+      "id": "all",
+      "name": "All Questions",
+      "icon": "faqAll",
+      "description": "Browse all frequently asked questions"
+    },
+    {
+      "id": "basics",
+      "name": "Getting Started",
+      "icon": "faqStart",
+      "description": "Learn the basics of stock valuation"
+    },
+    {
+      "id": "platform",
+      "name": "Platform Features",
+      "icon": "faqPlatform",
+      "description": "Understanding our tools and features"
+    },
+    {
+      "id": "valuation",
+      "name": "Valuation Methods",
+      "icon": "faqValuation",
+      "description": "DCF models and valuation techniques"
+    },
+    {
+      "id": "technical",
+      "name": "Technical Support",
+      "icon": "faqSupport",
+      "description": "Account, billing, and technical issues"
+    }
+  ],
+  "faqs": [
+    {
+      "id": "what-is-stockvaluation",
+      "question": "What is stockvaluation.io?",
+      "answer": "stockvaluation.io is an investment reasoning journal that helps you document, challenge, and learn from your investment decisions. Unlike traditional valuation tools, we focus on helping you understand why you invest and how to become a better investor through systematic reflection.<br><br>We believe that great investing starts with clear thinking. Our platform uses AI-powered questions to challenge your assumptions, surface contradictions in your reasoning, and help you learn from past decisions. Whether you're a retail investor, financial advisor, or investment club, we help you think more deeply and make better decisions.",
+      "category": "basics",
+      "searchKeywords": ["platform", "introduction", "overview", "what is", "about", "thesis", "reasoning"]
+    },
+    {
+      "id": "how-to-get-started",
+      "question": "How do I get started with stock valuation?",
+      "answer": "Getting started is simple:<br><br><strong>1. Enter a Stock Ticker:</strong> Input the ticker symbol of the company you want to analyze (e.g., AAPL for Apple).<br><br><strong>2. Review Company Data:</strong> Our system automatically pulls the latest financial data and presents key metrics.<br><br><strong>3. Customize Parameters:</strong> Adjust valuation assumptions based on your analysis or use our intelligent defaults.<br><br><strong>4. Generate Analysis:</strong> Get a comprehensive DCF valuation with detailed explanations.<br><br>No financial background required – our platform guides you through each step with helpful tooltips and explanations.",
+      "category": "basics",
+      "searchKeywords": ["getting started", "begin", "start", "tutorial", "how to", "first time"]
+    },
+    {
+      "id": "who-should-use",
+      "question": "Who should use stockvaluation.io?",
+      "answer": "Our platform is designed for:<br><br><strong>Individual Investors:</strong> Retail investors who want professional-level analysis without the complexity.<br><br><strong>Students &amp; Educators:</strong> Those learning about finance and valuation methodologies.<br><br><strong>Financial Advisors:</strong> Professionals who need reliable tools for client presentations.<br><br><strong>Investment Clubs:</strong> Groups making collective investment decisions.<br><br><strong>Anyone Interested in Stocks:</strong> From beginners to experienced investors looking for accessible valuation tools.",
+      "category": "basics",
+      "searchKeywords": ["who", "audience", "users", "target", "suitable for"]
+    },
+    {
+      "id": "automated-vs-manual",
+      "question": "What's the difference between automated and manual valuation?",
+      "answer": "<strong>Automated Valuation:</strong> Uses our default parameters based on industry averages and analyst projections. Perfect for quick analysis or when you're learning.<br><br><strong>Manual Valuation:</strong> Allows you to customize growth rates, margins, and other key assumptions based on your own research and analysis.<br><br>Both methods use the same robust DCF framework. We recommend starting with automated analysis to understand the baseline, then experimenting with manual adjustments as you gain confidence.",
+      "category": "platform",
+      "searchKeywords": ["automated", "manual", "difference", "comparison", "custom", "default"]
+    },
+    {
+      "id": "data-sources",
+      "question": "Where does your financial data come from?",
+      "answer": "We source our data from reliable financial data providers to ensure accuracy and timeliness:<br><br><strong>Financial Statements:</strong> Latest 10-K and 10-Q filings from SEC databases<br><br><strong>Market Data:</strong> Real-time and historical stock prices from major exchanges<br><br><strong>Industry Metrics:</strong> Sector averages and benchmarks from reputable financial databases<br><br><strong>Analyst Estimates:</strong> Consensus projections from financial research firms<br><br>All data is updated regularly to ensure you're working with the most current information available.",
+      "category": "platform",
+      "searchKeywords": ["data", "sources", "accuracy", "SEC", "financial statements", "where"]
+    },
+    {
+      "id": "supported-companies",
+      "question": "Which companies can I analyze?",
+      "answer": "Our platform supports analysis of:<br><br><strong>US Public Companies:</strong> All companies listed on major US exchanges (NYSE, NASDAQ)<br><br><strong>International Companies:</strong> Many international companies with ADRs traded in the US<br><br><strong>Sector Coverage:</strong> Most sectors except financial services (banks, insurance companies) due to their unique business models<br><br><strong>Market Cap Range:</strong> From small-cap to large-cap companies<br><br>Simply enter the ticker symbol to see if analysis is available. If a company isn't supported, we'll let you know and suggest alternatives.",
+      "category": "platform",
+      "searchKeywords": ["companies", "supported", "coverage", "ticker", "international", "sectors"]
+    },
+    {
+      "id": "dcf-model-explanation",
+      "question": "How does the DCF model work?",
+      "answer": "Our Discounted Cash Flow (DCF) model follows Aswath Damodaran's proven methodology:<br><br><strong>1. Revenue Projections:</strong> Forecast future revenues based on growth rates<br><br><strong>2. Operating Margins:</strong> Project operating income using margin assumptions<br><br><strong>3. Free Cash Flow:</strong> Calculate cash flows after taxes, reinvestment, and working capital changes<br><br><strong>4. Terminal Value:</strong> Estimate long-term value using perpetual growth assumptions<br><br><strong>5. Discount Rate:</strong> Apply appropriate cost of capital to present-value all cash flows<br><br><strong>6. Intrinsic Value:</strong> Sum all discounted cash flows to determine fair value per share<br><br>Each step is transparent and adjustable, allowing you to understand and modify the analysis.",
+      "category": "valuation",
+      "searchKeywords": ["DCF", "discounted cash flow", "model", "methodology", "how it works", "valuation"]
+    },
+    {
+      "id": "assumptions-importance",
+      "question": "Why are assumptions so important in valuation?",
+      "answer": "Assumptions are the foundation of any valuation model:<br><br><strong>Growth Rates:</strong> Small changes in revenue growth can dramatically impact final valuations<br><br><strong>Margins:</strong> Operating efficiency assumptions affect profitability projections<br><br><strong>Discount Rates:</strong> Risk assessments directly influence present value calculations<br><br><strong>Terminal Value:</strong> Long-term growth assumptions often represent 60-80% of total value<br><br>Our platform provides industry benchmarks and historical data to help you make informed assumptions. We also show sensitivity analysis to understand how changes impact your results.<br><br>Remember: All models are wrong, but some are useful. The key is making reasonable, well-researched assumptions.",
+      "category": "valuation",
+      "searchKeywords": ["assumptions", "important", "growth", "margins", "terminal value", "sensitivity"]
+    },
+    {
+      "id": "accuracy-limitations",
+      "question": "How accurate are the valuations?",
+      "answer": "Valuation is an art as much as a science. Important considerations:<br><br><strong>Model Quality:</strong> Our DCF framework is academically sound and professionally tested<br><br><strong>Data Accuracy:</strong> We use high-quality financial data sources for consistency<br><br><strong>Assumption Dependency:</strong> Results depend heavily on your input assumptions<br><br><strong>Market Efficiency:</strong> Markets may not always reflect intrinsic value in the short term<br><br><strong>Use as Guidance:</strong> Treat valuations as one tool in your investment decision process, not absolute truth<br><br>The goal isn't perfect prediction but rather developing a systematic approach to understanding company value relative to market price.",
+      "category": "valuation",
+      "searchKeywords": ["accuracy", "limitations", "reliable", "market", "predictions", "guidance"]
+    },
+    {
+      "id": "browser-compatibility",
+      "question": "Which browsers are supported?",
+      "answer": "Our platform works best on modern browsers:<br><br><strong>Recommended:</strong><br>• Chrome 90+ (recommended)<br>• Firefox 88+<br>• Safari 14+<br>• Edge 90+<br><br><strong>Features:</strong><br>• JavaScript must be enabled<br>• Cookies should be allowed<br>• Minimum screen resolution: 1024x768<br><br>For the best experience, ensure your browser is up to date and disable ad blockers that might interfere with data loading.",
+      "category": "technical",
+      "searchKeywords": ["browser", "compatibility", "requirements", "technical", "chrome", "firefox", "safari"]
+    },
+    {
+      "id": "account-issues",
+      "question": "I'm having trouble with my account. What should I do?",
+      "answer": "For account-related issues, try these steps:<br><br><strong>1. Clear Browser Cache:</strong> Clear cookies and cached data, then restart your browser<br><br><strong>2. Disable Extensions:</strong> Temporarily disable browser extensions that might interfere<br><br><strong>3. Check Network:</strong> Ensure you have a stable internet connection<br><br><strong>4. Try Incognito Mode:</strong> Test the platform in a private/incognito browser window<br><br>If problems persist, <a href=\"/contact\" class=\"link\">contact our support team</a> with:<br>• Description of the issue<br>• Browser and version<br>• Screenshots if applicable<br><br><strong>For screenshots:</strong> Visit our contact page for email details<br><br>We typically respond within 24 hours.",
+      "category": "technical",
+      "searchKeywords": ["account", "trouble", "login", "issues", "problems", "support", "help"]
+    },
+    {
+      "id": "data-privacy",
+      "question": "How do you protect my data and privacy?",
+      "answer": "We take data protection seriously:<br><br><strong>Data Encryption:</strong> All data transmission uses SSL/TLS encryption<br><br><strong>Privacy by Design:</strong> We collect only necessary information for platform functionality<br><br><strong>No Personal Financial Data:</strong> We don't store your personal financial information or investment positions<br><br><strong>Third-Party Security:</strong> Our hosting and data providers meet enterprise security standards<br><br><strong>Transparency:</strong> Our privacy policy clearly explains what data we collect and how it's used<br><br>For detailed information, please review our <a href=\"/privacy\" class=\"link\">Privacy Policy</a>.",
+      "category": "technical",
+      "searchKeywords": ["privacy", "data protection", "security", "encryption", "personal data"]
+    }
+  ],
+  "contact": {
+    "title": "Still have questions?",
+    "description": "Can't find the answer you're looking for? Our team is here to help you understand stock valuation better.",
+    "email": "contact@stockvaluation.io"
+  }
+}

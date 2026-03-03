@@ -1,0 +1,236 @@
+{
+  "companies": {
+    "AAPL": {
+      "type": "profitable",
+      "basicInfo": {
+        "ticker": "AAPL",
+        "companyName": "Apple Inc.",
+        "countryOfIncorporation": "United States",
+        "industryUs": "technology",
+        "industryGlobal": "technology"
+      },
+      "financialData": {
+        "revenueTTM": 383285000000,
+        "operatingIncomeTTM": 114301000000,
+        "stockPrice": 175.0,
+        "noOfShareOutstanding": 15550000000,
+        "marginalTaxRate": 21.0,
+        "bookValueDebtTTM": 111088000000,
+        "bookValueEqualityTTM": 62146000000,
+        "cashAndMarkablTTM": 61555000000,
+        "interestExpenseTTM": 3933000000,
+        "researchAndDevelopment": {
+          "currentRD-0": 29915000000,
+          "currentRD-1": 26251000000,
+          "currentRD-2": 21914000000,
+          "currentRD-3": 18752000000,
+          "currentRD-4": 16217000000
+        }
+      },
+      "driveData": {
+        "revenueNextYear": 0.08,
+        "operatingMarginNextYear": 0.30,
+        "compoundAnnualGrowth2_5": 0.06,
+        "targetPreTaxOperatingMargin": 0.32,
+        "salesToCapitalYears1To5": 1.8,
+        "salesToCapitalYears6To10": 1.8,
+        "riskFreeRate": 4.5,
+        "initialCostCapital": 8.5
+      },
+      "expectedOutput": {
+        "waccRange": [0.07, 0.10],
+        "terminalGrowthMax": 0.045,
+        "intrinsicValuePositive": true
+      }
+    },
+    "RIVN": {
+      "type": "loss-making",
+      "basicInfo": {
+        "ticker": "RIVN",
+        "companyName": "Rivian Automotive Inc.",
+        "countryOfIncorporation": "United States",
+        "industryUs": "automotive",
+        "industryGlobal": "automotive"
+      },
+      "financialData": {
+        "revenueTTM": 4434000000,
+        "operatingIncomeTTM": -5752000000,
+        "stockPrice": 18.0,
+        "noOfShareOutstanding": 1000000000,
+        "marginalTaxRate": 21.0,
+        "bookValueDebtTTM": 5200000000,
+        "bookValueEqualityTTM": 8500000000,
+        "cashAndMarkablTTM": 7900000000,
+        "interestExpenseTTM": 150000000,
+        "researchAndDevelopment": {
+          "currentRD-0": 1800000000,
+          "currentRD-1": 1700000000,
+          "currentRD-2": 1400000000
+        }
+      },
+      "driveData": {
+        "revenueNextYear": 0.40,
+        "operatingMarginNextYear": -0.45,
+        "compoundAnnualGrowth2_5": 0.35,
+        "targetPreTaxOperatingMargin": 0.10,
+        "salesToCapitalYears1To5": 2.0,
+        "salesToCapitalYears6To10": 2.0,
+        "riskFreeRate": 4.5,
+        "initialCostCapital": 12.0
+      },
+      "expectedOutput": {
+        "waccRange": [0.10, 0.15],
+        "terminalGrowthMax": 0.045,
+        "requiresCalibration": true
+      }
+    },
+    "GE": {
+      "type": "multi-segment",
+      "basicInfo": {
+        "ticker": "GE",
+        "companyName": "General Electric Company",
+        "countryOfIncorporation": "United States",
+        "industryUs": "industrial",
+        "industryGlobal": "industrial"
+      },
+      "financialData": {
+        "revenueTTM": 67954000000,
+        "operatingIncomeTTM": 8150000000,
+        "stockPrice": 165.0,
+        "noOfShareOutstanding": 1090000000,
+        "marginalTaxRate": 21.0,
+        "bookValueDebtTTM": 28600000000,
+        "bookValueEqualityTTM": 27500000000,
+        "cashAndMarkablTTM": 16700000000,
+        "interestExpenseTTM": 1100000000,
+        "researchAndDevelopment": {
+          "currentRD-0": 4200000000,
+          "currentRD-1": 3900000000,
+          "currentRD-2": 3700000000
+        }
+      },
+      "segments": [
+        {"name": "Aerospace", "revenueShare": 0.45, "margin": 0.22, "growth": 0.12},
+        {"name": "Power", "revenueShare": 0.25, "margin": 0.08, "growth": 0.02},
+        {"name": "Renewable Energy", "revenueShare": 0.20, "margin": -0.02, "growth": 0.15},
+        {"name": "Other", "revenueShare": 0.10, "margin": 0.10, "growth": 0.05}
+      ],
+      "driveData": {
+        "revenueNextYear": 0.06,
+        "operatingMarginNextYear": 0.12,
+        "compoundAnnualGrowth2_5": 0.05,
+        "targetPreTaxOperatingMargin": 0.15,
+        "salesToCapitalYears1To5": 1.6,
+        "salesToCapitalYears6To10": 1.6,
+        "riskFreeRate": 4.5,
+        "initialCostCapital": 8.0
+      },
+      "expectedOutput": {
+        "waccRange": [0.07, 0.10],
+        "terminalGrowthMax": 0.045,
+        "usesSegmentWeighting": true
+      }
+    },
+    "BABA": {
+      "type": "non-us",
+      "basicInfo": {
+        "ticker": "BABA",
+        "companyName": "Alibaba Group Holding Ltd",
+        "countryOfIncorporation": "China",
+        "industryUs": "technology",
+        "industryGlobal": "e-commerce"
+      },
+      "financialData": {
+        "revenueTTM": 941168000000,
+        "operatingIncomeTTM": 100925000000,
+        "stockPrice": 85.0,
+        "noOfShareOutstanding": 2530000000,
+        "marginalTaxRate": 25.0,
+        "bookValueDebtTTM": 120000000000,
+        "bookValueEqualityTTM": 1050000000000,
+        "cashAndMarkablTTM": 280000000000,
+        "interestExpenseTTM": 5000000000,
+        "researchAndDevelopment": {
+          "currentRD-0": 55000000000,
+          "currentRD-1": 52000000000,
+          "currentRD-2": 48000000000
+        }
+      },
+      "driveData": {
+        "revenueNextYear": 0.08,
+        "operatingMarginNextYear": 0.11,
+        "compoundAnnualGrowth2_5": 0.10,
+        "targetPreTaxOperatingMargin": 0.15,
+        "salesToCapitalYears1To5": 2.2,
+        "salesToCapitalYears6To10": 2.2,
+        "riskFreeRate": 4.5,
+        "initialCostCapital": 11.0
+      },
+      "countryRiskPremium": 3.0,
+      "expectedOutput": {
+        "waccRange": [0.10, 0.14],
+        "terminalGrowthMax": 0.045,
+        "includesCountryRisk": true
+      }
+    },
+    "GILD": {
+      "type": "rd-intensive",
+      "basicInfo": {
+        "ticker": "GILD",
+        "companyName": "Gilead Sciences Inc.",
+        "countryOfIncorporation": "United States",
+        "industryUs": "pharmaceuticals",
+        "industryGlobal": "biotechnology"
+      },
+      "financialData": {
+        "revenueTTM": 27116000000,
+        "operatingIncomeTTM": 4527000000,
+        "stockPrice": 82.0,
+        "noOfShareOutstanding": 1240000000,
+        "marginalTaxRate": 21.0,
+        "bookValueDebtTTM": 23189000000,
+        "bookValueEqualityTTM": 20765000000,
+        "cashAndMarkablTTM": 5500000000,
+        "interestExpenseTTM": 900000000,
+        "researchAndDevelopment": {
+          "currentRD-0": 5300000000,
+          "currentRD-1": 5000000000,
+          "currentRD-2": 4900000000,
+          "currentRD-3": 4700000000,
+          "currentRD-4": 4500000000,
+          "currentRD-5": 4200000000
+        }
+      },
+      "driveData": {
+        "revenueNextYear": 0.05,
+        "operatingMarginNextYear": 0.18,
+        "compoundAnnualGrowth2_5": 0.04,
+        "targetPreTaxOperatingMargin": 0.22,
+        "salesToCapitalYears1To5": 1.4,
+        "salesToCapitalYears6To10": 1.4,
+        "riskFreeRate": 4.5,
+        "initialCostCapital": 9.0
+      },
+      "rdAmortizationYears": 5,
+      "expectedOutput": {
+        "waccRange": [0.08, 0.11],
+        "terminalGrowthMax": 0.045,
+        "rdCapitalized": true
+      }
+    }
+  },
+  "methodology": {
+    "damodaranBounds": {
+      "waccMin": 0.06,
+      "waccMax": 0.15,
+      "waccRedFlagLow": 0.05,
+      "waccRedFlagHigh": 0.20,
+      "terminalGrowthMax": 0.04,
+      "operatingMarginRedFlagHigh": 0.50,
+      "operatingMarginRedFlagLow": -0.50,
+      "terminalValuePercentMax": 0.90,
+      "revenueDeclineFloor": -0.50
+    }
+  }
+}
+

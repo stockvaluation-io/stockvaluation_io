@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+.env.local
+
+# Cache
+*.cache
+.cache/
+yfinance.cache
+
+# Logs
+*.log
+logs/
+
+# Prompt dumps (contains sensitive data)
+prompt_dump/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# OS
+.DS_Store
+Thumbs.db
+

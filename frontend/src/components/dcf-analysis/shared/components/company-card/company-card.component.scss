@@ -1,0 +1,261 @@
+@use '../../../../../styles/_design-system-v2' as ds;
+
+.company-card {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--radius-md);
+  transition: var(--transition-base);
+  cursor: pointer;
+  margin-bottom: 1px;
+
+  &:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+    background: var(--color-surface-hover);
+  }
+
+  &.selected {
+    border-color: var(--color-primary);
+    background: var(--color-primary-alpha);
+    box-shadow: var(--shadow-primary);
+  }
+
+  &:first-child {
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+  }
+
+  &:last-child {
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+  }
+}
+
+.company-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 140px) 1fr minmax(80px, auto);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  gap: var(--space-4);
+  min-height: 56px;
+
+  // When showActions is true, add the action column
+  .action-section ~ & {
+    grid-template-columns: minmax(120px, 140px) 1fr minmax(80px, auto) 60px;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: minmax(100px, 120px) 1fr;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    
+    .data-section {
+      display: none;
+    }
+
+    .action-section ~ & {
+      grid-template-columns: minmax(100px, 120px) 1fr 50px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 90px 1fr;
+    gap: var(--space-1);
+    
+    .action-section ~ & {
+      grid-template-columns: 90px 1fr 45px;
+    }
+  }
+}
+
+.symbol-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.company-logo {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+
+  img {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    border: 1px solid var(--color-border-secondary);
+  }
+
+  .company-logo-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    border: 2px solid var(--color-bg-primary);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.symbol-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+
+  .company-symbol {
+    font-weight: 700;
+    color: var(--color-text-primary);
+    font-size: 14px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .company-price {
+    font-size: 11px;
+    color: var(--color-primary);
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.name-section {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-right: var(--space-2);
+
+  .company-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+  }
+
+  .company-industry {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    margin-top: 1px;
+  }
+}
+
+.data-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 80px;
+  max-width: 120px;
+
+  .exchange-short {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1.2;
+    cursor: help;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .exchange-type {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    line-height: 1.2;
+    margin-top: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+}
+
+.action-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.select-button {
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--color-border-primary);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-alpha);
+    color: var(--color-primary);
+    transform: scale(1.05);
+  }
+
+  &.selected {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+  }
+
+  &:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  i {
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  @media (max-width: 768px) {
+    width: 32px;
+    height: 32px;
+    
+    i {
+      font-size: 12px;
+    }
+  }
+}
+
+// Add striped effect for better readability
+.company-card:nth-child(even) {
+  background: var(--color-surface-secondary);
+  
+  &:hover {
+    background: var(--color-surface-hover);
+  }
+  
+  &.selected {
+    background: var(--color-primary-alpha);
+  }
+}

@@ -1,0 +1,454 @@
+@use '../section-base.scss';
+@use '../../../../../../styles/_design-system-v2' as ds;
+
+// Recommendation Card
+.recommendation-card {
+  background: linear-gradient(135deg, rgba(32, 223, 127, 0.1), rgba(32, 223, 127, 0.05));
+  border: 1px solid rgba(32, 223, 127, 0.3);
+  border-radius: 16px;
+  padding: var(--space-8);
+  margin-bottom: var(--space-8);
+  
+  @include ds.mobile {
+    padding: var(--space-4);
+  }
+}
+
+.recommendation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-6);
+  
+  @include ds.tablet {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+}
+
+.recommendation-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-6);
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 18px;
+  
+  &.recommendation-strong-buy {
+    background: linear-gradient(135deg, #10B981, #059669);
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+  
+  &.recommendation-buy {
+    background: linear-gradient(135deg, #34D399, #10B981);
+    color: white;
+    box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);
+  }
+  
+  &.recommendation-hold {
+    background: linear-gradient(135deg, #FBBF24, #F59E0B);
+    color: var(--text-dark);
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+  }
+  
+  &.recommendation-sell {
+    background: linear-gradient(135deg, #F87171, #EF4444);
+    color: white;
+    box-shadow: 0 4px 12px rgba(248, 113, 113, 0.3);
+  }
+  
+  &.recommendation-strong-sell {
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+    color: white;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+  
+  i {
+    font-size: 20px;
+  }
+  
+  @include ds.mobile {
+    font-size: 16px;
+    padding: var(--space-2) var(--space-4);
+    
+    i {
+      font-size: 16px;
+    }
+  }
+}
+
+.price-targets {
+  display: flex;
+  gap: var(--space-6);
+  
+  @include ds.tablet {
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  @include ds.mobile {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+}
+
+.current-price,
+.target-price,
+.upside-potential {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  
+  @include ds.mobile {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+.price-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--space-1);
+}
+
+.price-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  
+  &.primary {
+    color: var(--color-primary-text);
+  }
+  
+  @include ds.mobile {
+    font-size: 20px;
+  }
+}
+
+.upside-potential {
+  &.positive .price-value {
+    color: #10B981;
+  }
+  
+  &.negative .price-value {
+    color: #EF4444;
+  }
+}
+
+.recommendation-summary {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: var(--space-4);
+}
+
+.summary-text {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  margin: 0;
+  
+  @include ds.mobile {
+    font-size: 14px;
+  }
+}
+
+// Investment Highlights
+.investment-highlights,
+.risk-considerations {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+  
+  @include ds.mobile {
+    padding: var(--space-4);
+  }
+}
+
+.highlights-title,
+.risks-title,
+.actions-title,
+.summary-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+  
+  i {
+    color: var(--color-primary-text);
+  }
+  
+  @include ds.mobile {
+    font-size: 18px;
+  }
+}
+
+.highlights-grid,
+.risks-grid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.highlight-item,
+.risk-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  
+  i {
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  
+  span {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+  
+  @include ds.mobile {
+    span {
+      font-size: 13px;
+    }
+  }
+}
+
+.highlight-item.positive i {
+  color: #10B981;
+}
+
+.risk-item i {
+  color: #F59E0B;
+}
+
+// Action Items
+.action-items {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+  
+  @include ds.mobile {
+    padding: var(--space-4);
+  }
+}
+
+.actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.action-item {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border-left: 3px solid var(--color-primary);
+  
+  @include ds.mobile {
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+}
+
+.action-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--color-primary);
+  color: var(--text-dark);
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+  
+  @include ds.mobile {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+}
+
+.action-content {
+  flex: 1;
+}
+
+.action-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+  
+  @include ds.mobile {
+    font-size: 14px;
+  }
+}
+
+.action-description {
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 var(--space-2) 0;
+  
+  @include ds.mobile {
+    font-size: 13px;
+  }
+}
+
+.action-timeline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 12px;
+  color: var(--color-primary-text);
+  font-weight: 500;
+  
+  i {
+    font-size: 10px;
+  }
+}
+
+// Valuation Summary
+.valuation-summary {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+  
+  @include ds.mobile {
+    padding: var(--space-4);
+  }
+}
+
+.summary-metrics {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+}
+
+.metric-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  
+  @include ds.mobile {
+    font-size: 13px;
+  }
+}
+
+.metric-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  
+  &.primary {
+    color: var(--color-primary-text);
+  }
+  
+  @include ds.mobile {
+    font-size: 14px;
+  }
+}
+
+// Disclaimer
+.disclaimer {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 12px;
+  padding: var(--space-6);
+  
+  @include ds.mobile {
+    padding: var(--space-4);
+  }
+}
+
+.disclaimer-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 16px;
+  font-weight: 600;
+  color: #FFC107;
+  margin: 0 0 var(--space-3) 0;
+  
+  i {
+    font-size: 14px;
+  }
+  
+  @include ds.mobile {
+    font-size: 14px;
+  }
+}
+
+.disclaimer-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  
+  @include ds.mobile {
+    font-size: 12px;
+  }
+}
+
+// Animations
+.recommendation-card,
+.investment-highlights,
+.risk-considerations,
+.action-items,
+.valuation-summary,
+.disclaimer {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s ease-out forwards;
+  
+  @for $i from 1 through 6 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.1}s;
+    }
+  }
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .recommendation-badge {
+    border: 2px solid currentColor;
+  }
+  
+  .highlight-item,
+  .risk-item,
+  .action-item {
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+}

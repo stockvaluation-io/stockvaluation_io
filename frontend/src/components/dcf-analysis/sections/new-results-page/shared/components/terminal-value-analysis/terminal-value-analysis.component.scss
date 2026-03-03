@@ -1,0 +1,421 @@
+// ==========================================================================
+// TERMINAL VALUE ANALYSIS COMPONENT
+// ==========================================================================
+
+@use '../../../../../../../styles/_design-system-v2' as ds;
+
+// ==========================================================================
+// CONTAINER
+// ==========================================================================
+
+.terminal-value-container {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: var(--space-6);
+  
+  @include ds.mobile {
+    padding: var(--space-4);
+  }
+}
+
+// ==========================================================================
+// HEADER
+// ==========================================================================
+
+.section-header {
+  margin-bottom: var(--space-6);
+  text-align: center;
+  
+  @include ds.mobile {
+    margin-bottom: var(--space-4);
+  }
+}
+
+.section-title {
+  @include ds.text-body;
+  & {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+  }
+
+  i {
+    color: var(--color-primary-text);
+  }
+  
+  @include ds.mobile {
+    font-size: 20px;
+  }
+}
+
+.section-description {
+  @include ds.text-small;
+  & {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+  }
+}
+
+// ==========================================================================
+// LAYOUT
+// ==========================================================================
+
+.analysis-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+// ==========================================================================
+// SUBSECTION STYLING
+// ==========================================================================
+
+.subsection-title {
+  @include ds.text-body;
+  & {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-4) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: var(--space-2);
+  }
+
+  i {
+    color: var(--color-primary-text);
+  }
+}
+
+// ==========================================================================
+// METRICS SECTION
+// ==========================================================================
+
+.metrics-section {
+  margin-bottom: var(--space-6);
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  
+  @include ds.tablet {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @include ds.mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.metric-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  &.primary {
+    border-color: var(--color-primary-text);
+    background: rgba(32, 223, 127, 0.05);
+    
+    .metric-value {
+      color: var(--color-primary-text);
+    }
+  }
+  
+  @include ds.mobile {
+    padding: var(--space-3);
+  }
+}
+
+.metric-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(32, 223, 127, 0.1);
+  border-radius: 8px;
+  flex-shrink: 0;
+  
+  i {
+    font-size: 18px;
+    color: var(--color-primary-text);
+  }
+  
+  @include ds.mobile {
+    width: 36px;
+    height: 36px;
+    
+    i {
+      font-size: 16px;
+    }
+  }
+}
+
+.metric-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.metric-label {
+  @include ds.text-small;
+  & {
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: var(--space-1);
+    font-size: 12px;
+  }
+}
+
+.metric-value {
+  @include ds.text-body;
+  & {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 16px;
+  }
+
+  @include ds.mobile {
+    font-size: 14px;
+  }
+}
+
+// ==========================================================================
+// TABLE STYLING
+// ==========================================================================
+
+.table-container {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  max-width: 900px;
+}
+
+.parameters-table,
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  
+  th, td {
+    padding: var(--space-3);
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    
+    @include ds.mobile {
+      padding: var(--space-2);
+    }
+  }
+  
+  th {
+    @include ds.text-small;
+    & {
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.05);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 12px;
+    }
+  }
+  
+  tbody tr {
+    transition: background-color 0.2s ease;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+}
+
+// Parameters table specific styling
+.parameters-table {
+  th:nth-child(1) { width: 40%; }
+  th:nth-child(2) { width: 25%; }
+  th:nth-child(3) { width: 35%; }
+}
+
+.parameter-name {
+  @include ds.text-body;
+  & {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 14px;
+  }
+}
+
+.parameter-value {
+  @include ds.text-body;
+  & {
+    font-weight: 600;
+    color: var(--color-primary-text);
+    text-align: right;
+    font-size: 14px;
+  }
+}
+
+.impact-note {
+  @include ds.text-small;
+  & {
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+    font-size: 12px;
+  }
+}
+
+// Comparison table specific styling
+.comparison-table {
+  th:nth-child(1) { width: 30%; }
+  th:nth-child(2) { width: 25%; }
+  th:nth-child(3) { width: 25%; }
+  th:nth-child(4) { width: 20%; }
+}
+
+.metric-name {
+  @include ds.text-body;
+  & {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 14px;
+  }
+}
+
+.company-value,
+.industry-value {
+  @include ds.text-body;
+  & {
+    font-weight: 600;
+    text-align: right;
+    font-size: 14px;
+    color: var(--text-primary);
+  }
+}
+
+.variance-value {
+  @include ds.text-body;
+  & {
+    font-weight: 600;
+    text-align: right;
+    font-size: 14px;
+  }
+
+  &.positive {
+    color: #10B981;
+  }
+  
+  &.positive-large {
+    color: #059669;
+    font-weight: 700;
+  }
+  
+  &.negative {
+    color: #EF4444;
+  }
+  
+  &.negative-large {
+    color: #DC2626;
+    font-weight: 700;
+  }
+  
+  &.neutral {
+    color: #6B7280;
+  }
+}
+
+// ==========================================================================
+// COMPONENTS SECTION
+// ==========================================================================
+
+.components-section {
+  margin-bottom: var(--space-6);
+}
+
+.components-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  
+  @include ds.tablet {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}
+
+.component-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: var(--space-4);
+  text-align: center;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  @include ds.mobile {
+    padding: var(--space-3);
+  }
+}
+
+.component-label {
+  @include ds.text-small;
+  & {
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: var(--space-2);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.component-value {
+  @include ds.text-body;
+  & {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 18px;
+    margin-bottom: var(--space-1);
+  }
+
+  &.primary {
+    color: var(--color-primary-text);
+  }
+  
+  @include ds.mobile {
+    font-size: 16px;
+  }
+}
+
+.component-note {
+  @include ds.text-small;
+  & {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    font-style: italic;
+  }
+}

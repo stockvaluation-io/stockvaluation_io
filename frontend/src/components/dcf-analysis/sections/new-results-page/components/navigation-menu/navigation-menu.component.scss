@@ -1,0 +1,436 @@
+@use '../../../../../../styles/_design-system-v2' as ds;
+
+.navigation-menu {
+  position: sticky;
+  top: var(--header-height, 60px);
+  left: 0;
+  right: 0;
+  z-index: 999;
+  height: var(--nav-height, 50px);
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border-primary);
+}
+
+.nav-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  
+  // Desktop/tablet: show horizontal navigation with padding
+  padding: 0 24px;
+  
+  @include ds.tablet {
+    & {
+      padding: 0 16px;
+    }
+  }
+  
+  // Mobile: remove padding since mobile header handles it
+  @include ds.mobile {
+    & {
+      padding: 0;
+      position: relative;
+    }
+  }
+}
+
+.nav-scroll-container {
+  // Desktop styles - visible by default
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  flex: 1; // Take remaining space
+  
+  // Hide scrollbar but keep functionality
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  // Mobile styles - hidden by default, show as full-screen dropdown when opened
+  @include ds.mobile {
+    & {
+      // Hide desktop nav and position as full-screen dropdown
+      display: none; // Hide initially
+      position: fixed;
+      top: var(--nav-height, 50px);
+      left: 0;
+      right: 0;
+      height: 100vh;
+      bottom: 0; // Extend to bottom of screen
+      background: var(--color-bg-overlay);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--color-border-secondary);
+      padding: var(--space-4) 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      z-index: 999;
+    }
+    
+    &.mobile-open {
+      display: flex; // Show when opened
+      flex-direction: column;
+    }
+    
+    @supports not (backdrop-filter: blur(12px)) {
+      background: var(--color-bg-primary);
+    }
+  }
+}
+
+.nav-items {
+  // Desktop styles
+  display: flex;
+  gap: 8px;
+  min-width: max-content;
+  align-items: center;
+  height: 100%;
+  
+  // Mobile styles
+  @include ds.mobile {
+    & {
+      flex-direction: column;
+      gap: var(--space-2);
+      padding: 0 var(--space-4);
+      min-width: auto;
+      width: 100%;
+      height: auto;
+    }
+  }
+}
+
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-height: 44px; // Improved touch target size
+  text-decoration: none;
+  color: inherit;
+  
+  @include ds.tablet {
+    & {
+      padding: var(--space-2) var(--space-3);
+      min-height: 42px;
+    }
+  }
+  
+  @include ds.mobile {
+    & {
+      width: 100%;
+      padding: var(--space-3) var(--space-4);
+      border-radius: 8px;
+      background: var(--color-bg-tertiary);
+      min-height: 48px; // Larger touch target on mobile
+    }
+    
+    &:hover {
+      transform: none;
+    }
+    
+    // Enhanced touch feedback
+    &:active {
+      background: var(--color-bg-hover);
+      transform: scale(0.98);
+      transition: all 0.1s ease;
+    }
+  }
+  
+  &:hover {
+    background: var(--color-bg-secondary);
+  }
+  
+  &.active {
+    background: rgba(32, 223, 127, 0.15);
+    
+    .nav-item-title {
+      color: var(--color-primary-text);
+      font-weight: 600;
+    }
+    
+    @include ds.mobile {
+      & {
+        background: rgba(32, 223, 127, 0.2);
+      }
+      
+      &:active {
+        background: rgba(32, 223, 127, 0.3);
+      }
+    }
+  }
+  
+  // Better touch feedback for mobile devices
+  @media (hover: none) and (pointer: coarse) {
+    &:active {
+      background: var(--color-bg-active);
+      transform: scale(0.95);
+    }
+    
+    &.active:active {
+      background: rgba(32, 223, 127, 0.35);
+    }
+  }
+}
+
+.nav-item-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Removed nav-item-header as we simplified to title only
+
+.nav-item-title {
+  font-size: 14px;
+  font-weight: 500; // Use numeric value instead of CSS variable
+  color: var(--color-text-primary);
+  transition: all 0.2s ease;
+  
+  @include ds.tablet {
+    & {
+      font-size: 13px;
+    }
+  }
+  
+  @include ds.mobile {
+    & {
+      font-size: 14px;
+    }
+  }
+}
+
+// Removed nav-item-description as we simplified to title only
+
+.active-indicator {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), #1BC767);
+  border-radius: 2px 2px 0 0;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+// Fade-in animation for navigation menu
+.navigation-menu {
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: fadeInDown 0.5s ease-out 0.2s forwards;
+}
+
+@keyframes fadeInDown {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Mobile menu header and hamburger
+.mobile-menu-header {
+  display: none;
+  
+  @include ds.mobile {
+    & {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 var(--space-4);
+      height: 100%; // Use full height of parent container
+      width: 100%;
+    }
+  }
+}
+
+.mobile-active-section {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.mobile-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.mobile-theme-toggle {
+  display: none; // Hidden on desktop
+  
+  @include ds.mobile {
+    & {
+      display: flex;
+      align-items: center;
+    }
+    
+    // Style the theme toggle for mobile navigation
+    ::ng-deep app-theme-toggle {
+      .theme-toggle-container {
+        .theme-toggle-btn {
+          width: 38px;
+          height: 38px;
+          padding: 4px;
+          background: var(--color-bg-tertiary);
+          border: 1px solid var(--color-border-secondary);
+          border-radius: 6px;
+          gap: 1px;
+          
+          &:hover {
+            background: var(--color-bg-hover);
+          }
+          
+          &:active {
+            background: var(--color-bg-active);
+            transform: scale(0.95);
+          }
+          
+          .theme-label {
+            font-size: 7px;
+            opacity: 0.9;
+          }
+        }
+      }
+    }
+  }
+}
+
+.mobile-menu-toggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 44px; // Improved touch target size
+  height: 44px;
+  background: var(--color-bg-tertiary);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1001;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: var(--color-border-secondary);
+  }
+  
+  .hamburger-line {
+    width: 20px; // Slightly smaller lines for better proportion
+    height: 2px;
+    background: var(--text-primary);
+    border-radius: 1px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+    
+    &:not(:last-child) {
+      margin-bottom: 4px;
+    }
+  }
+  
+  &.open {
+    background: var(--color-border-secondary);
+    
+    .hamburger-line:nth-child(1) {
+      transform: translateY(6px) rotate(45deg);
+    }
+    
+    .hamburger-line:nth-child(2) {
+      opacity: 0;
+      transform: scaleX(0);
+    }
+    
+    .hamburger-line:nth-child(3) {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+  }
+  
+  &:active {
+    background: var(--color-bg-hover);
+    transform: scale(0.95);
+    transition: all 0.1s ease;
+  }
+  
+  // Enhanced touch feedback for mobile
+  @media (hover: none) and (pointer: coarse) {
+    &:active {
+      background: var(--color-bg-active);
+      transform: scale(0.9);
+    }
+  }
+}
+
+.mobile-backdrop {
+  display: none;
+  
+  @include ds.mobile {
+    & {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 998;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    &.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+}
+
+// Enhanced mobile responsiveness
+@include ds.mobile {
+  .navigation-menu {
+    & {
+      height: var(--nav-height, 50px); // Keep same height as desktop for consistency
+    }
+  }
+  
+  .nav-container {
+    & {
+      height: 100%;
+      position: relative; // Ensure proper positioning context
+    }
+  }
+}
+
+// Smooth scroll behavior for navigation
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}

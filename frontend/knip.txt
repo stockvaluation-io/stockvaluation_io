@@ -1,0 +1,225 @@
+Unused files (98)
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@angular_animations.js                                                   
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@angular_common_http.js                                                  
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@angular_common.js                                                       
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@angular_core_rxjs-interop.js                                            
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@angular_core.js                                                         
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@angular_forms.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@angular_platform-browser_animations.js                                  
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@angular_platform-browser.js                                             
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@angular_router.js                                                       
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@ng-icons_core.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@ng-icons_heroicons_outline.js                                           
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@ng-icons_heroicons_solid.js                                             
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@ng-icons_huge-icons.js                                                  
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@ng-icons_lucide.js                                                      
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@ng-icons_tabler-icons.js                                                
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/@semantic-components_re-captcha.js                                       
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-4PYSGJ4J.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-4S3KYZTJ.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-6222G4ZR.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-6I5ZB7SG.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-ALW22Z6R.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-B5QHEHR4.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-FGEWO3JJ.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-JCUTDKEX.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-O4QYUEGA.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-PEBH6BBU.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-RFZ2BTTM.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-SAJDAZDE.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-SZJPLAKF.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-UCCE5RQP.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-VP7IZQO3.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-WDMUDEB6.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-WPM5VTLQ.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-WXJEMTTQ.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/chunk-ZZAZEU2X.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/ngx-markdown.js                                                          
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/ngx-sonner.js                                                            
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/primeng_api.js                                                           
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/primeng_button.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/primeng_chart.js                                                         
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/primeng_dialog.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/primeng_progressspinner.js                                               
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/primeng_toast.js                                                         
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/rxjs_operators.js                                                        
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/rxjs.js                                                                  
+.angular/cache/19.2.15/DCF_Frontend/vite/deps/vanilla-cookieconsent.js                                                 
+proxy.config.js                                                                                                        
+src/assets/styles.css                                                                                                  
+src/components/dcf-analysis/components/optionality-premium/index.ts                                                    
+src/components/dcf-analysis/components/optionality-premium/optionality-premium.component.ts                            
+src/components/dcf-analysis/sections/new-results-page/components/company-info-sidebar/company-info-sidebar.component.ts
+src/components/dcf-analysis/services/narrative-data.service.ts                                                         
+src/components/icon-test-page.component.ts                                                                             
+src/components/landing/containers/landing-page.container.ts                                                            
+src/components/landing/index.ts                                                                                        
+src/components/landing/models/company-content.interface.ts                                                             
+src/components/landing/models/hero-config.interface.ts                                                                 
+src/components/landing/models/testimonial.interface.ts                                                                 
+src/components/landing/pages/contact/contact-page.component.ts                                                         
+src/components/landing/sections/blog/blog.component.ts                                                                 
+src/components/landing/sections/company-overview/company-overview.component.ts                                         
+src/components/landing/sections/contact-section/contact-section.component.ts                                           
+src/components/landing/sections/faq/faq.component.ts                                                                   
+src/components/landing/sections/hero-section/hero-section.component.ts                                                 
+src/components/landing/sections/how-it-works/how-it-works.component.ts                                                 
+src/components/landing/sections/index.ts                                                                               
+src/components/landing/sections/legal-section/legal-section.component.ts                                               
+src/components/landing/sections/privacy/privacy.component.ts                                                           
+src/components/landing/sections/testimonials/testimonials.component.ts                                                 
+src/components/shared/app-icon/icon-test.component.ts                                                                  
+src/components/shared/chat-ui/chat-example.component.ts                                                                
+src/components/shared/chat-ui/chat-ui.component.ts                                                                     
+src/components/shared/chat-ui/dcf-page-integration.example.ts                                                          
+src/components/shared/chat-ui/index.ts                                                                                 
+src/components/shared/chat-ui/insight-card.component.ts                                                                
+src/components/shared/chat-ui/message-actions.component.ts                                                             
+src/components/shared/chat-ui/metric-visualization.component.ts                                                        
+src/components/shared/generic-selector/generic-selector.component.ts                                                   
+src/components/shared/notebook/index.ts                                                                                
+src/components/shared/notebook/notebook-page.component.ts                                                              
+src/components/shared/notebook/thesis-view.component.ts                                                                
+src/components/shared/top-stocks-table/top-stocks-table.component.ts                                                   
+src/core/components/error-fallback/error-fallback.component.ts                                                         
+src/core/components/index.ts                                                                                           
+src/core/directives/error-boundary.directive.ts                                                                        
+src/core/directives/index.ts                                                                                           
+src/core/index.ts                                                                                                      
+src/core/interceptors/index.ts                                                                                         
+src/server/middleware/api-proxy.ts                                                                                     
+src/server/middleware/rate-limit.ts                                                                                    
+src/server/routes/contact.routes.ts                                                                                    
+src/server/services/email.service.ts                                                                                   
+src/server/services/email/email-factory.ts                                                                             
+src/server/services/email/providers/brevo.provider.ts                                                                  
+src/server/services/email/providers/mailtrap.provider.ts                                                               
+src/server/services/email/types.ts                                                                                     
+src/server/services/recaptcha-verification.service.ts                                                                  
+src/server/utils/bot-detection.ts                                                                                      
+Unused dependencies (10)
+@angular/compiler                  package.json:23:6
+@angular/platform-browser-dynamic  package.json:27:6
+@auth0/angular-jwt                 package.json:29:6
+@tailwindcss/forms                 package.json:36:6
+@tailwindcss/postcss               package.json:37:6
+@tailwindcss/typography            package.json:38:6
+chart.js                           package.json:39:6
+katex                              package.json:43:6
+postcss                            package.json:44:6
+primeicons                         package.json:45:6
+Unused devDependencies (2)
+cors  package.json:59:6
+uuid  package.json:67:6
+Unlisted dependencies (1)
+@angular/cdk/la…  …sections/new-results-page/shared/components/sensitivity-heatmap/sensitivity-heatmap.component.ts:3:50
+Unlisted binaries (1)
+wrangler  package.json
+Unused exports (41)
+DCF_CALCULATION_CONF…            src/components/dcf-analysis/constants/dcf-constants.ts:34:14                           
+DCF_DEFAULT_SETTINGS             src/components/dcf-analysis/constants/dcf-constants.ts:49:14                           
+DCF_API_CONFIG                   src/components/dcf-analysis/constants/dcf-constants.ts:76:14                           
+DCF_UI_CONFIG                    src/components/dcf-analysis/constants/dcf-constants.ts:88:14                           
+DCF_PROGRESS_CONFIG              src/components/dcf-analysis/constants/dcf-constants.ts:106:14                          
+DCF_CONSTANTS                    src/components/dcf-analysis/constants/dcf-constants.ts:121:14                          
+DCF_FIELD_CONFIGS                src/components/dcf-analysis/models/dcf-form-config.constants.ts:4:14                   
+RISK_QUESTIONS_CONFIG            src/components/dcf-analysis/models/dcf-form-config.constants.ts:80:14                  
+EMPLOYEE_OPTIONS_CON…            src/components/dcf-analysis/models/dcf-form-config.constants.ts:116:14                 
+OVERRIDE_TABS_CONFIG             src/components/dcf-analysis/models/dcf-form-config.constants.ts:156:14                 
+COMPANY_RISK_LEVELS              src/components/dcf-analysis/models/dcf-form-config.constants.ts:221:14                 
+VALIDATION_RULES                 src/components/dcf-analysis/models/dcf-form-config.constants.ts:230:14                 
+CompanyOverviewSecti…  class     …ctions/new-results-page/sections/company-overview/company-overview.component.ts:261:14
+GrowthAnalysisSection  class     …sections/new-results-page/sections/growth-analysis/growth-analysis.component.ts:162:14
+IntrinsicPricingSect…  class     …ions/new-results-page/sections/intrinsic-pricing/intrinsic-pricing.component.ts:138:14
+InvestmentConclusion…  class     …-results-page/sections/investment-conclusion/investment-conclusion.component.ts:158:14
+ModelAssumptionsSect…  class     …ions/new-results-page/sections/model-assumptions/model-assumptions.component.ts:213:14
+MonteCarloSection      class     …/new-results-page/sections/monte-carlo-section/monte-carlo-section.component.ts:133:14
+ProfitabilityAnalysi…  class     …results-page/sections/profitability-analysis/profitability-analysis.component.ts:28:14
+RiskAssessmentSection  class     …sections/new-results-page/sections/risk-assessment/risk-assessment.component.ts:255:14
+SensitivityAnalysisS…  class     …ew-results-page/sections/sensitivity-analysis/sensitivity-analysis.component.ts:288:14
+DataTableComponent     class     …s/sections/new-results-page/shared/components/data-table/data-table.component.ts:95:14
+StoryCardsComponent    class     …sections/new-results-page/shared/components/story-cards/story-cards.component.ts:34:14
+TerminalValueAnalysi…  class     …/shared/components/terminal-value-analysis/terminal-value-analysis.component.ts:204:14
+formatTableCurrency    function  src/components/dcf-analysis/utils/formatting.utils.ts:139:17                           
+shouldUseCurrencySym…  function  src/components/dcf-analysis/utils/formatting.utils.ts:168:17                           
+validateAnalysisInpu…  function  src/components/dcf-analysis/utils/validation.utils.ts:57:17                            
+validatePercentage     function  src/components/dcf-analysis/utils/validation.utils.ts:207:17                           
+validatePositiveNumb…  function  src/components/dcf-analysis/utils/validation.utils.ts:228:17                           
+sanitizeTickerSymbol   function  src/components/dcf-analysis/utils/validation.utils.ts:283:17                           
+sanitizeNumberInput    function  src/components/dcf-analysis/utils/validation.utils.ts:294:17                           
+MessageFormatterServ…  class     src/components/shared/chat-ui/message-formatter.service.ts:45:14                       
+initialAsyncState                src/core/base/async-state.interface.ts:13:14                                           
+DEFAULT_VALUATION_CO…            src/core/config/valuation.config.ts:34:14                                              
+createErrorHandlingI…  function  src/core/interceptors/error-handling.interceptor.ts:229:17                             
+ERROR_INTERCEPTOR_PR…            src/core/interceptors/error-handling.interceptor.ts:279:14                             
+ContactFormService     class     src/core/services/data/contact-form.service.ts:32:14                                   
+ErrorRecoveryStrategy  class     src/core/services/infrastructure/error-recovery.service.ts:17:23                       
+NetworkErrorRecovery   class     src/core/services/infrastructure/error-recovery.service.ts:26:14                       
+NotFoundErrorRecovery  class     src/core/services/infrastructure/error-recovery.service.ts:68:14                       
+TimeoutErrorRecovery   class     src/core/services/infrastructure/error-recovery.service.ts:203:14                      
+Unused exported types (62)
+ScenarioAnalysisD…  type       src/components/dcf-analysis/components/scenario-analysis/index.ts:2:15                   
+ScenarioData        type       src/components/dcf-analysis/components/scenario-analysis/index.ts:2:37                   
+ScenarioCardData    type       src/components/dcf-analysis/components/scenario-analysis/index.ts:2:51                   
+ScenarioAdjustmen…  interface  src/components/dcf-analysis/models/api-response.interface.ts:173:18                      
+CompanySearchConf…  interface  src/components/dcf-analysis/models/company-selection.interface.ts:17:18                  
+LegacyDCFPayload    interface  src/components/dcf-analysis/models/dcf-assumptions-form.interface.ts:117:18              
+DCFStep             interface  src/components/dcf-analysis/models/dcf-config.interface.ts:6:18                          
+ResultsDisplayCon…  interface  src/components/dcf-analysis/models/valuation-results.interface.ts:270:18                 
+ActionItem          interface  …/new-results-page/sections/investment-conclusion/investment-conclusion.component.ts:6:18
+ModelAssumption     interface  …sections/new-results-page/sections/model-assumptions/model-assumptions.component.ts:7:18
+ChartOptions        interface  …ctions/new-results-page/shared/components/chart-wrapper/chart-wrapper.component.ts:22:18
+ChartType           type       …ctions/new-results-page/shared/components/chart-wrapper/chart-wrapper.component.ts:32:13
+TableColumn         interface  …ysis/sections/new-results-page/shared/components/data-table/data-table.component.ts:4:18
+TableRow            interface  …sis/sections/new-results-page/shared/components/data-table/data-table.component.ts:15:18
+TableConfig         interface  …sis/sections/new-results-page/shared/components/data-table/data-table.component.ts:19:18
+WaterfallItem       interface  …s/new-results-page/shared/components/equity-waterfall/equity-waterfall.component.ts:5:18
+BullBearDebateRou…  interface  …ew-results-page/shared/components/narrative-section/narrative-section.component.ts:12:18
+ScenarioAnalysisD…  interface  …ew-results-page/shared/components/narrative-section/narrative-section.component.ts:18:18
+NarrativeData       interface  …ew-results-page/shared/components/narrative-section/narrative-section.component.ts:60:18
+GroupedTableScena…  interface  …w-results-page/shared/components/narrative-section/narrative-section.component.ts:109:18
+NarrativeMetric     interface  …w-results-page/shared/components/narrative-section/narrative-section.component.ts:115:18
+NarrativeSection    interface  …w-results-page/shared/components/narrative-section/narrative-section.component.ts:122:18
+TerminalValueData   interface  …page/shared/components/terminal-value-analysis/terminal-value-analysis.component.ts:4:18
+IndustryCompariso…  interface  …age/shared/components/terminal-value-analysis/terminal-value-analysis.component.ts:14:18
+QuickAnalysisResu…  interface  src/components/dcf-analysis/services/dcf-analysis.service.ts:17:18                       
+ValidationResult    interface  src/components/dcf-analysis/utils/validation.utils.ts:7:18                               
+FieldValidationRe…  interface  src/components/dcf-analysis/utils/validation.utils.ts:12:18                              
+Cell                interface  src/components/shared/chat-ui/chat-sidebar.component.ts:24:18                            
+Hypothesis          interface  src/components/shared/chat-ui/hypothesis-review-dialog.component.ts:14:18                
+SocketConfig        interface  src/components/shared/chat-ui/notebook-chat.service.ts:19:18                             
+ConnectionStatus    interface  src/components/shared/chat-ui/notebook-chat.service.ts:26:18                             
+MessageChunk        interface  src/components/shared/chat-ui/notebook-chat.service.ts:33:18                             
+ToolPlan            interface  src/components/shared/chat-ui/notebook-chat.service.ts:47:18                             
+ChatRequest         interface  src/components/shared/chat-ui/notebook-chat.service.ts:84:18                             
+CausalNarrative     interface  src/components/shared/chat-ui/scenario-heatmap-dialog.component.ts:39:18                 
+APIResponse         interface  src/components/shared/notebook/cell.models.ts:198:18                                     
+Theme               type       src/components/shared/notebook/theme.service.ts:4:13                                     
+AssetCategory       interface  src/core/config/asset.config.ts:38:18                                                    
+AssetEnvironment    interface  src/core/config/asset.config.ts:47:18                                                    
+CompressionLevel    type       src/core/config/asset.config.ts:145:13                                                   
+ErrorInterceptorC…  interface  src/core/interceptors/error-handling.interceptor.ts:220:18                               
+ContactFormData     interface  src/core/services/data/contact-form.service.ts:7:18                                      
+ContactFormRespon…  interface  src/core/services/data/contact-form.service.ts:16:18                                     
+ContactFormError    interface  src/core/services/data/contact-form.service.ts:23:18                                     
+DCFSearchAndAnaly…  interface  src/core/services/dcf/dcf-facade.service.ts:30:18                                        
+DCFFacadeConfig     interface  src/core/services/dcf/dcf-facade.service.ts:49:18                                        
+CacheEntry          interface  src/core/services/infrastructure/asset-cache.service.ts:5:18                             
+CacheOptions        interface  src/core/services/infrastructure/asset-cache.service.ts:11:18                            
+FileSystemError     interface  src/core/services/infrastructure/asset-loader/filesystem-asset-loading.strategy.ts:6:18  
+AssetLoadOptions    interface  src/core/services/infrastructure/asset-loader/universal-asset-loader.service.ts:12:18    
+AssetPathConfig     interface  src/core/services/infrastructure/asset-path-resolver.service.ts:6:18                     
+ErrorTrackingConf…  interface  src/core/services/infrastructure/error-tracking.service.ts:9:18                          
+ErrorTrackingMeta…  interface  src/core/services/infrastructure/error-tracking.service.ts:57:18                         
+ErrorRecoveryConf…  interface  src/core/services/infrastructure/global-error-handler.service.ts:55:18                   
+LogLevel            enum       src/core/services/infrastructure/logger.service.ts:5:13                                  
+LogEntry            interface  src/core/services/infrastructure/logger.service.ts:13:18                                 
+TemplateData        interface  src/core/services/infrastructure/template-engine.service.ts:6:18                         
+TemplateOptions     interface  src/core/services/infrastructure/template-engine.service.ts:10:18                        
+Theme               type       src/core/services/infrastructure/theme.service.ts:4:13                                   
+StockSearchResult   interface  src/core/services/search/stock-company-search.service.ts:12:18                           
+LoadingState        interface  src/core/services/ui/loading-state.service.ts:4:18                                       
+SectionLoadingSta…  interface  src/core/services/ui/loading-state.service.ts:12:18                                      
+Unused exported enum members (1)
+UNKNOWN  ErrorCategory  src/core/services/infrastructure/global-error-handler.service.ts:29:3
+Configuration hints (1)

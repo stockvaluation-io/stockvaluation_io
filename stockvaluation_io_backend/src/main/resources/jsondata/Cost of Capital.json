@@ -1,0 +1,42 @@
+[
+  {
+    "region": "Emerging",
+    "firstDecile": 6.45,
+    "firstQuartile": 7.51,
+    "median": 8.82,
+    "thirdQuartile": 10.02,
+    "ninthDecile": 11.85
+  },
+  {
+    "region": "Europe",
+    "firstDecile": 7.12,
+    "firstQuartile": 8.26,
+    "median": 9.48,
+    "thirdQuartile": 10.95,
+    "ninthDecile": 12.85
+  },
+  {
+    "region": "Global",
+    "firstDecile": 5.40,
+    "firstQuartile": 6.53,
+    "median": 8.11,
+    "thirdQuartile": 9.07,
+    "ninthDecile": 9.82
+  },
+  {
+    "region": "Japan",
+    "firstDecile": 6.68,
+    "firstQuartile": 7.66,
+    "median": 8.82,
+    "thirdQuartile": 9.67,
+    "ninthDecile": 10.91
+  },
+  {
+    "region": "US",
+    "firstDecile": 6.43,
+    "firstQuartile": 7.75,
+    "median": 8.60,
+    "thirdQuartile": 8.84,
+    "ninthDecile": 9.37
+  }
+]

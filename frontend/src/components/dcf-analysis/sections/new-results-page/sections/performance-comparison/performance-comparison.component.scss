@@ -1,0 +1,264 @@
+@use '../../../../../../styles/_design-system-v2' as ds;
+
+// ==========================================================================
+// PERFORMANCE COMPARISON SECTION LAYOUT
+// ==========================================================================
+
+.performance-comparison-section {
+  margin-bottom: var(--space-6);
+  
+  @include ds.mobile {
+    margin-bottom: var(--space-4);
+  }
+}
+
+.section-title {
+  @include ds.text-section-title;
+  & {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-4) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  
+  @include ds.mobile {
+    font-size: var(--font-size-xl);
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+}
+
+.section-icon {
+  color: var(--color-primary-text);
+  font-size: var(--font-size-lg);
+  
+  @include ds.mobile {
+    font-size: var(--font-size-base);
+  }
+}
+
+// ==========================================================================
+// COMPACT PERFORMANCE COMPARISON
+// ==========================================================================
+
+.compact-comparison-container {
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 12px;
+  padding: var(--space-4);
+}
+
+.comparison-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  
+  @include ds.mobile {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}
+
+.metric-comparison {
+  padding: var(--space-3);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: var(--color-bg-hover);
+  }
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-2);
+  
+  @include ds.mobile {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+}
+
+.metric-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  
+  i {
+    color: var(--color-primary-text);
+    font-size: var(--font-size-sm);
+  }
+}
+
+.difference-indicator {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  padding: var(--space-1) var(--space-2);
+  border-radius: 4px;
+  
+  &.difference-positive {
+    background: var(--color-bg-success-alpha);
+    color: var(--color-success);
+  }
+  
+  &.difference-negative {
+    background: var(--color-bg-error-alpha);
+    color: var(--color-error);
+  }
+  
+  &.difference-neutral {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-tertiary);
+  }
+  
+  @include ds.mobile {
+    font-size: var(--font-size-xs);
+    padding: 2px var(--space-1);
+    align-self: flex-end;
+  }
+}
+
+.values-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  
+  @include ds.mobile {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}
+
+.company-value,
+.industry-value {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+.value {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  
+  @include ds.mobile {
+    font-size: var(--font-size-base);
+  }
+}
+
+.label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: var(--font-weight-medium);
+}
+
+.vs-separator {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-weight-medium);
+  
+  @include ds.mobile {
+    display: none;
+  }
+}
+
+.performance-indicator {
+  text-align: center;
+  padding: var(--space-1) var(--space-2);
+  border-radius: 6px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  
+  &.performance-good {
+    background: var(--color-bg-success-alpha);
+    color: var(--color-success);
+  }
+  
+  &.performance-neutral {
+    background: var(--color-bg-warning-alpha);
+    color: var(--color-warning);
+  }
+  
+  &.performance-poor {
+    background: var(--color-bg-error-alpha);
+    color: var(--color-error);
+  }
+}
+
+.overall-performance {
+  padding: var(--space-3);
+  background: var(--color-bg-secondary);
+  border-radius: 8px;
+  border-top: 1px solid var(--color-border-tertiary);
+}
+
+.summary-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  font-style: italic;
+}
+
+
+// ==========================================================================
+// RESPONSIVE DESIGN
+// ==========================================================================
+
+@include ds.large-desktop {
+  .comparison-grid {
+    gap: var(--space-8);
+  }
+}
+
+// ==========================================================================
+// ANIMATIONS
+// ==========================================================================
+
+.compact-comparison-container {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s ease-out forwards;
+  animation-delay: 0.1s;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ==========================================================================
+// DIFFERENCE INDICATOR ANIMATIONS
+// ==========================================================================
+
+.difference-indicator {
+  opacity: 0;
+  animation: fadeInScale 0.4s ease-out forwards;
+  animation-delay: 0.3s;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

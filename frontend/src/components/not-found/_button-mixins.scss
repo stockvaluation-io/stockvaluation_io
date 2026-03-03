@@ -1,0 +1,114 @@
+// Button mixins for reusable button styles
+@mixin button-base {
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 180px;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .loading-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+  }
+}
+
+@mixin button-hover-effects {
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+}
+
+@mixin button-primary {
+  @include button-base;
+  @include button-hover-effects;
+  
+  background: var(--color-primary);
+  color: var(--color-black);
+  
+  &:hover:not(:disabled) {
+    background: var(--color-primary-light);
+    box-shadow: 0 8px 25px rgba(32, 223, 127, 0.4);
+  }
+}
+
+@mixin button-secondary {
+  @include button-base;
+  @include button-hover-effects;
+  
+  background: var(--color-bg-button-primary-alpha);
+  color: var(--color-text-secondary);
+  border: 2px solid var(--color-border-button-primary-alpha);
+  padding: calc(1rem - 2px) calc(2rem - 2px);
+  
+  &:hover:not(:disabled) {
+    background: var(--color-bg-button-primary-alpha-hover);
+    color: var(--color-text-primary);
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 20px rgba(32, 223, 127, 0.2);
+  }
+  
+  // Light theme
+  :root[data-theme="light"] & {
+    background: var(--color-primary-text);
+    color: var(--color-white);
+    border-color: var(--color-primary-text);
+    
+    &:hover:not(:disabled) {
+      background: var(--color-primary-text-hover);
+      color: var(--color-white);
+      border-color: var(--color-primary-text-hover);
+      box-shadow: 0 4px 20px rgba(11, 122, 62, 0.4);
+    }
+  }
+}
+
+@mixin button-tertiary {
+  @include button-base;
+  
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 2px solid var(--color-border-primary);
+  padding: calc(0.875rem - 2px) calc(1.75rem - 2px);
+  
+  &:hover:not(:disabled) {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    background: var(--color-bg-button-primary-alpha);
+    transform: translateX(-4px);
+    
+    // Light theme
+    :root[data-theme="light"] & {
+      color: var(--color-primary-text);
+      border-color: var(--color-primary-text);
+      background: rgba(11, 122, 62, 0.1);
+    }
+  }
+}
+
+@mixin animation-reduced-motion {
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}

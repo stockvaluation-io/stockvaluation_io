@@ -1,0 +1,472 @@
+@use '../../../styles/_design-system-v2' as ds;
+
+.dcf-analysis-container {
+  height: 100vh; // Fixed height instead of min-height
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  display: grid;
+  grid-template-rows: 1fr auto; // Main content takes available space, footer auto-sizes
+  pointer-events: auto; // Ensure container can receive events
+  // overflow: hidden; // Removed to allow scrolling on results page
+  position: relative; // For absolute positioning of theme toggle
+  
+  // Modern browsers: Use dynamic viewport height for mobile compatibility
+  @supports (height: 100dvh) {
+    height: 100dvh;
+  }
+}
+
+// Theme toggle for search page only
+.search-page-theme-toggle {
+  position: fixed;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 1100;
+  
+  @media (max-width: 768px) {
+    top: var(--space-3);
+    right: var(--space-3);
+  }
+  
+  @media (max-width: 480px) {
+    top: var(--space-2);
+    right: var(--space-2);
+  }
+}
+
+.dcf-content {
+  position: relative;
+  width: 100%;
+  grid-row: 1; // Occupy the first grid row (1fr)
+  pointer-events: auto; // Ensure content can receive events
+  overflow-y: auto; // Allow scrolling if content is too tall
+}
+
+.company-search-page {
+  width: 100%;
+  height: 100%;
+  grid-row: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4);
+  max-width: 1600px; // Increased width without ads
+  margin: 0 auto;
+  background: var(--color-bg-primary); // Theme-aware background
+
+  @media (max-width: 1024px) {
+    max-width: 1200px;
+  }
+
+  @media (max-width: 768px) {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  @media (max-width: 480px) {
+    padding: var(--space-3);
+  }
+
+  // Desktop/tablet visibility helpers
+  .desktop-only {
+    @media (max-width: 1024px) {
+      display: none !important;
+    }
+  }
+
+  .mobile-only {
+    @media (min-width: 1025px) {
+      display: none !important;
+    }
+  }
+
+  // Removed skyscraper ads - more space for content
+
+  // Main content - top aligned with no scrollable container
+  .main-search-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center; // Center content horizontally
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 1400px; // Increased for better table display
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-2); // Added horizontal padding
+
+    @media (max-width: 1024px) {
+      max-width: 1200px;
+      padding: var(--space-3) var(--space-2);
+      // Center logo and search vertically on mobile/tablet
+      justify-content: center;
+      height: 100%;
+    }
+
+    @media (max-width: 768px) {
+      padding: var(--space-3) var(--space-1);
+    }
+
+    @media (max-width: 480px) {
+      padding: var(--space-2) var(--space-1);
+    }
+
+    .search-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center; // Center the search section content
+      gap: var(--space-4);
+      margin-bottom: var(--space-4); // Reduced spacing between search and table
+      
+      @media (max-width: 768px) {
+        gap: var(--space-3);
+        margin-bottom: var(--space-6);
+      }
+      
+      @media (max-width: 480px) {
+        gap: var(--space-2);
+        margin-bottom: var(--space-4);
+      }
+
+      .brand-header {
+        display: flex;
+        justify-content: center; // Always center the logo
+        align-items: center;
+        width: 100%;
+        margin-bottom: var(--space-2);
+      }
+
+      .search-container {
+        width: 100%;
+        max-width: 600px;
+        
+        @media (max-width: 880px) {
+          max-width: none;
+          margin: 0 var(--space-1); // Reduced margin
+        }
+        
+        @media (max-width: 480px) {
+          margin: 0;
+        }
+        
+        // Mobile keyboard optimization
+        @media (hover: none) and (pointer: coarse) {
+          &:has(input:focus) {
+            scroll-margin-top: var(--space-4);
+            scroll-margin-bottom: var(--space-4);
+          }
+          
+          @supports (-webkit-overflow-scrolling: touch) {
+            &:has(input:focus) {
+              transform: translateZ(0);
+              will-change: transform;
+            }
+          }
+        }
+      }
+    }
+    
+  }
+
+  // Bottom ad placement - visible on all devices
+  .bottom-ad {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-6);
+    padding: 0 var(--space-4);
+
+    @media (max-width: 768px) {
+      margin-top: var(--space-4);
+      margin-bottom: var(--space-4);
+      padding: 0 var(--space-2);
+    }
+
+    @media (max-width: 480px) {
+      margin-top: var(--space-3);
+      margin-bottom: var(--space-3);
+      padding: 0;
+    }
+  }
+}
+
+// Ad placement styling for loading and error screens
+.loading-page-ad,
+.error-page-ad {
+  width: 100%;
+  max-width: 600px;
+  margin: var(--space-8) auto;
+  display: flex;
+  justify-content: center;
+  
+  @media (max-width: 768px) {
+    margin: var(--space-6) auto;
+    padding: 0 var(--space-4);
+  }
+  
+  @media (max-width: 480px) {
+    margin: var(--space-4) auto;
+    padding: 0 var(--space-3);
+  }
+}
+
+// Next step placeholder (temporary)
+.next-step-placeholder {
+  @include ds.section-container;
+  & {
+    padding: var(--space-12) var(--space-4);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+.placeholder-content {
+  max-width: 600px;
+
+  h2 {
+    @include ds.text-section-title;
+    & {
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-4);
+    }
+  }
+
+  p {
+    @include ds.text-body;
+    & {
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-4);
+      line-height: 1.6;
+    }
+  }
+}
+
+.placeholder-actions {
+  margin-top: var(--space-8);
+}
+
+.back-button {
+  @include ds.secondary-button;
+  & {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-6);
+  }
+}
+
+// Loading state
+.loading-state {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loading-content {
+  text-align: center;
+  color: var(--color-text-primary);
+
+  .loading-icon {
+    font-size: 48px;
+    color: var(--color-primary);
+    margin-bottom: var(--space-4);
+  }
+
+  p {
+    @include ds.text-body;
+    & {
+      color: var(--color-text-secondary);
+    }
+  }
+}
+
+// Error state
+.error-state {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+.error-content {
+  background: var(--color-bg-primary);
+  padding: var(--space-8);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-primary);
+  text-align: center;
+  max-width: 500px;
+  margin: var(--space-4);
+  box-shadow: var(--shadow-lg);
+
+  .error-icon {
+    font-size: 48px;
+    color: var(--color-error);
+    margin-bottom: var(--space-4);
+  }
+
+  h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-3);
+  }
+
+  p {
+    @include ds.text-body;
+    & {
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-6);
+      line-height: 1.6;
+    }
+  }
+}
+
+.retry-button {
+  @include ds.primary-button;
+  & {
+    padding: var(--space-4) var(--space-6);
+  }
+}
+
+// Minimal footer for perfect viewport fit
+.dcf-footer {
+  background: var(--color-bg-primary);
+  border-top: 1px solid var(--color-border-primary);
+  padding: var(--space-3) 0; // Reduced padding for minimal footprint
+  grid-row: 2; // Occupy the second grid row (auto)
+  z-index: 10; // Ensure footer stays above content
+
+  @media (max-width: 768px) {
+    padding: var(--space-2) 0; // Minimal padding on mobile
+  }
+
+  @media (max-width: 480px) {
+    padding: var(--space-2) 0; // Consistent minimal padding
+  }
+
+  .footer-content {
+    // Custom minimal container instead of section-container mixin
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3); // Reduced gap for minimal footprint
+
+    @media (max-width: 768px) {
+      padding: 0 var(--space-3); // Better mobile padding
+      gap: var(--space-2); // Tighter spacing for minimal footprint
+    }
+
+    @media (max-width: 480px) {
+      padding: 0 var(--space-3);
+      gap: var(--space-2); // Consistent minimal spacing
+    }
+
+    @media (min-width: 769px) {
+      flex-direction: row;
+      justify-content: space-between;
+      gap: var(--space-6);
+    }
+  }
+
+  .footer-links {
+    display: flex;
+    gap: var(--space-6);
+    align-items: center;
+    flex-wrap: wrap; // Allow wrapping on very small screens
+    justify-content: center;
+
+    @media (max-width: 600px) {
+      gap: var(--space-4); // Reduced gap for mobile
+    }
+
+    @media (max-width: 360px) {
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+  }
+
+  .footer-link {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s ease;
+    min-height: 44px; // Ensure touch-friendly target
+    display: flex;
+    align-items: center;
+    padding: var(--space-1) var(--space-2); // Add padding for better touch targets
+    border-radius: 4px;
+
+    @media (max-width: 480px) {
+      font-size: 15px; // Slightly larger for better mobile readability
+      min-height: 48px; // Larger touch target on mobile
+      padding: var(--space-2) var(--space-3);
+    }
+
+    &:hover {
+      color: var(--color-primary);
+      text-decoration: none;
+      background: var(--color-surface-hover);
+    }
+
+    &:focus {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    
+    // Enhanced screen reader support
+    &:focus-visible {
+      outline: 3px solid var(--color-primary);
+      outline-offset: 3px;
+      
+      @media (max-width: 768px) {
+        outline-width: 4px; // Thicker for mobile screen readers
+        outline-offset: 2px;
+      }
+    }
+
+    // Enhanced touch feedback for mobile
+    @media (hover: none) and (pointer: coarse) {
+      &:active {
+        background: var(--color-surface-active);
+        color: var(--color-primary);
+        transform: scale(0.98);
+        transition: all 0.1s ease;
+      }
+    }
+  }
+
+  .footer-copyright {
+    color: var(--color-text-tertiary);
+    font-size: 13px;
+    text-align: center;
+    line-height: 1.4;
+
+    @media (max-width: 480px) {
+      font-size: 12px; // Slightly smaller on very small screens
+    }
+
+    @media (min-width: 769px) {
+      text-align: right;
+    }
+  }
+}

@@ -1,0 +1,153 @@
+@use '../../../../../../styles/_design-system-v2' as ds;
+
+.skeleton-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  
+  &.skeleton-text {
+    gap: var(--space-2);
+  }
+  
+  &.skeleton-card {
+    padding: var(--space-4);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  &.skeleton-table {
+    gap: var(--space-2);
+  }
+  
+  &.skeleton-chart {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    height: 200px;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+  }
+}
+
+.skeleton-line {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  border-radius: 4px;
+  min-height: 16px;
+  
+  .animated & {
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 2s ease-in-out infinite;
+  }
+  
+  &.skeleton-title {
+    height: 24px;
+    border-radius: 6px;
+  }
+  
+  &.skeleton-subtitle {
+    height: 18px;
+    border-radius: 4px;
+  }
+  
+  &.skeleton-content {
+    height: 14px;
+    border-radius: 3px;
+  }
+  
+  &.skeleton-header {
+    height: 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+  }
+  
+  &.skeleton-row {
+    height: 16px;
+    border-radius: 3px;
+  }
+  
+  &.skeleton-bar {
+    flex: 1;
+    min-height: 20px;
+    border-radius: 4px 4px 0 0;
+  }
+}
+
+.skeleton-text .skeleton-line {
+  height: 14px;
+  margin-bottom: var(--space-1);
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.skeleton-table .skeleton-line {
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  align-items: center;
+  
+  &.skeleton-header {
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  
+  &:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+// Responsive adjustments
+@include ds.mobile {
+  .skeleton-container.skeleton-chart {
+    height: 150px;
+    padding: var(--space-3);
+  }
+  
+  .skeleton-line {
+    min-height: 14px;
+    
+    &.skeleton-title {
+      height: 20px;
+    }
+    
+    &.skeleton-subtitle {
+      height: 16px;
+    }
+    
+    &.skeleton-content {
+      height: 12px;
+    }
+  }
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .skeleton-line {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+}
+
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line {
+    animation: none;
+  }
+}

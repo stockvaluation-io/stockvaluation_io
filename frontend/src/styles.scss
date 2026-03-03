@@ -1,0 +1,486 @@
+/* ==========================================================================
+   GLOBAL STYLES
+   ========================================================================== */
+
+@use 'styles/_design-system-v2' as ds;
+@import "tailwindcss" important;
+@import 'vanilla-cookieconsent/dist/cookieconsent.css';
+@import 'primeicons/primeicons.css';
+
+// ==========================================================================
+// RESET & BASE STYLES
+// ==========================================================================
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    width: 100%;
+    font-family: var(--font-primary);
+    font-size: var(--font-size-base);
+    line-height: var(--leading-normal);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+}
+
+app-root {
+    display: block;
+    min-height: 100%;
+    width: 100%;
+}
+
+// ==========================================================================
+// LANDING PAGE SPECIFIC GLOBAL STYLES
+// ==========================================================================
+
+.landing-page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+    background-color: var(--color-black);
+}
+
+.content-font {
+    font-family: var(--font-primary);
+}
+
+.nav-container {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+.main-content {
+    flex: 1;
+    width: 100%;
+    padding-top: 30px;
+}
+
+// ==========================================================================
+// FORM CONTROLS (Dashboard specific)
+// ==========================================================================
+
+.form-control {
+    border: 1px solid var(--color-gray-dark);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3);
+    background: var(--color-gray-dark);
+    width: 100%;
+    font-size: var(--font-size-base);
+    color: var(--text-primary);
+    caret-color: var(--text-primary);
+    font-family: var(--font-primary);
+    transition: var(--transition-base);
+
+    &:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px var(--color-primary-alpha);
+    }
+
+    &::placeholder {
+        font-size: var(--font-size-base);
+        color: var(--text-secondary);
+    }
+}
+
+// ==========================================================================
+// BUTTONS
+// ==========================================================================
+
+.btn-global {
+    @include ds.primary-button;
+
+    &:hover {
+        background-color: var(--color-primary-dark);
+    }
+}
+
+.btn-gogle {
+    background-color: var(--color-white);
+    color: var(--text-dark);
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: var(--space-3) var(--space-6);
+    font-family: var(--font-primary);
+    font-weight: var(--font-weight-medium);
+    transition: var(--transition-base);
+
+    &:hover {
+        background-color: var(--color-gray-light);
+    }
+}
+
+.cus-btn {
+    width: 120px;
+    height: 50px;
+    border-radius: var(--radius-md);
+}
+
+.trans-btn {
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    position: absolute;
+    top: var(--space-5);
+    right: var(--space-5);
+    width: 76px;
+    height: 35px;
+    border-radius: var(--radius-md);
+    background-color: var(--color-gray-dark);
+    font-family: var(--font-primary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: var(--transition-base);
+
+    &:hover {
+        background-color: var(--color-primary-alpha);
+    }
+}
+
+.next-btn {
+    @include ds.primary-button;
+    & {
+        position: absolute;
+        bottom: var(--space-5);
+        right: var(--space-5);
+        height: 35px;
+        border-radius: var(--radius-md);
+    }
+}
+
+// ==========================================================================
+// AUTOFILL STYLES
+// ==========================================================================
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    background-color: var(--color-gray-dark);
+    color: var(--text-primary);
+    border: 1px solid var(--color-gray-dark);
+    caret-color: var(--text-primary);
+    -webkit-box-shadow: 0 0 0px 1000px var(--color-gray-dark) inset;
+    transition: background-color 5000s ease-in-out 0s;
+    -webkit-text-fill-color: var(--text-primary);
+}
+
+// ==========================================================================
+// UTILITY CLASSES
+// ==========================================================================
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.readOnly {
+    margin: var(--space-1) 0;
+    background-color: #212529;
+    padding: var(--space-2) var(--space-4);
+    color: var(--text-primary);
+    white-space: nowrap;
+    border-radius: var(--radius-md);
+}
+
+.value {
+    color: var(--text-muted);
+}
+
+// ==========================================================================
+// SCROLLBAR STYLES
+// ==========================================================================
+
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--color-primary);
+    border-radius: var(--radius-full);
+    transition: var(--transition-base);
+
+    &:hover {
+        background-color: var(--color-primary-light);
+    }
+}
+
+.table-section {
+    position: absolute;
+    left: 15.5%;
+    overflow-y: auto;
+    max-height: 88%;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-primary) transparent;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--color-primary);
+        border-radius: var(--radius-md);
+    }
+}
+
+// ==========================================================================
+// PRIMENG COMPONENT OVERRIDES
+// ==========================================================================
+
+.p-radiobutton {
+    cursor: default;
+}
+
+.pi {
+    font-family: "primeicons";
+}
+
+.inputBox {
+    .p-inputtext {
+        width: 75px;
+        height: 22px;
+        border-radius: var(--radius-md);
+    }
+}
+
+.table_row {
+    border-bottom: 1px solid var(--color-gray-dark);
+    background-color: #212529;
+}
+
+.p-slider-handle {
+    top: -7px;
+}
+
+.p-slider .p-slider-handle {
+    border: 2px solid var(--color-primary);
+}
+
+.p-slider .p-slider-range {
+    background-color: var(--color-primary);
+}
+
+.p-slider:not(.p-disabled) .p-slider-handle:hover {
+    background-color: var(--color-primary);
+}
+
+.p-datatable-scrollable-table {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-primary) transparent;
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--color-primary);
+        border-radius: var(--radius-md);
+    }
+}
+
+.full_name {
+    color: var(--text-primary);
+}
+
+// ==========================================================================
+// CUSTOM BUTTON STYLES (Dashboard specific)
+// ==========================================================================
+
+.custom-button-1 {
+    width: 185px;
+    height: 30px;
+    position: relative;
+    background: var(--color-gray);
+    color: var(--text-dark);
+    border: none;
+    border-radius: var(--radius-full) 0 0 var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-base);
+    font-family: var(--font-primary);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: var(--transition-base);
+
+    &:after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border-left: 20px solid var(--color-black);
+    }
+
+    &:before {
+        content: "";
+        position: absolute;
+        right: -20px;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border-left: 20px solid var(--color-gray);
+        border-top: 16px solid transparent;
+        border-bottom: 15px solid transparent;
+    }
+}
+
+.custom-button-2 {
+    width: 185px;
+    height: 30px;
+    position: relative;
+    background: var(--color-gray);
+    color: var(--text-dark);
+    border: none;
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-base);
+    font-family: var(--font-primary);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: var(--transition-base);
+
+    &:after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border-left: 20px solid var(--color-black);
+        border-top: 18px solid transparent;
+        border-bottom: 15px solid transparent;
+    }
+
+    &:before {
+        content: "";
+        position: absolute;
+        right: -20px;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border-left: 20px solid var(--color-gray);
+        border-top: 16px solid transparent;
+        border-bottom: 14px solid transparent;
+    }
+}
+
+.activeTab {
+    background: var(--color-primary);
+    color: var(--text-primary);
+
+    &::before {
+        border-left-color: var(--color-primary);
+    }
+}
+
+// ==========================================================================
+// FOOTER STYLES
+// ==========================================================================
+
+footer {
+    width: 100%;
+    position: relative;
+    bottom: 0;
+
+    img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+}
+
+// ==========================================================================
+// GRECAPTCHA
+// ==========================================================================
+
+.grecaptcha-badge {
+    visibility: hidden;
+}
+
+// ==========================================================================
+// RESPONSIVE OVERRIDES
+// ==========================================================================
+
+@include ds.tablet {
+    .table-section {
+        left: 10%;
+        max-width: 90%;
+    }
+
+    .custom-button-1,
+    .custom-button-2 {
+        width: 170px;
+        height: 28px;
+        font-size: var(--font-size-sm);
+
+        &:before {
+            right: -18px;
+            border-left: 18px solid var(--color-gray);
+            border-top: 14px solid transparent;
+            border-bottom: 14px solid transparent;
+        }
+
+        &:after {
+            border-left: 18px solid var(--color-black);
+            border-top: 14px solid transparent;
+            border-bottom: 14px solid transparent;
+        }
+    }
+}
+
+@include ds.mobile {
+    .table-section {
+        left: 0;
+        position: relative;
+        max-width: 100%;
+    }c
+
+    .custom-button-1,
+    .custom-button-2 {
+        width: 150px;
+        height: 25px;
+        font-size: var(--font-size-xs);
+
+        &:before {
+            right: -15px;
+            border-left: 15px solid var(--color-gray);
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+        }
+
+        &:after {
+            border-left: 15px solid var(--color-black);
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+        }
+    }
+}

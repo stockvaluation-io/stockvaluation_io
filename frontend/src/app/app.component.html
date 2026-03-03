@@ -1,0 +1,9 @@
+<p-toast appendTo="body"></p-toast>
+<div class="page_spinner" *ngIf="loading">
+    <p-progressSpinner></p-progressSpinner>
+</div>
+<router-outlet></router-outlet>
+
+<!-- NGX Sonner Toaster - Only show in browser -->
+<ngx-sonner-toaster *ngIf="isBrowser" position="top-right" [richColors]="true" [closeButton]="true" />
+

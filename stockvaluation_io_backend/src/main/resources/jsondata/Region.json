@@ -1,0 +1,82 @@
+[
+  {
+    "region": "Africa",
+    "erp": 11.68,
+    "defaultSpread": 5.83471655375265,
+    "taxRate": 27.4219145008639,
+    "crp": 7.57373431658932,
+    "totalGDP": 2508220.67893252
+  },
+  {
+    "region": "Asia",
+    "erp": 5.51,
+    "defaultSpread": 1.08022166635823,
+    "taxRate": 25.7408436075129,
+    "crp": 1.4021781227331,
+    "totalGDP": 32948678.067338
+  },
+  {
+    "region": "Australia & New Zealand",
+    "erp": 4.11,
+    "defaultSpread": 0.00,
+    "taxRate": 29.7436209265232,
+    "crp": 0.00,
+    "totalGDP": 1942472.3523971
+  },
+  {
+    "region": "Caribbean",
+    "erp": 11.52,
+    "defaultSpread": 5.71165044454471,
+    "taxRate": 25.2280186894436,
+    "crp": 7.41398876495359,
+    "totalGDP": 869389.478915383
+  },
+  {
+    "region": "Central and South America",
+    "erp": 8.78,
+    "defaultSpread": 3.59612246061948,
+    "taxRate": 31.5539525616979,
+    "crp": 4.6679347378296,
+    "totalGDP": 5601817.83326486
+  },
+  {
+    "region": "Eastern Europe & Russia",
+    "erp": 7.48,
+    "defaultSpread": 2.59722762387806,
+    "taxRate": 18.3083108775098,
+    "crp": 3.37132263439732,
+    "totalGDP": 5010073.2660032
+  },
+  {
+    "region": "Middle East",
+    "erp": 5.93,
+    "defaultSpread": 1.40344859188457,
+    "taxRate": 18.9376829363273,
+    "crp": 1.82174175283438,
+    "totalGDP": 3382577.65656817
+  },
+  {
+    "region": "North America",
+    "erp": 4.11,
+    "defaultSpread": 0.00,
+    "taxRate": 25.1088141457449,
+    "crp": 0.00,
+    "totalGDP": 27577639.2200749
+  },
+  {
+    "region": "Western Europe",
+    "erp": 5.24,
+    "defaultSpread": 0.868322614458027,
+    "taxRate": 24.7752196149162,
+    "crp": 1.12712326681261,
+    "totalGDP": 20250228.8348654
+  },
+  {
+    "region": "Global",
+    "erp": 5.50,
+    "defaultSpread": 1.07004117282201,
+    "taxRate": 25.2458345753992,
+    "crp": 1.38896336713276,
+    "totalGDP": 100091097.38836
+  }
+]

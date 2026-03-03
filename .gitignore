@@ -1,0 +1,42 @@
+# Environment files with secrets
+.env
+.env.local
+.env.production
+
+# Docker volumes
+db_data/
+redis-data/
+local_data/
+
+# Logs
+*.log
+logs/
+bullbeargpt/prompt_dump_from_container/
+valuation-agent/prompt_dump_from_container/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# Damodaran workbooks / local ETL artifacts
+scripts/
+.etl/
+
+# Frontend build artifacts
+frontend/dist/
+frontend/node_modules/
+
+
+# pytest cache
+.pytest_cache/

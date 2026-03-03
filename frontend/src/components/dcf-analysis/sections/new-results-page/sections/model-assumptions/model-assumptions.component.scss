@@ -1,0 +1,326 @@
+@use '../section-base.scss';
+@use '../../../../../../styles/_design-system-v2' as ds;
+
+// Section-specific actions
+.section-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  
+  @include ds.mobile {
+    gap: var(--space-2);
+  }
+}
+
+.reset-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-border-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 6px;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover:not(:disabled) {
+    background: var(--color-bg-hover);
+    border-color: var(--color-bg-active);
+    transform: translateY(-1px);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  i {
+    font-size: 12px;
+  }
+  
+  @include ds.mobile {
+    padding: var(--space-2) var(--space-3);
+    font-size: 13px;
+  }
+}
+
+// Assumptions grid layout
+.assumptions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-8);
+  margin-bottom: var(--space-12);
+  
+  @include ds.large-desktop {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  @include ds.tablet {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+  
+  @include ds.mobile {
+    gap: var(--space-4);
+  }
+}
+
+// Assumption category
+.assumption-category {
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 12px;
+  padding: var(--space-6);
+  
+  @include ds.mobile {
+    padding: var(--space-4);
+  }
+}
+
+.category-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border-secondary);
+  
+  i {
+    font-size: 16px;
+    color: var(--color-primary);
+  }
+  
+  @include ds.mobile {
+    font-size: 16px;
+    margin-bottom: var(--space-4);
+    gap: var(--space-2);
+  }
+}
+
+.assumption-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+// Individual assumption item
+.assumption-item {
+  padding: var(--space-4);
+  background: var(--color-bg-tertiary);
+  border-radius: 8px;
+  border: 1px solid var(--color-bg-tertiary);
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: var(--color-bg-tertiary);
+    border-color: var(--color-border-secondary);
+  }
+  
+  @include ds.mobile {
+    padding: var(--space-3);
+  }
+}
+
+.assumption-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+  
+  @include ds.mobile {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+}
+
+.assumption-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  
+  @include ds.mobile {
+    font-size: 13px;
+  }
+}
+
+.assumption-value {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.value-input {
+  width: 80px;
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 4px;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+  transition: all 0.2s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: var(--color-bg-secondary);
+    box-shadow: 0 0 0 2px rgba(32, 223, 127, 0.2);
+  }
+  
+  &:hover {
+    border-color: var(--color-bg-active);
+  }
+  
+  @include ds.mobile {
+    width: 70px;
+    font-size: 13px;
+  }
+}
+
+.value-unit {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  min-width: 30px;
+  
+  @include ds.mobile {
+    font-size: 11px;
+  }
+}
+
+.assumption-description {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  margin: 0;
+  
+  @include ds.mobile {
+    font-size: 11px;
+  }
+}
+
+// Model Summary
+.model-summary {
+  background: rgba(32, 223, 127, 0.05);
+  border: 1px solid rgba(32, 223, 127, 0.2);
+  border-radius: 12px;
+  padding: var(--space-6);
+  
+  @include ds.mobile {
+    padding: var(--space-4);
+  }
+}
+
+.summary-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-4);
+  
+  &::before {
+    content: '📊';
+    font-size: 16px;
+  }
+  
+  @include ds.mobile {
+    font-size: 16px;
+  }
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  
+  @include ds.tablet {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @include ds.mobile {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3);
+  background: var(--color-bg-tertiary);
+  border-radius: 6px;
+  
+  @include ds.mobile {
+    padding: var(--space-2);
+  }
+}
+
+.summary-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  
+  @include ds.mobile {
+    font-size: 11px;
+  }
+}
+
+.summary-value {
+  font-size: 13px;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  
+  @include ds.mobile {
+    font-size: 12px;
+  }
+}
+
+// Animation for assumption items
+.assumption-item {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInUp 0.4s ease-out forwards;
+  
+  @for $i from 1 through 12 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.05}s;
+    }
+  }
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Focus styles for accessibility
+.value-input:focus,
+.reset-btn:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .assumption-item {
+    border-color: var(--color-bg-active);
+  }
+  
+  .value-input {
+    border-color: var(--color-border-primary);
+  }
+}

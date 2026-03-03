@@ -1,0 +1,345 @@
+// ==========================================================================
+// EQUITY WATERFALL COMPONENT
+// ==========================================================================
+
+@use '../../../../../../../styles/_design-system-v2' as ds;
+
+// ==========================================================================
+// WATERFALL CONTAINER
+// ==========================================================================
+
+.equity-waterfall-container {
+  border-radius: 12px;
+  //padding: var(--space-6);
+  
+  @include ds.mobile {
+    padding: var(--space-4);
+  }
+}
+
+// ==========================================================================
+// HEADER
+// ==========================================================================
+
+.waterfall-header {
+  margin-bottom: var(--space-6);
+  text-align: center;
+  
+  @include ds.mobile {
+    margin-bottom: var(--space-4);
+  }
+}
+
+.waterfall-title {
+  @include ds.text-body;
+  & {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-2) 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+  }
+  
+  i {
+    color: var(--color-primary-text);
+  }
+  
+  @include ds.mobile {
+    font-size: 18px;
+  }
+}
+
+.waterfall-description {
+  @include ds.text-small;
+  & {
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+}
+
+// ==========================================================================
+// WATERFALL TABLE
+// ==========================================================================
+
+.table-container {
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: var(--space-6);
+}
+
+.waterfall-table {
+  width: 100%;
+  border-collapse: collapse;
+  
+  th, td {
+    padding: var(--space-3);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    
+    @include ds.mobile {
+      padding: var(--space-2);
+    }
+  }
+  
+  th {
+    @include ds.text-small;
+    & {
+      font-weight: 600;
+      color: var(--color-text-primary);
+      background: var(--color-bg-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 12px;
+    }
+  }
+  
+  // Column widths
+  th:nth-child(1) { width: 50%; }
+  th:nth-child(2) { width: 30%; }
+  th:nth-child(3) { width: 20%; }
+  
+  tbody tr {
+    transition: background-color 0.2s ease;
+    
+    &:hover {
+      background: var(--color-bg-hover);
+    }
+    
+    &:last-child td {
+      border-bottom: none;
+    }
+    
+    &.total-item {
+      background: var(--color-bg-button-primary-alpha);
+      border-left: 3px solid var(--color-primary);
+      
+      &:hover {
+        background: var(--color-bg-button-primary-alpha-hover);
+      }
+    }
+    
+    &.target-item {
+      background: var(--color-bg-button-primary-alpha);
+      border-left: 3px solid var(--color-info);
+      font-weight: 600;
+      
+      &:hover {
+        background: var(--color-bg-button-primary-alpha-hover);
+      }
+    }
+  }
+}
+
+// ==========================================================================
+// TABLE CELL CONTENT
+// ==========================================================================
+
+.component-name {
+  @include ds.text-body;
+  & {
+    font-weight: 500;
+    color: var(--color-text-primary);
+    font-size: 14px;
+  }
+
+  i {
+    margin-right: var(--space-2);
+    color: var(--color-primary-text);
+    width: 16px;
+  }
+  
+  @include ds.mobile {
+    font-size: 13px;
+  }
+}
+
+.component-value {
+  @include ds.text-body;
+  & {
+    font-weight: 600;
+    text-align: right;
+    font-size: 14px;
+  }
+
+  &.positive-value {
+    color: var(--color-success);
+  }
+  
+  &.negative-value {
+    color: var(--color-error);
+  }
+  
+  &.total-value {
+    color: var(--color-primary-text);
+  }
+  
+  &.target-value {
+    color: var(--color-info);
+    font-size: 16px;
+    font-weight: 700;
+  }
+  
+  @include ds.mobile {
+    font-size: 13px;
+    
+    &.target-value {
+      font-size: 14px;
+    }
+  }
+}
+
+.component-type {
+  text-align: center;
+}
+
+.type-badge {
+  @include ds.text-small;
+  & {
+    padding: var(--space-1) var(--space-2);
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &.addition-badge {
+    background: var(--color-bg-success-alpha);
+    color: var(--color-success);
+  }
+  
+  &.subtraction-badge {
+    background: var(--color-bg-error-alpha);
+    color: var(--color-error);
+  }
+  
+  &.total-badge {
+    background: var(--color-bg-button-primary-alpha);
+    color: var(--color-primary-text);
+  }
+  
+  &.target-badge {
+    background: var(--color-bg-info-alpha);
+    color: var(--color-info);
+  }
+}
+
+// ==========================================================================
+// PROGRESS BARS
+// ==========================================================================
+
+.item-bar {
+  height: 6px;
+  background: var(--color-bg-secondary);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: var(--space-2);
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s ease-out;
+  
+  &.positive-bar {
+    background: linear-gradient(90deg, var(--color-success), #34D399);
+  }
+  
+  &.negative-bar {
+    background: linear-gradient(90deg, var(--color-error), #F87171);
+  }
+}
+
+// ==========================================================================
+// CONNECTORS
+// ==========================================================================
+
+.connector {
+  position: absolute;
+  right: -15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  background: var(--color-bg-secondary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  i {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+  
+  @include ds.mobile {
+    display: none;
+  }
+}
+
+// ==========================================================================
+// SUMMARY
+// ==========================================================================
+
+.waterfall-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-tertiary);
+  
+  @include ds.mobile {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  
+  &.highlight {
+    .summary-value {
+      color: var(--color-primary-text);
+      font-weight: 700;
+    }
+  }
+}
+
+.summary-label {
+  @include ds.text-small;
+  & {
+    color: var(--color-text-secondary);
+    font-size: 12px;
+  }
+}
+
+.summary-value {
+  @include ds.text-body;
+  & {
+    font-weight: 600;
+    color: var(--color-text-primary);
+    font-size: 16px;
+  }
+
+  @include ds.mobile {
+    font-size: 14px;
+  }
+}
+
+// ==========================================================================
+// CURRENCY CODE STYLING
+// ==========================================================================
+
+:host ::ng-deep .currency-code {
+  font-size: 0.8em;
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-weight-normal);
+  opacity: 0.8;
+}

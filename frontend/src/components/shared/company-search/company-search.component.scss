@@ -1,0 +1,75 @@
+@use '../../../styles/_design-system-v2' as ds;
+
+.company-search-container {
+  width: 100%;
+}
+
+.search-and-selector-row {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .search-input-section {
+    flex: 1;
+    position: relative;
+    overflow: visible;
+  }
+}
+
+// Ensure search results appear above other content
+.search-input-section {
+  position: relative;
+  z-index: 1000;
+  
+  app-company-search-results {
+    display: block;
+    position: relative;
+    z-index: 1001;
+  }
+}
+
+// Enhanced size variations with mobile optimization
+.company-search-container {
+  // Small size - compact for headers/modals
+  &.size-sm {
+    .search-input-section {
+      max-width: 600px; // Increased from 300px for better usability
+      
+      @media (max-width: 480px) {
+        max-width: none; // Remove constraints on mobile
+        width: 100%;
+      }
+    }
+  }
+  
+  // Medium and large sizes with mobile enhancements
+  &.size-md,
+  &.size-lg {
+    .search-input-section {
+      width: 100%;
+      
+      // Mobile spacing optimizations
+      @media (max-width: 768px) {
+        margin: 0; // Remove any inherited margins
+      }
+    }
+  }
+  
+  // Mobile-specific container optimizations
+  @media (max-width: 768px) {
+    // Reduce any internal spacing for mobile
+    padding: 0;
+    margin: 0;
+  }
+  
+  @media (max-width: 480px) {
+    // Ensure full width utilization on small screens
+    width: 100%;
+    min-width: 0; // Allow shrinking
+  }
+}

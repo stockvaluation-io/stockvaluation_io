@@ -1,0 +1,250 @@
+@use '../../../styles/_design-system-v2' as ds;
+
+.search-suggestions {
+  margin-top: var(--space-3); // Increased spacing from search input
+  padding: var(--space-1) 0; // Reduced padding for subtlety
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap; // Allow wrapping by default for consistent mobile behavior
+  gap: var(--space-2); // Reduced gap for tighter, subtle appearance
+  transition: opacity var(--transition-fast);
+  opacity: 0.9; // Overall container subtle opacity
+  justify-content: flex-start; // Align items properly when wrapping
+  
+  // Accessibility improvements
+  & {
+    role: region;
+    aria-label: "Search suggestions";
+  }
+  
+  // Only use horizontal scroll on larger screens where it makes sense
+  @media (min-width: 600px) {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; // Enable momentum scrolling on iOS
+  }
+  
+  // Screen reader optimizations for mobile
+  @media (max-width: 768px) {
+    // Ensure proper focus management
+    &:focus-within {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+      border-radius: var(--radius-sm);
+    }
+  }
+  
+  // Mobile-specific optimizations
+  @media (max-width: 768px) {
+    gap: var(--space-1); // Use defined variable instead of undefined --space-1-5
+    padding: var(--space-1) 0; // Consistent subtle padding
+    justify-content: center; // Center wrapped items on mobile
+  }
+  
+  // Hide scrollbar on larger mobile screens that use horizontal scroll
+  @media (min-width: 600px) and (max-width: 768px) {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+  
+  &.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .suggestions-text {
+    display: inline;
+    @include ds.text-small;
+    & {
+      color: var(--color-text-muted);
+      font-weight: var(--font-weight-normal); // Reduced from medium for subtlety
+      white-space: nowrap;
+      flex-shrink: 0;
+      opacity: 0.7; // Subtle opacity reduction
+    }
+    
+    @media (max-width: 480px) {
+      font-size: var(--font-size-xs); // Smaller on mobile to save space
+    }
+  }
+
+  .suggestions-tags {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex-wrap: wrap; // Allow wrapping for consistent mobile behavior
+    justify-content: flex-start; // Align wrapped items properly
+    
+    @media (max-width: 768px) {
+      gap: var(--space-1); // Use defined variable instead of undefined --space-1-5
+      justify-content: center; // Center wrapped tags on mobile
+    }
+    
+    // Only prevent wrapping on larger screens using horizontal scroll
+    @media (min-width: 600px) {
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+    }
+
+    .suggestion-tag {
+      padding: var(--space-1) calc(var(--space-2) + 2px);
+      background: var(--color-bg-tertiary);
+      border: 1px solid var(--color-border-secondary);
+      border-radius: var(--radius-md); // Less rounded for subtlety
+      color: var(--color-text-secondary); // Muted text color
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-normal); // Reduced from medium
+      white-space: nowrap;
+      line-height: 1.2;
+      min-height: 32px; // Ensure touch-friendly height
+      display: flex;
+      align-items: center;
+      opacity: 0.8; // Overall subtle appearance
+      
+      // Mobile touch target optimizations
+      @media (max-width: 768px) {
+        padding: var(--space-1) var(--space-3); // Use defined variable
+        min-height: 36px; // Larger touch target
+        font-size: var(--font-size-xs);
+        border-radius: var(--radius-md); // Consistent subtle radius
+        opacity: 0.75; // Slightly more subtle on mobile
+      }
+      
+      @media (max-width: 480px) {
+        padding: var(--space-2) var(--space-3);
+        min-height: 40px; // Even larger for small screens
+        font-size: var(--font-size-sm); // Use design system variable for consistency
+      }
+      
+      &:hover {
+        background: var(--color-bg-hover);
+        border-color: var(--color-border-primary);
+        color: var(--color-text-primary);
+        opacity: 1; // Full opacity on hover
+        transition: all 0.2s ease;
+        
+        // Remove distracting transforms - keep it subtle
+        // Disable hover effects on touch devices
+        @media (hover: none) and (pointer: coarse) {
+          // No transform effects on touch
+        }
+        
+        // Reduced motion support
+        @media (prefers-reduced-motion: reduce) {
+          transition: background-color 0.1s ease, border-color 0.1s ease, color 0.1s ease, opacity 0.1s ease;
+        }
+      }
+
+      &:active {
+        background: var(--color-bg-active);
+        
+        // Reduced motion support - no transforms for subtlety
+        @media (prefers-reduced-motion: reduce) {
+          transition: background-color 0.1s ease;
+        }
+      }
+      
+      // Enhanced touch feedback for mobile devices
+      @media (hover: none) and (pointer: coarse) {
+        &:active {
+          background: var(--color-bg-active);
+          border-color: var(--color-border-primary);
+          color: var(--color-text-primary);
+          opacity: 1;
+          transition: all 0.1s ease;
+          // No transform - keep it subtle
+        }
+      }
+    }
+  }
+
+  // Very small screens - vertical stacking for optimal usability
+  @media (max-width: 400px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+    
+    .suggestions-text {
+      margin-right: 0;
+      margin-bottom: var(--space-1);
+    }
+    
+    .suggestions-tags {
+      width: 100%;
+      gap: var(--space-1); // Use defined variable
+      justify-content: flex-start; // Align to start for better visual hierarchy
+      
+      .suggestion-tag {
+        padding: var(--space-2) var(--space-3);
+        font-size: var(--font-size-sm); // Use design system variable
+        min-height: 44px; // Optimal touch target for very small screens
+      }
+    }
+  }
+
+  // Size variations
+  &.size-sm {
+    margin-top: var(--space-1);
+    padding: var(--space-1) 0;
+    gap: var(--space-2);
+
+    .suggestions-text {
+      font-size: var(--font-size-xs);
+    }
+
+    .suggestions-tags {
+      gap: var(--space-1);
+
+      .suggestion-tag {
+        padding: 4px 8px;
+        font-size: var(--font-size-xs); // Use design system variable
+        border-radius: var(--radius-sm);
+      }
+    }
+  }
+
+  &.size-md {
+    margin-top: var(--space-2);
+    padding: var(--space-1) 0; // Use defined variable
+    gap: var(--space-3);
+
+    .suggestions-text {
+      font-size: var(--font-size-sm);
+    }
+
+    .suggestions-tags {
+      gap: var(--space-2);
+
+      .suggestion-tag {
+        padding: var(--space-1) calc(var(--space-2) + 2px);
+        font-size: var(--font-size-xs);
+      }
+    }
+  }
+
+  &.size-lg {
+    margin-top: var(--space-3);
+    padding: var(--space-2) 0;
+    gap: var(--space-4);
+
+    .suggestions-text {
+      font-size: var(--font-size-base);
+    }
+
+    .suggestions-tags {
+      gap: var(--space-3);
+
+      .suggestion-tag {
+        padding: var(--space-2) var(--space-4);
+        font-size: var(--font-size-sm);
+        border-radius: var(--radius-lg);
+      }
+    }
+  }
+}

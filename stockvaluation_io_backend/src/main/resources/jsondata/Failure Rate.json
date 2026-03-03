@@ -1,0 +1,552 @@
+[
+  {
+    "age": 0,
+    "sector": "Agriculture",
+    "failureRate": 55.10
+  },
+  {
+    "age": 0,
+    "sector": "Mining",
+    "failureRate": 67.70
+  },
+  {
+    "age": 0,
+    "sector": "Utilities",
+    "failureRate": 55.10
+  },
+  {
+    "age": 0,
+    "sector": "Construction",
+    "failureRate": 75.30
+  },
+  {
+    "age": 0,
+    "sector": "Manufacturing",
+    "failureRate": 61.90
+  },
+  {
+    "age": 0,
+    "sector": "Retail",
+    "failureRate": 61.00
+  },
+  {
+    "age": 0,
+    "sector": "Transportation",
+    "failureRate": 71.60
+  },
+  {
+    "age": 0,
+    "sector": "Information",
+    "failureRate": 74.50
+  },
+  {
+    "age": 0,
+    "sector": "Health Care",
+    "failureRate": 57.50
+  },
+  {
+    "age": 0,
+    "sector": "All Sectors",
+    "failureRate": 67.20
+  },
+  {
+    "age": 1,
+    "sector": "Agriculture",
+    "failureRate": 37.40
+  },
+  {
+    "age": 1,
+    "sector": "Mining",
+    "failureRate": 49.50
+  },
+  {
+    "age": 1,
+    "sector": "Utilities",
+    "failureRate": 39.10
+  },
+  {
+    "age": 1,
+    "sector": "Construction",
+    "failureRate": 49.60
+  },
+  {
+    "age": 1,
+    "sector": "Manufacturing",
+    "failureRate": 44.70
+  },
+  {
+    "age": 1,
+    "sector": "Retail",
+    "failureRate": 44.10
+  },
+  {
+    "age": 1,
+    "sector": "Transportation",
+    "failureRate": 48.50
+  },
+  {
+    "age": 1,
+    "sector": "Information",
+    "failureRate": 49.70
+  },
+  {
+    "age": 1,
+    "sector": "Health Care",
+    "failureRate": 38.90
+  },
+  {
+    "age": 1,
+    "sector": "All Sectors",
+    "failureRate": 45.50
+  },
+  {
+    "age": 2,
+    "sector": "Agriculture",
+    "failureRate": 29.90
+  },
+  {
+    "age": 2,
+    "sector": "Mining",
+    "failureRate": 38.90
+  },
+  {
+    "age": 2,
+    "sector": "Utilities",
+    "failureRate": 28.60
+  },
+  {
+    "age": 2,
+    "sector": "Construction",
+    "failureRate": 35.10
+  },
+  {
+    "age": 2,
+    "sector": "Manufacturing",
+    "failureRate": 34.30
+  },
+  {
+    "age": 2,
+    "sector": "Retail",
+    "failureRate": 33.40
+  },
+  {
+    "age": 2,
+    "sector": "Transportation",
+    "failureRate": 35.20
+  },
+  {
+    "age": 2,
+    "sector": "Information",
+    "failureRate": 37.20
+  },
+  {
+    "age": 2,
+    "sector": "Health Care",
+    "failureRate": 29.70
+  },
+  {
+    "age": 2,
+    "sector": "All Sectors",
+    "failureRate": 33.40
+  },
+  {
+    "age": 3,
+    "sector": "Agriculture",
+    "failureRate": 21.20
+  },
+  {
+    "age": 3,
+    "sector": "Mining",
+    "failureRate": 30.60
+  },
+  {
+    "age": 3,
+    "sector": "Utilities",
+    "failureRate": 22.10
+  },
+  {
+    "age": 3,
+    "sector": "Construction",
+    "failureRate": 20.90
+  },
+  {
+    "age": 3,
+    "sector": "Manufacturing",
+    "failureRate": 24.10
+  },
+  {
+    "age": 3,
+    "sector": "Retail",
+    "failureRate": 24.10
+  },
+  {
+    "age": 3,
+    "sector": "Transportation",
+    "failureRate": 23.90
+  },
+  {
+    "age": 3,
+    "sector": "Information",
+    "failureRate": 27.80
+  },
+  {
+    "age": 3,
+    "sector": "Health Care",
+    "failureRate": 24.90
+  },
+  {
+    "age": 3,
+    "sector": "All Sectors",
+    "failureRate": 23.80
+  },
+  {
+    "age": 4,
+    "sector": "Agriculture",
+    "failureRate": 16.30
+  },
+  {
+    "age": 4,
+    "sector": "Mining",
+    "failureRate": 21.50
+  },
+  {
+    "age": 4,
+    "sector": "Utilities",
+    "failureRate": 18.00
+  },
+  {
+    "age": 4,
+    "sector": "Construction",
+    "failureRate": 12.40
+  },
+  {
+    "age": 4,
+    "sector": "Manufacturing",
+    "failureRate": 16.00
+  },
+  {
+    "age": 4,
+    "sector": "Retail",
+    "failureRate": 17.50
+  },
+  {
+    "age": 4,
+    "sector": "Transportation",
+    "failureRate": 16.60
+  },
+  {
+    "age": 4,
+    "sector": "Information",
+    "failureRate": 20.90
+  },
+  {
+    "age": 4,
+    "sector": "Health Care",
+    "failureRate": 18.80
+  },
+  {
+    "age": 4,
+    "sector": "All Sectors",
+    "failureRate": 17.00
+  },
+  {
+    "age": 5,
+    "sector": "Agriculture",
+    "failureRate": 12.50
+  },
+  {
+    "age": 5,
+    "sector": "Mining",
+    "failureRate": 18.90
+  },
+  {
+    "age": 5,
+    "sector": "Utilities",
+    "failureRate": 11.60
+  },
+  {
+    "age": 5,
+    "sector": "Construction",
+    "failureRate": 8.50
+  },
+  {
+    "age": 5,
+    "sector": "Manufacturing",
+    "failureRate": 11.30
+  },
+  {
+    "age": 5,
+    "sector": "Retail",
+    "failureRate": 13.10
+  },
+  {
+    "age": 5,
+    "sector": "Transportation",
+    "failureRate": 12.70
+  },
+  {
+    "age": 5,
+    "sector": "Information",
+    "failureRate": 16.40
+  },
+  {
+    "age": 5,
+    "sector": "Health Care",
+    "failureRate": 13.40
+  },
+  {
+    "age": 5,
+    "sector": "All Sectors",
+    "failureRate": 12.60
+  },
+  {
+    "age": 6,
+    "sector": "Agriculture",
+    "failureRate": 9.20
+  },
+  {
+    "age": 6,
+    "sector": "Mining",
+    "failureRate": 14.90
+  },
+  {
+    "age": 6,
+    "sector": "Utilities",
+    "failureRate": 10.70
+  },
+  {
+    "age": 6,
+    "sector": "Construction",
+    "failureRate": 5.90
+  },
+  {
+    "age": 6,
+    "sector": "Manufacturing",
+    "failureRate": 8.20
+  },
+  {
+    "age": 6,
+    "sector": "Retail",
+    "failureRate": 9.50
+  },
+  {
+    "age": 6,
+    "sector": "Transportation",
+    "failureRate": 9.30
+  },
+  {
+    "age": 6,
+    "sector": "Information",
+    "failureRate": 11.70
+  },
+  {
+    "age": 6,
+    "sector": "Health Care",
+    "failureRate": 12.30
+  },
+  {
+    "age": 6,
+    "sector": "All Sectors",
+    "failureRate": 9.50
+  },
+  {
+    "age": 7,
+    "sector": "Agriculture",
+    "failureRate": 6.70
+  },
+  {
+    "age": 7,
+    "sector": "Mining",
+    "failureRate": 10.60
+  },
+  {
+    "age": 7,
+    "sector": "Utilities",
+    "failureRate": 6.70
+  },
+  {
+    "age": 7,
+    "sector": "Construction",
+    "failureRate": 3.70
+  },
+  {
+    "age": 7,
+    "sector": "Manufacturing",
+    "failureRate": 5.70
+  },
+  {
+    "age": 7,
+    "sector": "Retail",
+    "failureRate": 6.70
+  },
+  {
+    "age": 7,
+    "sector": "Transportation",
+    "failureRate": 6.50
+  },
+  {
+    "age": 7,
+    "sector": "Information",
+    "failureRate": 8.50
+  },
+  {
+    "age": 7,
+    "sector": "Health Care",
+    "failureRate": 10.40
+  },
+  {
+    "age": 7,
+    "sector": "All Sectors",
+    "failureRate": 6.80
+  },
+  {
+    "age": 8,
+    "sector": "Agriculture",
+    "failureRate": 4.60
+  },
+  {
+    "age": 8,
+    "sector": "Mining",
+    "failureRate": 8.20
+  },
+  {
+    "age": 8,
+    "sector": "Utilities",
+    "failureRate": 5.40
+  },
+  {
+    "age": 8,
+    "sector": "Construction",
+    "failureRate": 2.40
+  },
+  {
+    "age": 8,
+    "sector": "Manufacturing",
+    "failureRate": 3.40
+  },
+  {
+    "age": 8,
+    "sector": "Retail",
+    "failureRate": 4.30
+  },
+  {
+    "age": 8,
+    "sector": "Transportation",
+    "failureRate": 4.00
+  },
+  {
+    "age": 8,
+    "sector": "Information",
+    "failureRate": 5.90
+  },
+  {
+    "age": 8,
+    "sector": "Health Care",
+    "failureRate": 5.90
+  },
+  {
+    "age": 8,
+    "sector": "All Sectors",
+    "failureRate": 4.30
+  },
+  {
+    "age": 9,
+    "sector": "Agriculture",
+    "failureRate": 1.60
+  },
+  {
+    "age": 9,
+    "sector": "Mining",
+    "failureRate": 4.80
+  },
+  {
+    "age": 9,
+    "sector": "Utilities",
+    "failureRate": 2.70
+  },
+  {
+    "age": 9,
+    "sector": "Construction",
+    "failureRate": 1.10
+  },
+  {
+    "age": 9,
+    "sector": "Manufacturing",
+    "failureRate": 1.90
+  },
+  {
+    "age": 9,
+    "sector": "Retail",
+    "failureRate": 2.00
+  },
+  {
+    "age": 9,
+    "sector": "Transportation",
+    "failureRate": 2.10
+  },
+  {
+    "age": 9,
+    "sector": "Information",
+    "failureRate": 1.90
+  },
+  {
+    "age": 9,
+    "sector": "Health Care",
+    "failureRate": 3.00
+  },
+  {
+    "age": 9,
+    "sector": "All Sectors",
+    "failureRate": 2.00
+  },
+  {
+    "age": 10,
+    "sector": "Agriculture",
+    "failureRate": 0.00
+  },
+  {
+    "age": 10,
+    "sector": "Mining",
+    "failureRate": 0.00
+  },
+  {
+    "age": 10,
+    "sector": "Utilities",
+    "failureRate": 0.00
+  },
+  {
+    "age": 10,
+    "sector": "Construction",
+    "failureRate": 0.00
+  },
+  {
+    "age": 10,
+    "sector": "Manufacturing",
+    "failureRate": 0.00
+  },
+  {
+    "age": 10,
+    "sector": "Retail",
+    "failureRate": 0.00
+  },
+  {
+    "age": 10,
+    "sector": "Transportation",
+    "failureRate": 0.00
+  },
+  {
+    "age": 10,
+    "sector": "Information",
+    "failureRate": 0.00
+  },
+  {
+    "age": 10,
+    "sector": "Health Care",
+    "failureRate": 0.00
+  },
+  {
+    "age": 10,
+    "sector": "All Sectors",
+    "failureRate": 0.00
+  }
+]

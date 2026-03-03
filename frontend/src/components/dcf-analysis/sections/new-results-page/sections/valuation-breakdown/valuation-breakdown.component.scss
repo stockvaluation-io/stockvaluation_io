@@ -1,0 +1,105 @@
+@use '../../../../../../styles/_design-system-v2' as ds;
+
+// ==========================================================================
+// VALUATION BREAKDOWN SECTION LAYOUT
+// ==========================================================================
+
+.valuation-breakdown-section {
+  margin-bottom: var(--space-6);
+  
+  @include ds.mobile {
+    margin-bottom: var(--space-4);
+  }
+}
+
+.section-title {
+  @include ds.text-section-title;
+  & {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-4) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  
+  @include ds.mobile {
+    font-size: var(--font-size-xl);
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+}
+
+.section-icon {
+  color: var(--color-primary);
+  font-size: var(--font-size-lg);
+  
+  @include ds.mobile {
+    font-size: var(--font-size-base);
+  }
+}
+
+// ==========================================================================
+// CLEAN WATERFALL LAYOUT
+// ==========================================================================
+
+// Clean layout - just the table without any containers or extras
+
+// ==========================================================================
+// SUBSECTION TITLES
+// ==========================================================================
+
+.subsection-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-4) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  
+  i {
+    color: var(--color-primary);
+    font-size: var(--font-size-lg);
+  }
+  
+  @include ds.mobile {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--space-3);
+  }
+}
+
+
+
+// ==========================================================================
+// RESPONSIVE DESIGN
+// ==========================================================================
+
+@include ds.large-desktop {
+  .components-grid {
+    gap: var(--space-6);
+  }
+  
+  .per-share-grid {
+    gap: var(--space-6);
+  }
+}
+
+// ==========================================================================
+// ANIMATIONS
+// ==========================================================================
+
+app-equity-waterfall {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s ease-out forwards;
+  animation-delay: 0.1s;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

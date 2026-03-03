@@ -1,0 +1,460 @@
+@use '../../../../../../styles/_design-system-v2' as ds;
+
+.company-info-wrapper {
+  width: 100%;
+}
+
+.company-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-4) 0;
+
+  // Tablet and small desktop responsive behavior
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-6);
+  }
+
+  @include ds.mobile {
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
+  }
+
+  // Very small screens
+  @media (max-width: 400px) {
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
+  }
+}
+
+
+.company-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-shrink: 0;
+  min-width: 0;
+
+  @media (max-width: 640px) {
+    gap: var(--space-3);
+  }
+
+  @include ds.mobile {
+    gap: var(--space-3);
+  }
+
+  // Very small screens
+  @media (max-width: 400px) {
+    gap: var(--space-2);
+  }
+}
+
+.company-logo-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.company-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: var(--color-bg-tertiary);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border-secondary);
+
+  @media (max-width: 640px) {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+  }
+
+  @include ds.mobile {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+  }
+
+  @media (max-width: 400px) {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    padding: var(--space-1);
+  }
+}
+
+.company-logo-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: var(--color-primary-alpha);
+  border: 1px solid var(--color-primary-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-text);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+
+  @media (max-width: 640px) {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    font-size: var(--font-size-base);
+  }
+
+  @include ds.mobile {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    font-size: var(--font-size-base);
+  }
+
+  @media (max-width: 400px) {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    font-size: var(--font-size-sm);
+  }
+}
+
+.company-text-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1;
+
+  // Ensure text doesn't overflow on small screens
+  @media (max-width: 640px) {
+    min-width: 0;
+    overflow: hidden;
+  }
+}
+
+.company-details {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+
+  .separator {
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-xs);
+
+    // Hide separators on very small screens to save space
+    @media (max-width: 400px) {
+      display: none;
+    }
+  }
+
+  // Tighter spacing on small screens
+  @media (max-width: 640px) {
+    gap: var(--space-1);
+  }
+
+  @media (max-width: 400px) {
+    gap: var(--space-1);
+    justify-content: flex-start;
+  }
+}
+
+.company-location,
+.company-industry {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-normal);
+
+  @include ds.mobile {
+    font-size: var(--font-size-xs);
+  }
+}
+
+.company-name {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: 1.2;
+  word-wrap: break-word;
+  hyphens: auto;
+
+  // Progressive scaling for better readability
+  @media (max-width: 1024px) {
+    font-size: var(--font-size-xl);
+  }
+
+  @media (max-width: 640px) {
+    font-size: var(--font-size-lg);
+  }
+
+  @include ds.mobile {
+    font-size: var(--font-size-lg);
+  }
+
+  // Very small screens
+  @media (max-width: 400px) {
+    font-size: var(--font-size-base);
+  }
+}
+
+.company-symbol {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  @include ds.mobile {
+    font-size: var(--font-size-xs);
+  }
+}
+
+.primary-metrics {
+  display: flex;
+  gap: var(--space-4);
+  flex-shrink: 0;
+
+  // Stack on tablets and small desktop
+  @media (max-width: 1024px) {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  // Stack vertically on small tablets
+  @media (max-width: 640px) {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  @include ds.mobile {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  // Very small screens - tighter spacing
+  @media (max-width: 400px) {
+    gap: var(--space-2);
+  }
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.learn-terms-btn {
+  background: var(--color-bg-button-header);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-button-header);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  @include ds.primary-button;
+
+  .emoji {
+    font-size: 16px;
+  }
+
+  &:hover {
+    background: var(--color-bg-button-header-hover);
+    border-color: var(--color-border-button-header-hover);
+  }
+}
+
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-6);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 12px;
+  min-width: 160px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-primary);
+    transform: translateY(-2px);
+  }
+
+  // Tablet adjustments
+  @media (max-width: 1024px) {
+    min-width: 140px;
+    padding: var(--space-4) var(--space-5);
+  }
+
+  // Small tablet/large mobile
+  @media (max-width: 640px) {
+    min-width: unset;
+    width: 100%;
+    padding: var(--space-4) var(--space-5);
+  }
+
+  @include ds.mobile {
+    min-width: unset;
+    width: 100%;
+    padding: var(--space-4) var(--space-5);
+  }
+
+  // Very small screens
+  @media (max-width: 400px) {
+    padding: var(--space-3) var(--space-4);
+    gap: var(--space-1);
+  }
+}
+
+.metric-label {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  font-weight: var(--font-weight-medium);
+
+  &.undervalued {
+    color: var(--color-success);
+  }
+
+  &.overvalued {
+    color: var(--color-error);
+  }
+
+  // Progressive sizing for better readability
+  @media (max-width: 640px) {
+    font-size: 11px;
+    letter-spacing: 0.3px;
+  }
+
+  @include ds.mobile {
+    font-size: 11px;
+    letter-spacing: 0.3px;
+  }
+
+  @media (max-width: 400px) {
+    font-size: 10px;
+    letter-spacing: 0.2px;
+    // Allow wrapping on very small screens if needed
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+  }
+}
+
+.metric-value-wrapper {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  justify-content: center;
+}
+
+.metric-value {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  line-height: 1.2;
+
+  &.primary {
+    color: var(--color-primary-text);
+  }
+
+  // Progressive scaling
+  @media (max-width: 1024px) {
+    font-size: var(--font-size-2xl);
+  }
+
+  @media (max-width: 640px) {
+    font-size: var(--font-size-xl);
+  }
+
+  @include ds.mobile {
+    font-size: var(--font-size-xl);
+  }
+
+  // Very small screens
+  @media (max-width: 400px) {
+    font-size: var(--font-size-lg);
+  }
+}
+
+.currency-label {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-weight-normal);
+
+  @media (max-width: 640px) {
+    font-size: var(--font-size-xs);
+  }
+
+  @include ds.mobile {
+    font-size: var(--font-size-xs);
+  }
+
+  @media (max-width: 400px) {
+    font-size: 11px;
+  }
+}
+
+.metric-sublabel {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  margin-top: calc(var(--space-1) * -1);
+
+  @include ds.mobile {
+    font-size: 11px;
+  }
+}
+
+// Currency mismatch styling
+.metric-card.currency-mismatch {
+  background: var(--color-bg-warning-alpha);
+  border-color: var(--color-border-warning-alpha);
+
+  .metric-label {
+    color: var(--color-warning);
+  }
+
+  .mismatch-text {
+    font-family: var(--font-primary);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-warning);
+    line-height: 1.2;
+
+    @include ds.mobile {
+      font-size: var(--font-size-base);
+    }
+  }
+}
+
+// Animation on load
+.company-info-wrapper {
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: slideInDown 0.6s ease-out 0.1s forwards;
+}
+
+@keyframes slideInDown {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,145 @@
+<div class="not-found-page">
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Hero Section -->
+    <div class="not-found-hero">
+      <!-- Animated Background Elements -->
+      <div class="hero-background">
+        <div class="floating-shape shape-1"></div>
+        <div class="floating-shape shape-2"></div>
+        <div class="floating-shape shape-3"></div>
+        <div class="grid-pattern"></div>
+      </div>
+
+      <div class="hero-content">
+        <div class="error-illustration">
+          <!-- Animated 404 Display -->
+          <div class="error-display">
+            <div class="digit digit-4-first">4</div>
+            <div class="digit digit-0">
+              <div class="zero-animation">
+                <app-icon icon="chart" size="xxl"></app-icon>
+              </div>
+            </div>
+            <div class="digit digit-4-last">4</div>
+          </div>
+
+          <!-- Decorative Elements -->
+          <div class="decoration-line left"></div>
+          <div class="decoration-line right"></div>
+        </div>
+
+        <div class="hero-text">
+          <h1 class="error-title">
+            <span class="title-accent">Oops!</span> Page Not Found
+          </h1>
+          <p class="error-subtitle">
+            The page you're looking for seems to have vanished into the market volatility.
+            Don't worry, we'll help you find your way back to solid ground.
+          </p>
+        </div>
+
+        <div class="hero-actions">
+          <app-action-button variant="secondary" icon="home" text="Back to Homepage" [isLoading]="isNavigatingHome"
+            (clicked)="onHomeClick()">
+          </app-action-button>
+
+          <app-action-button variant="primary" icon="chart" text="Start Valuation" [isLoading]="isNavigatingValuation"
+            (clicked)="onValuationClick()">
+          </app-action-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Links Section -->
+    <section class="quick-links-section">
+      <div class="section-container">
+        <div class="section-header">
+          <h2 class="section-title">Where would you like to go?</h2>
+          <p class="section-subtitle">Here are some helpful links to get you started</p>
+        </div>
+
+        <div class="quick-links-grid">
+          <a routerLink="/automated-dcf-analysis" class="quick-link-card">
+            <div class="card-glow"></div>
+            <div class="card-inner">
+              <div class="card-icon">
+                <div class="icon-bg">
+                  <app-icon icon="home" size="lg"></app-icon>
+                </div>
+              </div>
+              <div class="card-content">
+                <h3 class="card-title">Homepage</h3>
+                <p class="card-description">Discover our platform and features</p>
+              </div>
+              <div class="card-arrow">
+                <app-icon icon="arrowRight" size="sm"></app-icon>
+              </div>
+            </div>
+          </a>
+
+          <a routerLink="/automated-dcf-analysis" class="quick-link-card featured">
+            <div class="featured-badge">Recommended</div>
+            <div class="card-glow"></div>
+            <div class="card-inner">
+              <div class="card-icon">
+                <div class="icon-bg primary">
+                  <app-icon icon="chart" size="lg"></app-icon>
+                </div>
+              </div>
+              <div class="card-content">
+                <h3 class="card-title">Start Valuation</h3>
+                <p class="card-description">Analyze stocks with DCF models</p>
+              </div>
+              <div class="card-arrow">
+                <app-icon icon="arrowRight" size="sm"></app-icon>
+              </div>
+            </div>
+          </a>
+
+          <a routerLink="/automated-dcf-analysis" class="quick-link-card">
+            <div class="card-glow"></div>
+            <div class="card-inner">
+              <div class="card-icon">
+                <div class="icon-bg">
+                  <app-icon icon="search" size="lg"></app-icon>
+                </div>
+              </div>
+              <div class="card-content">
+                <h3 class="card-title">Search Stocks</h3>
+                <p class="card-description">Find a ticker and run valuation</p>
+              </div>
+              <div class="card-arrow">
+                <app-icon icon="arrowRight" size="sm"></app-icon>
+              </div>
+            </div>
+          </a>
+
+          <a href="mailto:stockvaluation.io@gmail.com" class="quick-link-card">
+            <div class="card-glow"></div>
+            <div class="card-inner">
+              <div class="card-icon">
+                <div class="icon-bg">
+                  <app-icon icon="mail" size="lg"></app-icon>
+                </div>
+              </div>
+              <div class="card-content">
+                <h3 class="card-title">Contact Us</h3>
+                <p class="card-description">Reach out to our support team</p>
+              </div>
+              <div class="card-arrow">
+                <app-icon icon="arrowRight" size="sm"></app-icon>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div class="additional-actions">
+          <app-action-button variant="tertiary" icon="arrowLeft" text="Go Back" [isLoading]="false"
+            (clicked)="onBackClick()">
+          </app-action-button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

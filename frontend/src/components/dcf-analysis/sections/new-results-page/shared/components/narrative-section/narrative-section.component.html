@@ -1,0 +1,184 @@
+<div class="narrative-section" *ngIf="narrativeData && narrativeSections.length > 0">
+  <div class="section-header">
+    <h2 class="section-title">
+      <i class="pi pi-book"></i>
+      Narrative
+    </h2>
+  </div>
+
+  <!-- Learn More Floating Button -->
+  <!-- Button moved to company-info-row; keeping panel here -->
+
+  <!-- Slide-over / Bottom Sheet Panel -->
+  <!-- <div class="learn-panel" [class.open]="isLearnOpen">
+  <div class="learn-overlay" (click)="toggleLearnPanel(false)"></div>
+  <aside class="learn-content">
+    <div class="learn-header">
+      <h3>Valuation Terms Explained</h3>
+      <button class="close-btn" (click)="toggleLearnPanel(false)" aria-label="Close">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+    <div class="learn-search">
+      <i class="pi pi-search"></i>
+      <input type="text" placeholder="Search terms..." [(ngModel)]="learnSearch" />
+    </div>
+    <div class="learn-body">
+      <div class="term-accordion" *ngFor="let t of filteredLearnTerms">
+        <details>
+          <summary>{{ t.title }}</summary>
+          <div class="term-layer">
+            <div class="layer-icon">✅</div>
+            <div class="layer-content">
+              <h5>Simple</h5>
+              <p>{{ t.simple }}</p>
+            </div>
+          </div>
+          <div class="term-layer">
+            <div class="layer-icon">🌱</div>
+            <div class="layer-content">
+              <h5>Analogy</h5>
+              <p>{{ t.analogy }}</p>
+            </div>
+          </div>
+          <div class="term-layer" *ngIf="t.technical">
+            <div class="layer-icon">📊</div>
+            <div class="layer-content">
+              <h5>Technical</h5>
+              <p>{{ t.technical }}</p>
+            </div>
+          </div>
+          <div class="term-actions" *ngIf="t.link">
+            <a [href]="t.link" target="_blank" rel="noopener">Learn more</a>
+          </div>
+        </details>
+      </div>
+    </div>
+  </aside>
+</div>-->
+  <div class="narrative-container" *ngFor="let section of narrativeSections; trackBy: trackByTitle; let i = index"
+    [attr.data-index]="i">
+
+    <!-- Section Title -->
+    <div class="narrative-section-header">
+      <div class="narrative-icon">
+        <i [class]="'pi ' + section.icon"></i>
+      </div>
+      <h4 class="narrative-title">{{ section.title }}</h4>
+    </div>
+
+    <!-- Full Width Layout: Narrative + Chart -->
+    <div class="narrative-full-layout"
+      *ngIf="section.type !== 'bull-bear-debate' && section.type !== 'scenario-analysis'">
+
+      <!-- 100% - Narrative Table -->
+      <div class="narrative-table-column">
+        <div class="narrative-table-wrapper">
+          <table class="narrative-table">
+            <tbody>
+              <tr class="narrative-row">
+                <td class="sentence-content" [innerHTML]="highlightNumbers(section.content)"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Chart Section based on narrative type -->
+        <div class="chart-section" *ngIf="results && company">
+          <!-- Growth Chart -->
+          <div class="chart-wrapper" *ngIf="section.title && section.title.includes('Growth')">
+            <app-chart-wrapper type="line" [chartData]="growthStoryChartData" title="Growth Trajectory" size="medium"
+              [currency]="currency" [isPercentageChart]="true" [theme]="themeService.currentTheme()">
+            </app-chart-wrapper>
+          </div>
+
+          <!-- Profitability Chart -->
+          <div class="chart-wrapper" *ngIf="section.title && section.title.includes('Margins')">
+            <app-chart-wrapper type="line" [chartData]="profitabilityStoryChartData" title="Profitability & Efficiency"
+              size="medium" [currency]="currency" [isPercentageChart]="true" [theme]="themeService.currentTheme()">
+            </app-chart-wrapper>
+          </div>
+
+          <!-- Risk Chart -->
+          <div class="chart-wrapper" *ngIf="section.title && section.title.includes('Risk')">
+            <app-chart-wrapper type="line" [chartData]="riskStoryChartData" title="Risk vs Return" size="medium"
+              [currency]="currency" [isPercentageChart]="true" [theme]="themeService.currentTheme()">
+            </app-chart-wrapper>
+          </div>
+
+          <!-- Market Expectations Chart and Cash Flow Chart (Side by Side for Key Takeaways) -->
+          <div class="charts-row" *ngIf="section.title && section.title.includes('Takeaways')">
+            <div class="chart-wrapper chart-half">
+              <app-chart-wrapper type="bar" [chartData]="competitiveAdvantagesChartData"
+                title="Market Expectations vs Reality" size="medium" [currency]="currency" [isPercentageChart]="true"
+                [theme]="themeService.currentTheme()">
+              </app-chart-wrapper>
+            </div>
+            <div class="chart-wrapper chart-half">
+              <app-chart-wrapper type="bar" [chartData]="cashFlowChartData" title="Operational Cash Flow Analysis"
+                size="medium" [currency]="currency" [isPercentageChart]="false" [theme]="themeService.currentTheme()">
+              </app-chart-wrapper>
+            </div>
+          </div>
+
+          <!-- Full Width Bull-Bear Debate Display - Chat Conversation Style -->
+          <div class="debate-wrapper" *ngIf="section.type === 'bull-bear-debate'">
+            <div class="debate-conversation">
+              <!-- Conversation Messages - Bull Left, Bear Right with Connected Edges -->
+              <div class="debate-round" *ngFor="let round of section.debateRounds; let i = index">
+                <!-- Round Header -->
+                <div class="round-header">
+                  <span class="round-label">Round {{ round.round || (i + 1) }}</span>
+                </div>
+
+                <!-- Bull Message (Left side) -->
+                <div class="message-container bull-message-container">
+                  <div class="message-bubble bull-bubble">
+                    <div class="message-header">
+                      <div class="message-avatar bull-avatar">
+                        <i class="pi pi-arrow-up"></i>
+                      </div>
+                      <span class="message-author">Bull Agent</span>
+                    </div>
+                    <div class="message-content" [innerHTML]="highlightNumbers(round.bull)"></div>
+                    <div class="message-time">
+                      <i class="pi pi-check"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Fancy Arrow Connection from Bull to Bear -->
+                <div class="arrow-connection-wrapper">
+                  <div class="arrow-connection bull-to-bear">
+                    <svg width="60" height="30" viewBox="0 0 60 30" preserveAspectRatio="none">
+                      <defs>
+                        <marker id="arrowhead-bull" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                          <polygon points="0 0, 10 3, 0 6" fill="var(--color-border-primary)" />
+                        </marker>
+                      </defs>
+                      <path d="M 5 15 Q 25 8, 45 15 T 55 15" stroke="var(--color-border-primary)" stroke-width="2.5"
+                        fill="none" stroke-linecap="round" marker-end="url(#arrowhead-bull)" />
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Bear Message (Right side) -->
+                <div class="message-container bear-message-container">
+                  <div class="message-bubble bear-bubble">
+                    <div class="message-header">
+                      <div class="message-avatar bear-avatar">
+                        <i class="pi pi-arrow-down"></i>
+                      </div>
+                      <span class="message-author">Bear Agent</span>
+                    </div>
+                    <div class="message-content" [innerHTML]="highlightNumbers(round.bear)"></div>
+                    <div class="message-time">
+                      <i class="pi pi-circle"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>

@@ -1,0 +1,140 @@
+{
+  "lastUpdated": "December 11, 2024",
+  "hero": {
+    "title": "Privacy Policy",
+    "subtitle": "Your privacy and data protection are our top priorities",
+    "summary": {
+      "title": "Privacy at a Glance",
+      "items": [
+        {
+          "title": "No Personal Financial Data",
+          "icon": "privacy",
+          "description": "We don't store your investment positions or personal financial information"
+        },
+        {
+          "title": "Purpose-Driven Data Use",
+          "icon": "target",
+          "description": "We collect only what's essential to deliver accurate valuation insights"
+        },
+        {
+          "title": "Enterprise Security",
+          "icon": "lock",
+          "description": "Bank-level encryption and security measures protect your data"
+        }
+      ]
+    }
+  },
+  "sections": [
+    {
+      "id": "introduction",
+      "title": "Introduction",
+      "icon": "tablerInfo",
+      "content": [
+        "At stockvaluation.io, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit and use our website and services.",
+        "We believe in transparency and want you to understand exactly what data we collect, why we collect it, and how we use it to provide you with the best possible stock valuation experience.",
+        "By using our services, you agree to the terms outlined in this Privacy Policy. If you do not agree with these terms, please do not use our website or services."
+      ]
+    },
+    {
+      "id": "information-we-collect",
+      "title": "Information We Collect",
+      "icon": "database",
+      "content": [
+        "We collect information in several ways to provide and improve our services:",
+        "<strong>Information You Provide Directly:</strong><ul><li><strong>Account Information:</strong> When you create an account, we collect your name, email address, and password</li><li><strong>Communication Data:</strong> Messages you send us through contact forms, support tickets, or direct communication</li><li><strong>Preferences:</strong> Your settings and preferences for using our platform</li></ul>",
+        "<strong>Information Collected Automatically:</strong><ul><li><strong>Usage Data:</strong> How you interact with our website, including pages visited, time spent, and features used</li><li><strong>Device Information:</strong> Browser type, operating system, IP address, and device identifiers</li><li><strong>Analytics Data:</strong> Website performance metrics and user behavior patterns (anonymized)</li></ul>",
+        "<strong>Financial Market Data:</strong><ul><li><strong>Stock Analysis Queries:</strong> The companies you research and analyze using our tools</li><li><strong>Valuation Parameters:</strong> The assumptions and inputs you use in our models</li><li><strong>Important Note:</strong> We do NOT collect or store your personal investment positions, account balances, or trading activity</li></ul>"
+      ]
+    },
+    {
+      "id": "how-we-use-information",
+      "title": "How We Use Your Information",
+      "icon": "tablerTarget",
+      "content": [
+        "We use the collected information for legitimate business purposes:",
+        "<strong>Service Provision:</strong><ul><li>Providing access to our DCF valuation tools and analysis</li><li>Processing and displaying financial data and calculations</li><li>Saving your preferences and analysis history</li><li>Ensuring platform security and preventing unauthorized access</li></ul>",
+        "<strong>Communication:</strong><ul><li>Responding to your inquiries and providing customer support</li><li>Sending important service updates and security notifications</li><li>Providing educational content about stock valuation (if you opt-in)</li></ul>",
+        "<strong>Platform Improvement:</strong><ul><li>Analyzing usage patterns to improve our tools and user experience</li><li>Developing new features based on user needs</li><li>Ensuring optimal website performance and reliability</li></ul>",
+        "<strong>Legal and Security:</strong><ul><li>Complying with legal obligations and regulations</li><li>Protecting against fraud, abuse, and security threats</li><li>Enforcing our Terms of Service</li></ul>"
+      ]
+    },
+    {
+      "id": "data-sharing",
+      "title": "Information Sharing and Disclosure",
+      "icon": "externalLink",
+      "content": [
+        "We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following limited circumstances:",
+        "<strong>Service Providers:</strong> We work with trusted third-party service providers who help us operate our platform:<ul><li><strong>Financial Data Providers:</strong> To access real-time and historical financial data</li><li><strong>Cloud Infrastructure:</strong> For secure hosting and data storage</li><li><strong>Analytics Services:</strong> For website performance monitoring (data is anonymized)</li><li><strong>Communication Tools:</strong> For customer support and email services</li></ul>",
+        "<strong>Legal Requirements:</strong> We may disclose information when required by law:<ul><li>In response to subpoenas, court orders, or legal process</li><li>To protect our rights, property, or safety, or that of our users</li><li>To investigate fraud or security incidents</li><li>To comply with regulatory requirements</li></ul>",
+        "<strong>Business Transfers:</strong> In the event of a merger, acquisition, or sale of assets, user information may be transferred as part of the transaction. We will notify users of any such change.",
+        "All third-party service providers are contractually bound to protect your information and use it only for the specific services they provide to us."
+      ]
+    },
+    {
+      "id": "data-security",
+      "title": "Data Security",
+      "icon": "heroShield",
+      "content": [
+        "We implement industry-standard security measures to protect your information:",
+        "<strong>Technical Safeguards:</strong><ul><li><strong>Encryption:</strong> All data transmission uses TLS/SSL encryption</li><li><strong>Secure Hosting:</strong> Our servers are hosted in SOC 2 certified data centers</li><li><strong>Access Controls:</strong> Strict access controls limit who can view your data</li><li><strong>Regular Security Audits:</strong> We conduct regular security assessments and updates</li></ul>",
+        "<strong>Administrative Safeguards:</strong><ul><li><strong>Employee Training:</strong> All staff receive privacy and security training</li><li><strong>Principle of Least Privilege:</strong> Employees access only data necessary for their roles</li><li><strong>Background Checks:</strong> All employees undergo background verification</li></ul>",
+        "<strong>Physical Safeguards:</strong><ul><li><strong>Secure Data Centers:</strong> Physical access controls and 24/7 monitoring</li><li><strong>Environmental Controls:</strong> Fire suppression, temperature, and humidity monitoring</li></ul>",
+        "While we implement robust security measures, no system is 100% secure. We continuously monitor for threats and update our security practices to address emerging risks."
+      ]
+    },
+    {
+      "id": "your-rights",
+      "title": "Your Privacy Rights",
+      "icon": "heroUsers",
+      "content": [
+        "You have several rights regarding your personal information:",
+        "<strong>Access and Portability:</strong><ul><li><strong>Right to Access:</strong> Request a copy of the personal information we hold about you</li><li><strong>Data Portability:</strong> Receive your data in a structured, machine-readable format</li></ul>",
+        "<strong>Correction and Updates:</strong><ul><li><strong>Right to Correction:</strong> Update or correct inaccurate personal information</li><li><strong>Account Management:</strong> Modify your preferences and settings at any time</li></ul>",
+        "<strong>Deletion and Restriction:</strong><ul><li><strong>Right to Deletion:</strong> Request deletion of your personal information</li><li><strong>Right to Restriction:</strong> Limit how we process your information</li><li><strong>Account Closure:</strong> Delete your account and associated data</li></ul>",
+        "<strong>Communication Preferences:</strong><ul><li><strong>Opt-out:</strong> Unsubscribe from marketing communications at any time</li><li><strong>Notification Settings:</strong> Control what types of communications you receive</li></ul>",
+        "To exercise any of these rights, please contact us at contact@stockvaluation.io. We will respond to your request within 30 days."
+      ]
+    },
+    {
+      "id": "cookies-tracking",
+      "title": "Cookies and Tracking Technologies",
+      "icon": "cookie",
+      "content": [
+        "We use cookies and similar technologies to enhance your experience:",
+        "<strong>Essential Cookies:</strong><ul><li><strong>Authentication:</strong> Keep you logged in during your session</li><li><strong>Security:</strong> Protect against cross-site forgery attacks</li><li><strong>Preferences:</strong> Remember your settings and preferences</li></ul>",
+        "<strong>Analytics Cookies:</strong><ul><li><strong>Usage Analytics:</strong> Understand how our website is used (Google Analytics)</li><li><strong>Performance Monitoring:</strong> Identify and fix technical issues</li><li><strong>Feature Development:</strong> Guide improvements to our platform</li></ul>",
+        "<strong>Cookie Management:</strong><ul><li><strong>Browser Controls:</strong> You can disable cookies through your browser settings</li><li><strong>Opt-out Options:</strong> Use browser extensions or privacy tools to block tracking</li><li><strong>Impact on Functionality:</strong> Disabling cookies may limit some website features</li></ul>",
+        "We do not use cookies for advertising or selling your data to third parties. Our cookie usage is focused solely on improving your experience with our platform."
+      ]
+    },
+    {
+      "id": "international-transfers",
+      "title": "International Data Transfers",
+      "icon": "globe",
+      "content": [
+        "As a global service, we may transfer your information internationally:",
+        "<strong>Data Storage and Processing:</strong><ul><li><strong>Primary Locations:</strong> Our servers are primarily located in the United States</li><li><strong>Cloud Infrastructure:</strong> We use globally distributed cloud services for redundancy</li><li><strong>Service Providers:</strong> Some third-party services may be located outside your country</li></ul>",
+        "<strong>Transfer Safeguards:</strong><ul><li><strong>Adequate Protection:</strong> We ensure all international transfers maintain appropriate security levels</li><li><strong>Standard Contractual Clauses:</strong> We use EU-approved data transfer mechanisms where applicable</li><li><strong>Legal Compliance:</strong> All transfers comply with applicable privacy laws (GDPR, CCPA, etc.)</li></ul>",
+        "<strong>User Rights:</strong> Regardless of where your data is processed, you maintain all privacy rights outlined in this policy."
+      ]
+    },
+    {
+      "id": "changes-to-policy",
+      "title": "Changes to This Privacy Policy",
+      "icon": "heroDocument",
+      "content": [
+        "We may update this Privacy Policy periodically to reflect changes in our practices, technology, legal requirements, or other factors.",
+        "<strong>Notification of Changes:</strong><ul><li><strong>Website Notice:</strong> We will post the updated policy on our website</li><li><strong>Email Notification:</strong> For material changes, we will email registered users</li><li><strong>Effective Date:</strong> Changes become effective on the date specified in the updated policy</li></ul>",
+        "<strong>Review and Acceptance:</strong><ul><li><strong>Regular Review:</strong> We encourage you to review this policy periodically</li><li><strong>Continued Use:</strong> Your continued use of our services after changes constitutes acceptance</li><li><strong>Objection Rights:</strong> If you disagree with changes, you may discontinue using our services</li></ul>",
+        "We are committed to maintaining transparency about how we handle your information and will always provide clear notice of any significant changes."
+      ]
+    }
+  ],
+  "contact": {
+    "title": "Questions About Privacy?",
+    "description": "If you have any questions about this privacy policy or how we handle your data, please don't hesitate to contact us.",
+    "email": "contact@stockvaluation.io",
+    "headerIcon": "",
+    "buttonIcon": "send"
+  }
+}

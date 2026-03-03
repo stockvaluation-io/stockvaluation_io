@@ -1,0 +1,541 @@
+@use '../../../../../../styles/_design-system-v2' as ds;
+
+.main-header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: var(--header-height, 60px);
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border-primary);
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-6);
+  height: 100%;
+  width: 100%;
+  gap: var(--space-4);
+
+  @include ds.tablet {
+    & {
+      padding: var(--space-2) var(--space-4);
+      gap: var(--space-3);
+    }
+  }
+
+  @include ds.mobile {
+    & {
+      flex-direction: row; // Keep horizontal layout since search is hidden
+      justify-content: space-between;
+      padding: var(--space-2) var(--space-2);
+      height: var(--header-height, 60px); // Maintain consistent height
+      gap: var(--space-1-5);
+    }
+  }
+}
+
+.logo-section {
+  flex-shrink: 0;
+  justify-self: start;
+}
+
+.search-section-center {
+  flex: 1;
+  max-width: 500px;
+  margin: 0 var(--space-4);
+
+  @include ds.tablet {
+    & {
+      max-width: 350px;
+      margin: 0 var(--space-3);
+    }
+  }
+
+  @include ds.mobile {
+    & {
+      display: none; // Hide search bar on mobile due to space constraints
+    }
+  }
+}
+
+.header-actions {
+  flex-shrink: 0;
+}
+
+
+.text-logo {
+  .logo-link {
+    text-decoration: none;
+    color: var(--color-text-primary);
+    font-weight: 700;
+    font-size: 18px;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+
+  .logo-text {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+}
+
+// Hide the backup logo if brand logo is working
+app-brand-logo:not(:empty)+.text-logo.backup-logo {
+  display: none;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+  height: 44px; // Ensure consistent height for alignment
+
+  // Ensure theme toggle aligns with button
+  ::ng-deep app-theme-toggle {
+    display: flex;
+    align-items: center;
+    height: 44px; // Match button height
+
+    .theme-toggle-container {
+      height: 44px;
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  // Hide theme toggle on mobile - it's now in the navigation menu
+  @include ds.mobile {
+    ::ng-deep app-theme-toggle {
+      display: none !important;
+    }
+  }
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+
+  // Ensure credit balance widget is visible and properly aligned
+  ::ng-deep app-credit-balance {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 1 !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 80px !important;
+    min-height: 32px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+
+    // Force the component to render
+    &::before {
+      content: '' !important;
+      display: none !important;
+    }
+
+    .credit-balance-widget {
+      display: inline-block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      width: auto !important;
+      height: auto !important;
+      position: relative !important;
+    }
+
+    .credit-button {
+      display: flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      position: relative !important;
+    }
+  }
+
+  @include ds.mobile {
+    gap: var(--space-1-5);
+
+    // On mobile, ensure credit balance is compact
+    ::ng-deep app-credit-balance {
+      .credit-label {
+        display: none;
+      }
+    }
+  }
+}
+
+.chat-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1-5);
+  padding: var(--space-2) var(--space-3);
+  min-height: 44px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-button-header);
+  background: var(--color-bg-button-header);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+
+  i {
+    font-size: 16px;
+  }
+
+  .chat-label {
+    @include ds.mobile {
+      display: none;
+    }
+  }
+
+  &:hover {
+    background: var(--color-bg-button-header-hover);
+    border-color: var(--color-border-button-header-hover);
+  }
+
+  &.active {
+    background: var(--color-bg-button-primary-alpha);
+    color: var(--color-primary);
+    border-color: var(--color-border-button-primary-alpha);
+
+    &:hover {
+      background: var(--color-bg-button-primary-alpha-hover);
+      border-color: var(--color-border-button-primary-alpha-hover);
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  @include ds.mobile {
+    padding: 0;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
+    gap: 0;
+
+    i {
+      font-size: 18px;
+    }
+  }
+
+  @include ds.tablet {
+    padding: var(--space-2);
+    gap: var(--space-1);
+
+    .chat-label {
+      font-size: 12px;
+    }
+  }
+}
+
+.auth-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: 14px;
+  border-radius: 6px;
+  min-height: 44px;
+  background: var(--color-bg-button-header);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-button-header);
+  cursor: pointer;
+  @include ds.primary-button;
+
+  &:hover {
+    background: var(--color-bg-button-header-hover);
+    border-color: var(--color-border-button-header-hover);
+  }
+
+  i {
+    font-size: 14px;
+  }
+
+  // Compact, icon-only style on small screens
+  @include ds.mobile {
+    & {
+      padding: 0; // icon-only container sizing below
+      width: 40px;
+      min-width: 40px;
+      height: 40px;
+      min-height: 40px;
+      justify-content: center;
+      gap: 0;
+    }
+
+    span {
+      display: none;
+    }
+  }
+}
+
+// Centered search section styling - proper responsive approach
+.search-section-center {
+
+  // Header-specific search styling without !important overrides
+  & {
+    display: flow;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    font-size: 14px;
+  }
+
+  ::ng-deep .company-search-container {
+    max-width: none;
+    width: 100%;
+
+    &.size-md {
+      .search-input-section {
+        max-width: none; // Override the default constraint for header context
+        width: 100%;
+        z-index: 1001;
+
+        app-company-search-results {
+          z-index: 1002;
+        }
+      }
+    }
+
+    .search-input-wrapper {
+      max-width: none;
+      width: 100%;
+
+      .search-input {
+        background: var(--color-bg-input-header);
+        border-color: var(--color-border-input-header);
+        color: var(--color-text-primary);
+        width: 100%;
+        min-height: 40px !important; // Override default 56px min-height for header
+        height: 40px; // Fixed height for header context
+
+        &::placeholder {
+          color: var(--color-text-muted);
+        }
+
+        &:focus {
+          background: var(--color-bg-input-header-focus);
+          border-color: var(--color-primary);
+        }
+
+        &:hover:not(:focus) {
+          border-color: var(--color-border-input-header-hover);
+        }
+      }
+
+      .search-icon {
+        color: var(--color-text-muted);
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      .clear-button {
+        background: var(--color-bg-button-header);
+        color: var(--color-text-muted);
+        min-width: 32px; // Ensure touch-friendly size
+        min-height: 32px;
+
+        &:hover {
+          background: var(--color-bg-button-header-hover);
+          color: var(--color-text-primary);
+        }
+
+        @include ds.mobile {
+          & {
+            min-width: 44px; // Larger touch target on mobile
+            min-height: 44px;
+          }
+        }
+      }
+    }
+  }
+}
+
+.export-btn,
+.adjust-assumptions-btn {
+  @include ds.primary-button;
+
+  & {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    font-size: 14px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    min-height: 44px; // Ensure touch-friendly height
+  }
+
+  i {
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @include ds.tablet {
+    & {
+      font-size: 13px;
+      padding: var(--space-2);
+    }
+
+    span {
+      max-width: 80px; // Truncate long text on tablet
+    }
+  }
+
+  @include ds.mobile {
+    & {
+      // icon-only style to avoid layout distortion
+      padding: 0;
+      width: 40px;
+      min-width: 40px;
+      height: 40px;
+      min-height: 40px;
+      justify-content: center;
+    }
+
+    span {
+      display: none;
+    }
+  }
+}
+
+.export-btn,
+.adjust-assumptions-btn {
+  background: var(--color-bg-button-header);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-button-header);
+  box-shadow: none;
+
+  &:hover {
+    background: var(--color-bg-button-header-hover);
+    border-color: var(--color-border-button-header-hover);
+    box-shadow: none;
+    transform: none;
+  }
+
+  // Enhanced touch feedback for mobile devices
+  &:active {
+    background: var(--color-bg-button-header-active);
+    transform: scale(0.98);
+    transition: all 0.1s ease;
+    box-shadow: none;
+  }
+
+  &.active {
+    background: var(--color-bg-button-primary-alpha);
+    color: var(--color-primary);
+    border-color: var(--color-border-button-primary-alpha);
+    box-shadow: none;
+
+    &:hover {
+      background: var(--color-bg-button-primary-alpha-hover);
+      border-color: var(--color-border-button-primary-alpha-hover);
+      box-shadow: none;
+      transform: none;
+    }
+
+    &:active {
+      background: var(--color-bg-button-primary-alpha-active);
+      transform: scale(0.98);
+      box-shadow: none;
+    }
+  }
+
+  // Better touch feedback on mobile
+  @media (hover: none) and (pointer: coarse) {
+    &:active {
+      background: var(--color-bg-button-header-active);
+      transform: scale(0.95);
+      box-shadow: none;
+    }
+
+    &.active:active {
+      background: var(--color-bg-button-primary-alpha-active);
+      box-shadow: none;
+    }
+  }
+}
+
+
+// Animation on load
+.main-header {
+  transform: translateY(-100%);
+  animation: slideDown 0.5s ease-out forwards;
+}
+
+@keyframes slideDown {
+  to {
+    transform: translateY(0);
+  }
+}
+
+// Extra small screens - optimize for very small devices
+@media (max-width: 400px) {
+  .header-container {
+    padding: var(--space-1-5) var(--space-1-5);
+  }
+
+  .header-actions {
+    gap: var(--space-1);
+
+    .export-btn,
+    .adjust-assumptions-btn {
+      padding: var(--space-1-5) var(--space-2-5);
+      min-width: fit-content;
+      max-width: 130px;
+      font-size: 12px;
+
+      span {
+        max-width: 100%;
+      }
+
+      i {
+        font-size: 11px;
+      }
+    }
+  }
+
+  .logo-section {
+    .text-logo .logo-link {
+      font-size: 14px; // Smaller logo text for extra small screens
+    }
+  }
+
+  .auth-btn {
+    font-size: 12px; // slightly smaller text
+    padding: var(--space-1-5) var(--space-2-5); // tighter padding
+    min-height: 36px; // smaller height
+    gap: var(--space-1); // reduce space between icon and text
+    border-radius: 4px; // tighter radius for smaller screens
+    flex: 1; // allow button to stretch in small layouts
+    justify-content: center; // center contents if space is tight
+
+    i {
+      font-size: 12px; // scale down icon
+    }
+  }
+}

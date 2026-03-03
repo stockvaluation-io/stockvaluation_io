@@ -1,0 +1,186 @@
+services:
+  postgres:
+    image: postgres:17.6
+    container_name: sv-local-postgres
+    restart: unless-stopped
+    ports:
+      - "4322:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-stockvaluation_io}
+    volumes:
+      - postgres-local-data:/var/lib/postgresql/data
+      - ./docker/local/postgres/init/000_enable_pgcrypto.sql:/docker-entrypoint-initdb.d/000_enable_pgcrypto.sql:ro
+      - ./docker/local/postgres/seeds/stockvaluation_reference_only.sql:/docker-entrypoint-initdb.d/001_stockvaluation_reference_only.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-stockvaluation_io}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - dcf-local
+
+
+
+  yfinance:
+    build:
+      context: yfinance
+      dockerfile: Dockerfile
+    container_name: sv-local-yfinance
+    restart: unless-stopped
+    environment:
+      PORT: 5000
+      SECRET_KEY: ${SECRET_KEY:-}
+    networks:
+      - dcf-local
+
+  valuation-service:
+    build:
+      context: valuation-service
+    container_name: sv-local-valuation-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      yfinance:
+        condition: service_started
+    ports:
+      - "8081:8081"
+    environment:
+      APPLICATION_PORT: 8081
+      YFINANCE_BASE_URL: http://yfinance:5000/api-s
+      VALUATION_AGENT_BASE_URL: http://valuation-agent:5001/api-s
+      ANGULAR_APP_URL: http://frontend:4200
+      DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-stockvaluation_io}
+      DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      CURRENCY_API_BASE_URL: ${CURRENCY_API_BASE_URL:-https://api.currencybeacon.com/v1/latest}
+      CURRENCY_API_KEY: ${CURRENCY_API_KEY:-local-dev-currency-key}
+      DEFAULT_USERNAME: ${DEFAULT_USERNAME:-local_admin}
+      DEFAULT_PASSWORD: ${DEFAULT_PASSWORD:-local_admin_password}
+      DEFAULT_FIRSTNAME: ${DEFAULT_FIRSTNAME:-Local}
+      DEFAULT_LASTNAME: ${DEFAULT_LASTNAME:-Admin}
+      DEFAULT_CONTACT: ${DEFAULT_CONTACT:-0000000000}
+    networks:
+      - dcf-local
+
+  valuation-agent:
+    build:
+      context: valuation-agent
+      dockerfile: Dockerfile
+    container_name: sv-local-valuation-agent
+    restart: unless-stopped
+    depends_on:
+      yfinance:
+        condition: service_started
+      valuation-service:
+        condition: service_started
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./valuation-agent:/app
+      - ./shared:/app/shared
+      - ./valuation-agent/prompt_dump_from_container:/app/prompt_dump_from_container
+      - ./local_data/valuation-agent:/app/local_data
+    environment:
+      PORT: 5001
+      SECRET_KEY: ${SECRET_KEY:-}
+      LOCAL_DATA_DIR: /app/local_data
+      VALUATION_SERVICE_BASE_URL: http://valuation-service:8081
+      VALUATION_SERVICE_URL: http://valuation-service:8081/api/v1/automated-dcf-analysis
+      YFINANCE_URL: http://yfinance:5000
+      ENABLE_LLM_GUARD: ${ENABLE_LLM_GUARD:-false}
+      DEFAULT_LLM_PROVIDER: ${DEFAULT_LLM_PROVIDER:-}
+      AGENT_LLM_PROVIDER: ${AGENT_LLM_PROVIDER:-}
+      JUDGE_LLM_PROVIDER: ${JUDGE_LLM_PROVIDER:-}
+      AGENT_LLM_MODEL: ${AGENT_LLM_MODEL:-}
+      JUDGE_LLM_MODEL: ${JUDGE_LLM_MODEL:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      DUMP_PROMPTS: ${DUMP_PROMPTS:-true}
+      PROMPT_DUMP_DIR: ${PROMPT_DUMP_DIR:-/app/prompt_dump_from_container}
+    networks:
+      - dcf-local
+
+  bullbeargpt:
+    build:
+      context: bullbeargpt
+      dockerfile: Dockerfile
+    container_name: sv-local-bullbeargpt
+    restart: unless-stopped
+    depends_on:
+      valuation-service:
+        condition: service_started
+      valuation-agent:
+        condition: service_started
+    ports:
+      - "${BULLBEARGPT_PORT:-5002}:5000"
+    volumes:
+      - ./bullbeargpt:/app
+      - ./shared:/app/shared
+      - ./bullbeargpt/prompt_dump_from_container:/app/prompt_dump_from_container
+      - ./local_data/bullbeargpt:/app/local_data
+    environment:
+      FLASK_ENV: production
+      FLASK_DEBUG: "false"
+      SECRET_KEY: ${SECRET_KEY:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200,http://localhost:3000,http://127.0.0.1:3000}
+      LOCAL_DATA_DIR: /app/local_data
+      VALUATION_AGENT_URL: http://valuation-agent:5001
+      VALUATION_SERVICE_URL: http://valuation-service:8081/api/v1/automated-dcf-analysis
+      DEFAULT_LLM_PROVIDER: ${DEFAULT_LLM_PROVIDER:-}
+      AGENT_LLM_PROVIDER: ${AGENT_LLM_PROVIDER:-}
+      JUDGE_LLM_PROVIDER: ${JUDGE_LLM_PROVIDER:-}
+      AGENT_LLM_MODEL: ${AGENT_LLM_MODEL:-}
+      JUDGE_LLM_MODEL: ${JUDGE_LLM_MODEL:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      DUMP_PROMPTS: ${DUMP_PROMPTS:-true}
+      PROMPT_DUMP_DIR: ${PROMPT_DUMP_DIR:-/app/prompt_dump_from_container}
+    networks:
+      - dcf-local
+
+  frontend:
+    image: node:22-alpine
+    container_name: sv-local-frontend
+    restart: unless-stopped
+    depends_on:
+      valuation-service:
+        condition: service_started
+      valuation-agent:
+        condition: service_started
+      bullbeargpt:
+        condition: service_started
+    working_dir: /app
+    command: >
+      sh -lc "npm install --no-audit --no-fund && npm run start -- --host 0.0.0.0 --port 4200"
+    ports:
+      - "4200:4200"
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      NG_CLI_ANALYTICS: "false"
+      NPM_CONFIG_UPDATE_NOTIFIER: "false"
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    networks:
+      - dcf-local
+
+volumes:
+  postgres-local-data:
+  frontend-node-modules:
+
+networks:
+  dcf-local:
+    driver: bridge

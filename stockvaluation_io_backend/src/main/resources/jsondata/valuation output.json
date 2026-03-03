@@ -1,0 +1,291 @@
+{
+  "dcfProjection": {
+    "baseYear": {
+      "revenueGrowthRate": null,
+      "revenue": 574785,
+      "ebitMargin": 11.33,
+      "ebit": 65139,
+      "taxRate": 19.00,
+      "ebitAfterTax": 52762.59,
+      "reinvestment": null,
+      "nol": null
+    },
+    "projections": [
+      {
+        "year": 1,
+        "revenueGrowthRate": 12.00,
+        "revenue": 643759.20,
+        "ebitMargin": 0.00,
+        "ebit": null,
+        "taxRate": 19.00,
+        "ebitAfterTax": null,
+        "reinvestment": 51500.74,
+        "fcff": -51500.74,
+        "nol": null,
+        "costOfCapital": 8.60,
+        "cumulatedDiscountFactor": 0.9208,
+        "pvFcff": -47422.41
+      },
+      {
+        "year": 2,
+        "revenueGrowthRate": 12.00,
+        "revenue": 721010.30,
+        "ebitMargin": 5.60,
+        "ebit": 40376.58,
+        "taxRate": 19.00,
+        "ebitAfterTax": 32705.03,
+        "reinvestment": 57680.82,
+        "fcff": -24975.80,
+        "nol": null,
+        "costOfCapital": 8.60,
+        "cumulatedDiscountFactor": 0.8479,
+        "pvFcff": -21176.77
+      },
+      {
+        "year": 3,
+        "revenueGrowthRate": 12.00,
+        "revenue": 807531.54,
+        "ebitMargin": 8.40,
+        "ebit": 67832.65,
+        "taxRate": 19.00,
+        "ebitAfterTax": 54944.45,
+        "reinvestment": 64602.52,
+        "fcff": -9658.08,
+        "nol": null,
+        "costOfCapital": 8.60,
+        "cumulatedDiscountFactor": 0.7807,
+        "pvFcff": -7540.52
+      },
+      {
+        "year": 4,
+        "revenueGrowthRate": 12.00,
+        "revenue": 904435.33,
+        "ebitMargin": 11.20,
+        "ebit": 101296.76,
+        "taxRate": 19.00,
+        "ebitAfterTax": 82050.37,
+        "reinvestment": 72354.83,
+        "fcff": 9695.55,
+        "nol": null,
+        "costOfCapital": 8.60,
+        "cumulatedDiscountFactor": 0.7189,
+        "pvFcff": 6970.32
+      },
+      {
+        "year": 5,
+        "revenueGrowthRate": 12.00,
+        "revenue": 1012967.56,
+        "ebitMargin": 14.00,
+        "ebit": 141815.46,
+        "taxRate": 19.00,
+        "ebitAfterTax": 114870.52,
+        "reinvestment": 70340.47,
+        "fcff": 44530.05,
+        "nol": null,
+        "costOfCapital": 8.60,
+        "cumulatedDiscountFactor": 0.6620,
+        "pvFcff": 29478.41
+      },
+      {
+        "year": 6,
+        "revenueGrowthRate": 10.42,
+        "revenue": 1118478.27,
+        "ebitMargin": 14.00,
+        "ebit": 156586.96,
+        "taxRate": 20.00,
+        "ebitAfterTax": 124956.39,
+        "reinvestment": 65856.00,
+        "fcff": 59100.39,
+        "nol": null,
+        "costOfCapital": 8.52,
+        "cumulatedDiscountFactor": 0.6100,
+        "pvFcff": 36052.84
+      },
+      {
+        "year": 7,
+        "revenueGrowthRate": 8.83,
+        "revenue": 1217262.27,
+        "ebitMargin": 14.00,
+        "ebit": 170416.72,
+        "taxRate": 21.40,
+        "ebitAfterTax": 133947.54,
+        "reinvestment": 58818.11,
+        "fcff": 75129.43,
+        "nol": null,
+        "costOfCapital": 8.44,
+        "cumulatedDiscountFactor": 0.5626,
+        "pvFcff": 42265.47
+      },
+      {
+        "year": 8,
+        "revenueGrowthRate": 7.25,
+        "revenue": 1305489.44,
+        "ebitMargin": 14.00,
+        "ebit": 182768.52,
+        "taxRate": 22.60,
+        "ebitAfterTax": 141462.84,
+        "reinvestment": 49295.28,
+        "fcff": 92167.55,
+        "nol": null,
+        "costOfCapital": 8.35,
+        "cumulatedDiscountFactor": 0.5192,
+        "pvFcff": 47852.95
+      },
+      {
+        "year": 9,
+        "revenueGrowthRate": 5.66,
+        "revenue": 1379432.36,
+        "ebitMargin": 14.00,
+        "ebit": 193120.53,
+        "taxRate": 23.80,
+        "ebitAfterTax": 147157.84,
+        "reinvestment": 37520.56,
+        "fcff": 109637.28,
+        "nol": null,
+        "costOfCapital": 8.27,
+        "cumulatedDiscountFactor": 0.4795,
+        "pvFcff": 52574.21
+      },
+      {
+        "year": 10,
+        "revenueGrowthRate": 4.08,
+        "revenue": 1435713.20,
+        "ebitMargin": 14.00,
+        "ebit": 200999.85,
+        "taxRate": 25.00,
+        "ebitAfterTax": 150749.89,
+        "reinvestment": 39051.40,
+        "fcff": 111698.49,
+        "nol": null,
+        "costOfCapital": 8.19,
+        "cumulatedDiscountFactor": 0.4432,
+        "pvFcff": 49507.92
+      }
+    ],
+    "terminalYear": {
+      "revenueGrowthRate": 4.08,
+      "revenue": 1494290.30,
+      "ebitMargin": 14.00,
+      "ebit": 209200.64,
+      "taxRate": 25.00,
+      "ebitAfterTax": 156900.48,
+      "reinvestment": 78162.88,
+      "fcff": 78737.60,
+      "nol": null,
+      "cumulatedDiscountFactor": null,
+      "pvFcff": null
+    }
+  },
+  "terminalValues": {
+    "terminalCashFlow": 78737.60,
+    "terminalCostOfCapital": 8.19,
+    "terminalValue": 1915756.79,
+    "pvTerminalValue": 849117.42
+  },
+  "presentValueCalculations": {
+    "pvCFOverNext10Years": 188562.43,
+    "sumOfPv": 1037679.84
+  },
+  "failureRisk": {
+    "probabilityOfFailure": 0.00,
+    "proceedsIfFirmFails": 518839.92
+  },
+  "assetValuation": {
+    "valueOfOperatingAssets": 1037679.84,
+    "debt": 161574.00,
+    "minorityInterests": null,
+    "cash": 86780.00,
+    "nonOperatingAssets": 2954.00,
+    "valueOfEquity": 965839.84,
+    "valueOfOptions": 0.00,
+    "valueOfEquityInCommonStock": 965839.84
+  },
+  "equityValuation": {
+    "numberOfShares": 10492.00,
+    "estimatedValuePerShare": 92.05,
+    "price": 169.00,
+    "priceAsPercentageOfValue": 183.59
+  },
+  "impliedVariables": {
+    "baseYear": {
+      "salesToCapitalRatio": null,
+      "investedCapital": 429784,
+      "roic": 12.28
+    },
+    "projections": [
+      {
+        "year": 1,
+        "salesToCapitalRatio": 1.50,
+        "investedCapital": 481284,
+        "roic": 0.00
+      },
+      {
+        "year": 2,
+        "salesToCapitalRatio": 1.50,
+        "investedCapital": 538965,
+        "roic": 6.80
+      },
+      {
+        "year": 3,
+        "salesToCapitalRatio": 1.50,
+        "investedCapital": 603568,
+        "roic": 10.19
+      },
+      {
+        "year": 4,
+        "salesToCapitalRatio": 1.50,
+        "investedCapital": 675923,
+        "roic": 13.59
+      },
+      {
+        "year": 5,
+        "salesToCapitalRatio": 1.50,
+        "investedCapital": 746263,
+        "roic": 16.99
+      },
+      {
+        "year": 6,
+        "salesToCapitalRatio": 1.50,
+        "investedCapital": 812119,
+        "roic": 16.74
+      },
+      {
+        "year": 7,
+        "salesToCapitalRatio": 1.50,
+        "investedCapital": 870937,
+        "roic": 16.49
+      },
+      {
+        "year": 8,
+        "salesToCapitalRatio": 1.50,
+        "investedCapital": 920232,
+        "roic": 16.24
+      },
+      {
+        "year": 9,
+        "salesToCapitalRatio": 1.50,
+        "investedCapital": 957753,
+        "roic": 15.99
+      },
+      {
+        "year": 10,
+        "salesToCapitalRatio": 1.50,
+        "investedCapital": 996804,
+        "roic": 15.74
+      }
+    ],
+    "afterYear10": {
+      "salesToCapitalRatio": null,
+      "investedCapital": null,
+      "roic": 8.19
+    }
+  }
+}
+
+
+
+
+
+
+
+

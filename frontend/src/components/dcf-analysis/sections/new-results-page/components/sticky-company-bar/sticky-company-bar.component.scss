@@ -1,0 +1,365 @@
+@use '../../../../../../styles/_design-system-v2' as ds;
+
+.sticky-company-bar {
+  position: sticky;
+  top: calc(var(--header-height, 60px) + var(--nav-height, 50px)); // Position below main header + navigation
+  left: 0;
+  right: 0;
+  height: 0; // Start with no height to avoid space reservation
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border-primary);
+  z-index: 998; // Below header and nav bar for under-slide effect
+  overflow: hidden; // Hide content during height transitions
+  
+  // Start positioned above with no height
+  display: block;
+  transform: translateY(-100%);
+  opacity: 0;
+  transition: 
+    height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s, // Slight delay for coordinated animation
+    opacity 0.4s ease-out 0.2s; // Delay opacity for smooth sequence
+
+  &.visible {
+    height: 50px; // Expand to full height when visible
+    transform: translateY(0);
+    opacity: 1;
+    transition: 
+      height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s, // Transform after height starts
+      opacity 0.4s ease-out 0.3s; // Opacity last for smooth appearance
+  }
+
+  &.hidden {
+    height: 0; // Collapse height when hidden
+    transform: translateY(-100%);
+    opacity: 0;
+    transition: 
+      opacity 0.3s ease-out, // Fade out first
+      transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s, // Then slide up
+      height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s; // Finally collapse height
+  }
+}
+
+.bar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 var(--space-8);
+  
+  @include ds.tablet {
+    & {
+      padding: 0 var(--space-3);
+    }
+  }
+  
+  @include ds.mobile {
+    & {
+      padding: 0 var(--space-2);
+    }
+  }
+}
+
+.company-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+  min-width: 0;
+  
+  @include ds.mobile {
+    & {
+      gap: var(--space-2);
+    }
+  }
+}
+
+.company-logo-mini {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: contain;
+  background: var(--color-bg-tertiary);
+  padding: 2px;
+  border: 1px solid var(--color-border-secondary);
+  
+  @include ds.mobile {
+    & {
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+    }
+  }
+}
+
+.logo-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--color-primary-alpha);
+  border: 1px solid var(--color-primary-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-text);
+  font-weight: var(--font-weight-bold);
+  font-size: 12px;
+  
+  @include ds.mobile {
+    & {
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      font-size: 10px;
+    }
+  }
+}
+
+.company-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+  
+  @include ds.mobile {
+    & {
+      gap: 1px;
+    }
+  }
+}
+
+.company-name {
+  font-family: var(--font-primary);
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+  @include ds.mobile {
+    & {
+      font-size: 13px;
+    }
+  }
+}
+
+.company-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  line-height: 1.2;
+  
+  .symbol {
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .separator {
+    color: var(--color-text-tertiary);
+    font-size: 10px;
+    
+    @media (max-width: 480px) {
+      display: none;
+    }
+  }
+  
+  .industry {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+    
+    @media (max-width: 640px) {
+      max-width: 100px;
+    }
+    
+    @media (max-width: 480px) {
+      display: none;
+    }
+  }
+  
+  @include ds.mobile {
+    & {
+      font-size: 10px;
+      gap: 4px;
+    }
+  }
+}
+
+.key-metrics {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-shrink: 0;
+  
+  @include ds.tablet {
+    & {
+      gap: var(--space-3);
+    }
+  }
+  
+  @include ds.mobile {
+    & {
+      gap: var(--space-2);
+    }
+  }
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+  min-width: 60px;
+  
+  @include ds.mobile {
+    & {
+      min-width: 50px;
+      gap: 1px;
+    }
+  }
+  
+  .value {
+    font-family: var(--font-primary);
+    font-size: 14px;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    line-height: 1.2;
+    white-space: nowrap;
+    
+    &.primary {
+      color: var(--color-primary-text);
+    }
+    
+    &.undervalued {
+      color: var(--color-success);
+    }
+    
+    &.overvalued {
+      color: var(--color-error);
+    }
+    
+    .currency {
+      font-size: 11px;
+      font-weight: var(--font-weight-medium);
+      color: var(--color-text-secondary);
+      margin-left: 2px;
+      
+      @include ds.mobile {
+        & {
+          font-size: 10px;
+        }
+      }
+    }
+    
+    @include ds.mobile {
+      & {
+        font-size: 13px;
+      }
+    }
+  }
+  
+  .label {
+    font-family: var(--font-primary);
+    font-size: 10px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+    
+    &.undervalued {
+      color: var(--color-success);
+    }
+    
+    &.overvalued {
+      color: var(--color-error);
+    }
+    
+    @include ds.mobile {
+      & {
+        font-size: 9px;
+        letter-spacing: 0.3px;
+      }
+    }
+  }
+}
+
+// Extra small screens optimization
+@media (max-width: 400px) {
+  .sticky-company-bar.visible {
+    height: 45px; // Smaller height for extra small screens
+  }
+  
+  .bar-container {
+    padding: 0 var(--space-1);
+  }
+  
+  .company-info {
+    gap: var(--space-1);
+  }
+  
+  .company-name {
+    font-size: 12px;
+  }
+  
+  .company-meta {
+    font-size: 9px;
+  }
+  
+  .key-metrics {
+    gap: var(--space-1);
+  }
+  
+  .metric {
+    min-width: 40px;
+    
+    .value {
+      font-size: 12px;
+      
+      .currency {
+        font-size: 9px;
+      }
+    }
+    
+    .label {
+      font-size: 8px;
+    }
+  }
+}
+
+// Accessibility: Respect reduced motion preferences
+@media (prefers-reduced-motion: reduce) {
+  .sticky-company-bar {
+    transition: none !important;
+    
+    &.visible {
+      transition: none !important;
+    }
+    
+    &.hidden {
+      transition: none !important;
+    }
+  }
+}
+
+// Hover effects for better interactivity
+.sticky-company-bar:hover {
+  background: var(--color-bg-secondary);
+  border-bottom-color: var(--color-border-primary);
+}

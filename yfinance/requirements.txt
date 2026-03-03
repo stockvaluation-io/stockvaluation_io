@@ -1,0 +1,16 @@
+# Core Flask dependencies
+Flask==3.1.1
+Flask-Caching==2.3.1
+Flask-CORS==4.0.0
+
+# YFinance
+yfinance[nospam]==0.2.58
+
+# HTTP and caching
+curl_cffi==0.11.4
+requests-cache>=1.0.0
+requests-ratelimiter>=0.4.0
+pyrate-limiter>=2.10.0
+
+# Configuration and utilities
+python-dotenv==1.0.1

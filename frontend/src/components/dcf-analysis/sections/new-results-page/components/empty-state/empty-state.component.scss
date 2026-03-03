@@ -1,0 +1,165 @@
+@use '../../../../../../styles/_design-system-v2' as ds;
+
+.empty-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  border-style: dashed;
+  
+  &.empty-small {
+    padding: var(--space-6);
+    gap: var(--space-2);
+  }
+  
+  &.empty-medium {
+    padding: var(--space-10);
+    gap: var(--space-3);
+  }
+  
+  &.empty-large {
+    padding: var(--space-16);
+    gap: var(--space-4);
+  }
+}
+
+.empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  
+  .empty-small & {
+    width: 40px;
+    height: 40px;
+    
+    i {
+      font-size: 20px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+  }
+  
+  .empty-medium & {
+    width: 64px;
+    height: 64px;
+    
+    i {
+      font-size: 32px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+  }
+  
+  .empty-large & {
+    width: 80px;
+    height: 80px;
+    
+    i {
+      font-size: 40px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+  }
+}
+
+.empty-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  
+  .empty-small & {
+    font-size: 16px;
+  }
+  
+  .empty-medium & {
+    font-size: 18px;
+  }
+  
+  .empty-large & {
+    font-size: 20px;
+  }
+}
+
+.empty-message {
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 400px;
+  
+  .empty-small & {
+    font-size: 12px;
+  }
+  
+  .empty-medium & {
+    font-size: 14px;
+  }
+  
+  .empty-large & {
+    font-size: 16px;
+  }
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  background: var(--color-primary);
+  color: var(--text-dark);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: var(--space-2);
+  
+  &:hover {
+    background: #1BC767;
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  i {
+    font-size: 12px;
+  }
+  
+  .empty-small & {
+    padding: var(--space-2) var(--space-4);
+    font-size: 12px;
+  }
+  
+  .empty-large & {
+    padding: var(--space-4) var(--space-8);
+    font-size: 16px;
+  }
+  
+  @include ds.mobile {
+    padding: var(--space-2) var(--space-4);
+    font-size: 13px;
+  }
+}
+
+// Focus styles for accessibility
+.action-btn:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .empty-container {
+    border-color: rgba(255, 255, 255, 0.5);
+    border-width: 2px;
+  }
+  
+  .action-btn {
+    border: 2px solid var(--text-dark);
+  }
+}

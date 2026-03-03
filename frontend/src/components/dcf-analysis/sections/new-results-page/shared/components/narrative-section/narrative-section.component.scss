@@ -1,0 +1,1024 @@
+@use '../../../../../../../styles/_design-system-v2' as ds;
+@use '../../../sections/section-base';
+
+.narrative-section {
+  margin-bottom: var(--space-16);
+  
+  @include ds.tablet {
+    margin-bottom: var(--space-12);
+  }
+  
+  @include ds.mobile {
+    margin-bottom: var(--space-8);
+  }
+  
+  // Override section title font size to match other sections
+  .section-header {
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-6);
+    
+    @include ds.mobile {
+      margin-top: var(--space-6);
+      margin-bottom: var(--space-4);
+    }
+  }
+  
+  .section-title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    
+    @include ds.mobile {
+      font-size: var(--font-size-xl);
+    }
+  }
+}
+
+::ng-deep ul.custom-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+::ng-deep ul.custom-list li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+
+::ng-deep ul.custom-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 0.1rem;
+  font-size: 1rem;
+  color: var(--color-accent, #4ade80);
+}
+
+
+/* Learn More Floating Button */
+.learn-fab {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1100;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+  .icon { font-size: 18px; }
+  .label { font-weight: 600; }
+  &:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(0,0,0,0.3); }
+}
+
+/* Slide-over / Bottom Sheet */
+.learn-panel {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1099;
+  .learn-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.35); opacity: 0; transition: opacity .2s; }
+  .learn-content {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 32vw; max-width: 520px; min-width: 340px;
+    transform: translateX(100%);
+    background: var(--color-bg-secondary);
+    border-left: 1px solid var(--color-border-primary);
+    box-shadow: -12px 0 32px rgba(0,0,0,0.25);
+    display: flex; flex-direction: column;
+    transition: transform .25s ease;
+  }
+  &.open { pointer-events: auto; }
+  &.open .learn-overlay { opacity: 1; }
+  &.open .learn-content { transform: translateX(0); }
+
+  .learn-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--color-border-secondary);
+    h3 { margin: 0; font-size: 18px; color: var(--color-text-primary); }
+    .close-btn { background: transparent; border: 1px solid var(--color-border-secondary); color: var(--color-text-primary); border-radius: 8px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+  }
+  .learn-search { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--color-border-secondary);
+    i { color: var(--color-text-muted); }
+    input { flex: 1; background: var(--color-surface-secondary); color: var(--color-text-primary); border: 1px solid var(--color-border-secondary); border-radius: 8px; padding: 10px 12px; }
+  }
+  .learn-body { padding: 12px 8px 24px; overflow: auto; }
+  .term-accordion details { background: var(--color-surface-primary); border: 1px solid var(--color-border-secondary); border-radius: 10px; margin: 10px 8px; padding: 8px 10px; }
+  .term-accordion summary { cursor: pointer; list-style: none; font-weight: 600; color: var(--color-text-primary); }
+  .term-layer { display: flex; gap: 10px; padding: 8px 2px; }
+  .term-layer .layer-icon { width: 22px; text-align: center; }
+  .term-layer .layer-content h5 { margin: 0 0 2px 0; font-size: 12px; color: var(--color-text-secondary); }
+  .term-layer .layer-content p { margin: 0; color: var(--color-text-primary); line-height: 1.5; font-size: 13px; }
+  .term-actions { padding: 6px 0 12px 32px; }
+  .term-actions a { color: var(--color-primary); text-decoration: none; }
+
+  /* Mobile bottom sheet */
+  @include ds.mobile {
+    .learn-content { left: 0; right: 0; width: 100%; max-width: none; min-width: 0; height: 64vh; top: auto; bottom: 0; transform: translateY(100%); border-left: none; border-top: 1px solid var(--color-border-primary); box-shadow: 0 -12px 32px rgba(0,0,0,0.25); }
+    &.open .learn-content { transform: translateY(0); }
+  }
+}
+.narrative-container {
+  margin-bottom: var(--space-8);
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s ease-out forwards;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  // Staggered animation delays
+  &[data-index="0"] { animation-delay: 0.2s; }
+  &[data-index="1"] { animation-delay: 0.3s; }
+  &[data-index="2"] { animation-delay: 0.4s; }
+  &[data-index="3"] { animation-delay: 0.5s; }
+  &[data-index="4"] { animation-delay: 0.6s; }
+  
+  @include ds.mobile {
+    margin-bottom: var(--space-6);
+  }
+}
+
+.narrative-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-6);
+  
+  @include ds.mobile {
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-4);
+  }
+  
+  .narrative-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: var(--color-primary-alpha);
+    color: var(--color-primary-text);
+    border-radius: 6px;
+    font-size: var(--font-size-base);
+    flex-shrink: 0;
+    
+    @include ds.mobile {
+      width: 24px;
+      height: 24px;
+      font-size: var(--font-size-sm);
+    }
+  }
+  
+  .narrative-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0;
+    
+    @include ds.mobile {
+      font-size: var(--font-size-base);
+    }
+  }
+}
+
+.narrative-split-layout {
+  display: flex;
+  gap: var(--space-4);
+  align-items: stretch;
+  
+  @include ds.mobile {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+}
+
+.narrative-full-layout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.narrative-table-column {
+  flex: 0 0 80%;
+  width: 100%;
+  
+  @include ds.mobile {
+    flex: 1;
+  }
+  
+  // Spacing between narrative table and chart section
+  .narrative-table-wrapper {
+    margin-bottom: var(--space-6);
+  }
+  
+  // Chart section spacing
+  .chart-section {
+    margin-top: var(--space-6);
+  }
+  
+  // Individual chart wrapper spacing
+  .chart-wrapper {
+    margin-bottom: var(--space-4);
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  // Side-by-side charts row for Key Takeaways
+  .charts-row {
+    display: flex;
+    gap: var(--space-4);
+    width: 100%;
+    
+    @include ds.mobile {
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    
+    .chart-half {
+      flex: 1;
+      min-width: 0; // Allow flex items to shrink
+      
+      @include ds.mobile {
+        flex: none;
+        width: 100%;
+      }
+    }
+  }
+}
+
+.narrative-metrics-column {
+  flex: 0 0 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  @include ds.mobile {
+    flex: none;
+    align-items: flex-start;
+  }
+  
+  // Ad column specific styles
+  &.narrative-ad-column {
+    @include ds.mobile {
+      order: 3; // Place ad below content on mobile
+      margin-top: var(--space-4);
+      justify-content: center;
+    }
+    
+    .ad-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+}
+
+.metrics-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  
+  @include ds.mobile {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+}
+
+.metric-card {
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 8px;
+  padding: var(--space-3);
+  text-align: center;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-primary);
+    transform: translateY(-1px);
+  }
+  
+  @include ds.mobile {
+    flex: 1;
+    min-width: 120px;
+    padding: var(--space-2);
+  }
+  
+  .metric-label {
+    display: block;
+    font-size: 10px;
+    color: var(--color-text-secondary);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: var(--space-1);
+    
+    @include ds.mobile {
+      font-size: 9px;
+    }
+  }
+  
+  .metric-value {
+    display: block;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-text);
+    
+    ::ng-deep .currency-code {
+      color: var(--color-text-secondary);
+      font-size: 0.85em;
+      font-weight: var(--font-weight-medium);
+      margin-left: 2px;
+    }
+    
+    @include ds.mobile {
+      font-size: var(--font-size-sm);
+    }
+  }
+}
+
+// Grouped Table Card Styles
+.metric-card.grouped-table-card {
+  padding: 0;
+  overflow: hidden;
+  
+  .grouped-table-header {
+    background: var(--color-primary-alpha);
+    border-bottom: 1px solid var(--color-border-secondary);
+    padding: var(--space-2) var(--space-3);
+    
+    .grouped-table-title {
+      display: block;
+      font-size: 10px;
+      color: var(--color-primary-text);
+      font-weight: var(--font-weight-semibold);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      text-align: center;
+      
+      @include ds.mobile {
+        font-size: 9px;
+      }
+    }
+  }
+  
+  .grouped-table-content {
+    padding: var(--space-2);
+    
+    .scenario-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-1) var(--space-2);
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: var(--color-bg-tertiary);
+      }
+      
+      &.base-scenario {
+        background: var(--color-primary-alpha);
+        border: 1px solid var(--color-primary-accent);
+        
+        .scenario-assumption {
+          color: var(--color-primary-text);
+          font-weight: var(--font-weight-semibold);
+        }
+        
+        .scenario-value {
+          color: var(--color-primary-text);
+        }
+      }
+      
+      &:not(:last-child) {
+        margin-bottom: var(--space-1);
+      }
+      
+      .scenario-assumption {
+        font-size: var(--font-size-xs);
+        color: var(--color-text-secondary);
+        font-weight: var(--font-weight-medium);
+        
+        @include ds.mobile {
+          font-size: 10px;
+        }
+      }
+      
+      .scenario-value {
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-primary-text);
+        text-align: right;
+        
+        ::ng-deep .currency-code {
+          color: var(--color-text-secondary);
+          font-size: 0.85em;
+          font-weight: var(--font-weight-medium);
+          margin-left: 2px;
+        }
+        
+        @include ds.mobile {
+          font-size: 10px;
+        }
+      }
+    }
+  }
+  
+  @include ds.mobile {
+    .grouped-table-content {
+      padding: var(--space-1);
+      
+      .scenario-row {
+        padding: var(--space-1);
+      }
+    }
+  }
+}
+
+.narrative-table-wrapper {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px var(--color-bg-overlay);
+}
+
+.narrative-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-bg-card);
+  
+  tbody {
+    .narrative-row {
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: var(--color-bg-hover);
+        
+        .sentence-number {
+          background: var(--color-primary-alpha);
+          color: var(--color-primary-text);
+        }
+        
+        .sentence-content {
+          color: var(--color-text-primary);
+        }
+      }
+      
+      // Add visible border to all rows for better readability
+      border-bottom: 1px solid var(--color-border-primary);
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+    
+    .sentence-number {
+      width: 60px;
+      padding: var(--space-4) var(--space-4);
+      text-align: center;
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-secondary);
+      background: var(--color-bg-secondary);
+      border-right: 1px solid var(--color-border-primary);
+      vertical-align: top;
+      transition: all 0.2s ease;
+      
+      @include ds.mobile {
+        width: 40px;
+        padding: var(--space-2) var(--space-3);
+        font-size: var(--font-size-xs);
+      }
+    }
+    
+    .sentence-content {
+      padding: var(--space-5) var(--space-6);
+      font-size: calc(var(--font-size-base) - 2px);
+      line-height: var(--leading-relaxed);
+      color: var(--color-text-primary);
+      vertical-align: top;
+      transition: all 0.2s ease;
+      font-family: var(--font-primary);
+      
+      // Enhanced number highlighting with different colors
+      ::ng-deep .narrative-number {
+        padding: 3px 7px;
+        border-radius: 4px;
+        font-weight: var(--font-weight-bold);
+        font-size: 1.15em;
+        display: inline-block;
+        line-height: 1.3;
+        letter-spacing: 0.02em;
+        margin: 0 1px;
+        
+        // Primary green for percentages and CAGR values
+        &.narrative-number-percentage,
+        &.narrative-number-value {
+          background: var(--color-primary-alpha);
+          color: var(--color-primary);
+          box-shadow: 0 1px 3px rgba(32, 223, 127, 0.25);
+        }
+        
+        // Cyan/blue for currency/dollar values - WCAG AA compliant
+        &.narrative-number-currency {
+          background: rgba(59, 130, 246, 0.15);
+          color: #3B82F6;
+          box-shadow: 0 1px 3px rgba(59, 130, 246, 0.25);
+          
+          // Ensure contrast in light theme
+          html[data-theme="light"] & {
+            color: #2563eb;
+            background: rgba(37, 99, 235, 0.12);
+          }
+        }
+        
+        // Fallback for numbers without specific class
+        &:not(.narrative-number-percentage):not(.narrative-number-currency):not(.narrative-number-value) {
+          background: var(--color-primary-alpha);
+          color: var(--color-primary);
+          box-shadow: 0 1px 3px rgba(32, 223, 127, 0.25);
+        }
+      }
+      
+      // Add spacing after paragraphs (major ideas) - reduced spacing
+      ::ng-deep p.narrative-paragraph {
+        margin-bottom: var(--space-4);
+        line-height: var(--leading-relaxed);
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+      
+      // Ensure first paragraph doesn't have top margin
+      ::ng-deep p.narrative-paragraph:first-child {
+        margin-top: 0;
+      }
+      
+      // Fallback for any p tags without the class
+      ::ng-deep p:not(.narrative-paragraph) {
+        margin-bottom: var(--space-3);
+        line-height: var(--leading-relaxed);
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+      
+      @include ds.mobile {
+        padding: var(--space-4) var(--space-5);
+        font-size: calc(var(--font-size-sm) - 2px);
+        line-height: var(--leading-normal);
+        
+        ::ng-deep .narrative-number {
+          font-size: 1.08em;
+          padding: 2px 5px;
+        }
+        
+        ::ng-deep p.narrative-paragraph {
+          margin-bottom: var(--space-3);
+        }
+        
+        ::ng-deep p:not(.narrative-paragraph) {
+          margin-bottom: var(--space-2);
+        }
+      }
+    }
+  }
+}
+
+// Animation keyframes
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Mobile responsive adjustments
+@include ds.mobile {
+  .narrative-table-wrapper {
+    border-radius: 8px;
+  }
+}
+
+// Very small screens - stack layout
+@media (max-width: 480px) {
+  .narrative-split-layout {
+    flex-direction: column;
+  }
+  
+  .narrative-table-column {
+    flex: 1;
+  }
+  
+  .narrative-metrics-column {
+    flex: none;
+  }
+  
+  .metrics-container {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  
+  .metric-card {
+    min-width: auto;
+  }
+  
+  .narrative-table {
+    .sentence-number {
+      width: 30px;
+      padding: var(--space-2);
+      font-size: 10px;
+    }
+    
+    .sentence-content {
+      padding: var(--space-2);
+      font-size: 11px;
+    }
+  }
+}
+
+// Bull-Bear Debate Styles - WhatsApp Style Chat Format
+.debate-wrapper {
+  padding: var(--space-4);
+  width: 100%;
+  background: var(--color-bg-primary);
+  border-radius: 12px;
+  
+  @include ds.mobile {
+    padding: var(--space-2);
+  }
+  
+  .debate-conversation {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    max-width: 100%;
+    
+    @include ds.mobile {
+      gap: var(--space-4);
+    }
+  }
+  
+  .debate-round {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    
+    @include ds.mobile {
+      gap: var(--space-1);
+    }
+  }
+  
+  .round-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: var(--space-4) 0;
+    
+    .round-label {
+      background: var(--color-bg-secondary);
+      color: var(--color-text-secondary);
+      padding: var(--space-1) var(--space-3);
+      border-radius: 12px;
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-medium);
+      font-family: var(--font-primary);
+    }
+    
+    @include ds.mobile {
+      margin: var(--space-2) 0;
+    }
+  }
+  
+  .message-container {
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: var(--space-1);
+    max-width: 75%;
+    position: relative;
+    
+    @include ds.mobile {
+      max-width: 85%;
+    }
+    
+    // Bull messages align to LEFT
+    &.bull-message-container {
+      align-self: flex-start;
+      justify-content: flex-start;
+      flex-direction: row;
+      align-items: center;
+    }
+    
+    // Bear messages align to RIGHT
+    &.bear-message-container {
+      align-self: flex-end;
+      justify-content: flex-end;
+      flex-direction: row-reverse;
+      align-items: center;
+    }
+  }
+  
+  .message-bubble {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-3) var(--space-4);
+    position: relative;
+    transition: all 0.2s ease;
+    font-family: var(--font-primary);
+    word-wrap: break-word;
+    max-width: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid transparent;
+    
+    // Rounded corners with connected edges
+    // Bull bubbles: rounded on right, sharp on left (connected edge)
+    &.bull-bubble {
+      border-radius: 4px 18px 18px 18px; // Top-left, top-right, bottom-right, bottom-left
+    }
+    
+    // Bear bubbles: rounded on left, sharp on right (connected edge)
+    &.bear-bubble {
+      border-radius: 18px 4px 18px 18px; // Top-left, top-right, bottom-right, bottom-left
+    }
+    
+    .message-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-2);
+      
+      .message-avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        font-size: var(--font-size-sm);
+        flex-shrink: 0;
+        font-weight: var(--font-weight-semibold);
+      }
+      
+      .message-author {
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-semibold);
+        opacity: 0.9;
+      }
+    }
+    
+    .message-content {
+      font-size: calc(var(--font-size-base) - 2px);
+      line-height: var(--leading-relaxed);
+      margin-bottom: var(--space-1);
+      
+      // Use same number highlighting as narrative sections
+      ::ng-deep .narrative-number {
+        padding: 3px 7px;
+        border-radius: 4px;
+        font-weight: var(--font-weight-bold);
+        font-size: 1.15em;
+        display: inline-block;
+        line-height: 1.3;
+        letter-spacing: 0.02em;
+        margin: 0 1px;
+        
+        // Primary green for percentages and CAGR values
+        &.narrative-number-percentage,
+        &.narrative-number-value {
+          background: rgba(255, 255, 255, 0.3);
+          color: inherit;
+        }
+        
+        // Cyan/blue for currency/dollar values
+        &.narrative-number-currency {
+          background: rgba(255, 255, 255, 0.3);
+          color: inherit;
+        }
+      }
+      
+      // Paragraph spacing
+      ::ng-deep p.narrative-paragraph {
+        margin-bottom: var(--space-3);
+        line-height: var(--leading-relaxed);
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+      
+      ::ng-deep p:not(.narrative-paragraph) {
+        margin-bottom: var(--space-2);
+        line-height: var(--leading-relaxed);
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+    
+    .message-time {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-top: var(--space-1);
+      font-size: 10px;
+      opacity: 0.7;
+      
+      i {
+        font-size: 10px;
+      }
+    }
+  }
+  
+  // Bull message styling (LEFT side, green)
+  .bull-message-container {
+    .bull-bubble {
+      background: var(--color-success);
+      color: var(--color-text-inverse);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      
+      .bull-avatar {
+        background: rgba(255, 255, 255, 0.3);
+        color: var(--color-text-inverse);
+      }
+      
+      .message-author {
+        color: var(--color-text-inverse);
+      }
+      
+      .message-content {
+        color: var(--color-text-inverse);
+      }
+      
+      .message-time {
+        color: var(--color-text-inverse);
+        opacity: 0.8;
+      }
+    }
+  }
+  
+  // Bear message styling (RIGHT side, gray)
+  .bear-message-container {
+    .bear-bubble {
+      background: var(--color-bg-secondary);
+      color: var(--color-text-primary);
+      border: 1px solid var(--color-border-primary);
+      
+      .bear-avatar {
+        background: var(--color-danger);
+        color: var(--color-text-inverse);
+      }
+      
+      .message-author {
+        color: var(--color-text-primary);
+      }
+      
+      .message-content {
+        color: var(--color-text-primary);
+      }
+      
+      .message-time {
+        color: var(--color-text-secondary);
+      }
+    }
+  }
+  
+  // Fancy Arrow Connection Wrapper
+  .arrow-connection-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: var(--space-2) 0;
+    padding: 0 var(--space-4);
+    position: relative;
+    
+    @include ds.mobile {
+      margin: var(--space-1) 0;
+      padding: 0 var(--space-2);
+    }
+  }
+  
+  // Fancy Arrow Connections
+  .arrow-connection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+    flex-shrink: 0;
+    
+    &:hover {
+      opacity: 0.8;
+    }
+    
+    svg {
+      width: 100%;
+      max-width: 200px;
+      height: 30px;
+      flex-shrink: 0;
+      
+      path {
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+      }
+    }
+    
+    @include ds.mobile {
+      svg {
+        max-width: 150px;
+        height: 25px;
+      }
+    }
+  }
+  
+  @include ds.mobile {
+    .message-container {
+      max-width: 90%;
+    }
+    
+    .message-bubble {
+      padding: var(--space-2) var(--space-3);
+      
+      .message-header {
+        margin-bottom: var(--space-1);
+        
+        .message-avatar {
+          width: 24px;
+          height: 24px;
+          font-size: var(--font-size-xs);
+        }
+        
+        .message-author {
+          font-size: 10px;
+        }
+      }
+      
+      .message-content {
+        font-size: calc(var(--font-size-sm) - 2px);
+        line-height: var(--leading-normal);
+        
+        ::ng-deep .narrative-number {
+          font-size: 1.08em;
+          padding: 2px 5px;
+        }
+        
+        ::ng-deep p.narrative-paragraph {
+          margin-bottom: var(--space-2);
+        }
+        
+        ::ng-deep p:not(.narrative-paragraph) {
+          margin-bottom: var(--space-1);
+        }
+      }
+      
+      .message-time {
+        font-size: 9px;
+      }
+    }
+    
+    .round-header {
+      .round-label {
+        font-size: 10px;
+        padding: var(--space-1) var(--space-2);
+      }
+    }
+  }
+}
+
+// Scenario Analysis Wrapper
+.scenario-analysis-wrapper {
+  width: 100%;
+  
+  @include ds.mobile {
+    padding: var(--space-3);
+  }
+}
+
+// Sensitivity Analysis Wrapper
+.sensitivity-analysis-wrapper {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-bg-secondary);
+  border-radius: 12px;
+  
+  @include ds.mobile {
+    padding: var(--space-3);
+  }
+}

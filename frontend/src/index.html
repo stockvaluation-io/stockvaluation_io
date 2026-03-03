@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>StockValuation.io — Automated DCF Analysis</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="/assets/favicon/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon/favicon.svg" />
+  <link rel="shortcut icon" href="/assets/favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="/assets/favicon/site.webmanifest" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+  <!-- Theme detection: apply before first paint to avoid flash -->
+  <script>
+    (function() {
+      try {
+        const saved = localStorage.getItem('stockvaluation-theme');
+        const system = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', saved || system);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+</head>
+<body style="background-color: black;">
+  <app-root></app-root>
+</body>
+</html>
