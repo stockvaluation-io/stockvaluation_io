@@ -109,12 +109,11 @@ def baseline_valuation(docker_services):
     
     # Use GET valuation endpoint
     url = f"{java_url}/api/v1/automated-dcf-analysis/{ticker}/valuation"
-    params = {"dify_test": "true"}
     
     print(f"\n🔄 Fetching baseline valuation for {ticker}...")
     
     try:
-        response = requests.get(url, params=params, timeout=120)
+        response = requests.get(url, timeout=120)
         response.raise_for_status()
         
         data = response.json()

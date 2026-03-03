@@ -46,7 +46,10 @@ def _parse_cors_origins(raw: str) -> list[str]:
     if not cleaned:
         return list(DEFAULT_CORS_ORIGINS)
     if cleaned == "*":
-        return ["*"]
+        allow_all = os.getenv("CORS_ALLOW_ALL", "false").lower() == "true"
+        if allow_all:
+            return ["*"]
+        return list(DEFAULT_CORS_ORIGINS)
     origins = [origin.strip() for origin in cleaned.split(",") if origin.strip()]
     return origins or list(DEFAULT_CORS_ORIGINS)
 
@@ -107,4 +110,3 @@ def get_config():
     if env == 'production':
         return ProductionConfig()
     return DevelopmentConfig()
-

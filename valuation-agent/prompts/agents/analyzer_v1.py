@@ -14,7 +14,6 @@ def get_prompt(inputs: Dict[str, Any]) -> str:
     - name
     - industry
     - dcf
-    - financials
     - segments
     - news
     """

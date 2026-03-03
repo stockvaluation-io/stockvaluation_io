@@ -48,5 +48,6 @@ def test_recalculate_valuation_uses_ticker_valuation_path_and_preserves_segments
     assert captured["url"] == "http://localhost:8081/api/v1/automated-dcf-analysis/MSFT/valuation"
     assert captured["params"] is None
     assert captured["json"] == overrides
-    assert captured["headers"]["dify_test"] == "true"
+    assert captured["headers"]["Content-Type"] == "application/json"
+    assert "dify_test" not in captured["headers"]
     assert captured["timeout"] == 11

@@ -41,6 +41,7 @@ import { DisclaimerBannerComponent } from './components';
 import { NarrativeSectionComponent } from './shared/components/narrative-section/narrative-section.component';
 import { DCFAssumptionsSheetComponent } from '../../components/dcf-assumptions-sheet';
 import { AssumptionsTransparencySectionComponent } from './sections/assumptions-transparency/assumptions-transparency.component';
+import { ChatSidebarComponent } from '../../../shared/chat-ui/chat-sidebar.component';
 
 export interface NavigationItem {
   id: string;
@@ -67,7 +68,8 @@ export interface NavigationItem {
     SignupModalComponent,
     NarrativeSectionComponent,
     DCFAssumptionsSheetComponent,
-    AssumptionsTransparencySectionComponent
+    AssumptionsTransparencySectionComponent,
+    ChatSidebarComponent
   ],
   template: `
     <div class="results-page" [class.sheet-open]="showAssumptionsSheet" [class.chat-open]="showChatSidebar">
@@ -81,6 +83,21 @@ export interface NavigationItem {
         (adjustAssumptionsClicked)="onAdjustAssumptions()"
         (chatToggled)="onChatToggle()">
       </app-company-context-bar>
+
+      <app-chat-sidebar
+        *ngIf="legacyBullbeargptEnabled"
+        class="chat-sidebar-panel"
+        [ticker]="company.symbol || ''"
+        [valuationId]="results.valuation_id"
+        [userId]="currentUserId || 'local'"
+        [contextData]="{ company: company, results: results }"
+        [showToggleButton]="false"
+        [initiallyOpen]="true"
+        [isOpenExternal]="showChatSidebar"
+        [backendUrl]="chatBackendUrl"
+        (opened)="showChatSidebar = true"
+        (closed)="showChatSidebar = false">
+      </app-chat-sidebar>
 
       <!-- Navigation Menu -->
       <app-navigation-menu
@@ -260,10 +277,10 @@ export interface NavigationItem {
           <!-- News Sources -->
           <section id="news-sources" class="results-section news-sources-section">
             <div class="section-header">
-              <h2 class="section-title">
+              <h3 class="section-title">
                 <i class="pi pi-link" aria-hidden="true"></i>
                 News Sources
-              </h2>
+              </h3>
               <p class="section-description">External sources used for this generated narrative.</p>
             </div>
             <div class="news-sources-body" *ngIf="results?.newsSources?.length; else noNewsSources">
@@ -434,6 +451,7 @@ export class NewResultsPageComponent implements OnInit, AfterViewInit, OnDestroy
   currentYear = new Date().getFullYear();
   private observerDisabled = false;
   private intersectingEntries = new Map<string, IntersectionObserverEntry>();
+  readonly legacyBullbeargptEnabled = ((environment as any).features?.legacyBullbeargpt ?? false) === true;
   showSavedAnalysisBrowser = false;
   showSignupModal = false;
   showAssumptionsSheet = false;

@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Collections;
+import java.util.UUID;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -24,13 +25,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final Key signingKey;
 
     public JwtAuthFilter() {
-        // Prefer explicit JWT_SECRET, then SECRET_KEY. Final fallback is a non-sensitive dev value.
+        // Prefer explicit JWT_SECRET, then SECRET_KEY. Final fallback is process-local random secret.
         String jwtSecret = System.getenv("JWT_SECRET");
         if (jwtSecret == null || jwtSecret.isBlank()) {
             jwtSecret = System.getenv("SECRET_KEY");
         }
         if (jwtSecret == null || jwtSecret.isBlank()) {
-            jwtSecret = "change-me-dev-jwt-secret-at-least-32-bytes";
+            jwtSecret = UUID.randomUUID() + "-" + UUID.randomUUID();
         }
         this.signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
@@ -39,28 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-
-        // ✅ 1. Check for dify_test=true (query param or header)
-        String difyTestParam = request.getParameter("dify_test");
-        String difyTestHeader = request.getHeader("dify_test");
-
-        if ("true".equalsIgnoreCase(difyTestParam) || "true".equalsIgnoreCase(difyTestHeader)) {
-            // Treat as authenticated (bypass JWT)
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            "dify_test_user", // dummy user id
-                            null,
-                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_TEST"))
-                    );
-
-            authentication.setDetails("dify_test@example.com");
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        // ✅ 2. Otherwise proceed with normal JWT validation
+        // Validate Authorization bearer token when present.
         String header = request.getHeader("Authorization");
 
         if (header != null && header.startsWith("Bearer ")) {

@@ -6,6 +6,7 @@ import hashlib
 import logging
 import os
 import time
+from datetime import datetime
 from flask import Blueprint, jsonify, request, Response, stream_with_context
 
 from services.notebook_service import get_notebook_service
@@ -155,7 +156,7 @@ def create_session():
         
     except Exception as e:
         logger.error(f"Error creating notebook session: {e}", exc_info=True)
-        return jsonify({'error': 'Failed to create session', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to create session'}), 500
 
 
 def _extract_dcf_summary(valuation_data: dict) -> dict:
@@ -195,7 +196,7 @@ def get_session(session_id: str):
         
     except Exception as e:
         logger.error(f"Error getting session {session_id}: {e}")
-        return jsonify({'error': 'Failed to get session', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to get session'}), 500
 
 
 @notebook_bp.route('/sessions/<session_id>', methods=['DELETE'])
@@ -211,7 +212,7 @@ def delete_session(session_id: str):
         
     except Exception as e:
         logger.error(f"Error deleting session {session_id}: {e}")
-        return jsonify({'error': 'Failed to delete session', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to delete session'}), 500
 
 
 @notebook_bp.route('/sessions', methods=['GET'])
@@ -240,7 +241,7 @@ def list_sessions():
         
     except Exception as e:
         logger.error(f"Error listing sessions: {e}")
-        return jsonify({'error': 'Failed to list sessions', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to list sessions'}), 500
 
 
 # ===== CELL ENDPOINTS =====
@@ -315,7 +316,7 @@ def add_cell(session_id: str):
         
     except Exception as e:
         logger.error(f"Error adding cell to session {session_id}: {e}", exc_info=True)
-        return jsonify({'error': 'Failed to add cell', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to add cell'}), 500
 
 
 @notebook_bp.route('/sessions/<session_id>/cells', methods=['GET'])
@@ -332,7 +333,7 @@ def get_cells(session_id: str):
         
     except Exception as e:
         logger.error(f"Error getting cells for session {session_id}: {e}")
-        return jsonify({'error': 'Failed to get cells', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to get cells'}), 500
 
 
 @notebook_bp.route('/cells/<cell_id>', methods=['PUT', 'PATCH'])
@@ -372,29 +373,30 @@ def update_cell(cell_id: str, session_id: str = None):
                 cell.content = data['content']
         
         if service.update_cell(cell):
-            return jsonify(cell.to_dict()), 200
+            return jsonify({'success': True, 'cell': cell.to_dict()}), 200
         else:
             return jsonify({'error': 'Failed to update cell'}), 500
         
     except Exception as e:
         logger.error(f"Error updating cell {cell_id}: {e}", exc_info=True)
-        return jsonify({'error': 'Failed to update cell', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to update cell'}), 500
 
 
 @notebook_bp.route('/cells/<cell_id>', methods=['DELETE'])
-def delete_cell(cell_id: str):
+@notebook_bp.route('/sessions/<session_id>/cells/<cell_id>', methods=['DELETE'])
+def delete_cell(cell_id: str, session_id: str = None):
     """Delete a cell."""
     try:
         service = get_notebook_service()
         
         if service.delete_cell(cell_id):
-            return jsonify({'message': 'Cell deleted', 'cell_id': cell_id}), 200
+            return jsonify({'success': True, 'message': 'Cell deleted', 'cell_id': cell_id}), 200
         else:
             return jsonify({'error': 'Cell not found or deletion failed'}), 404
         
     except Exception as e:
         logger.error(f"Error deleting cell {cell_id}: {e}")
-        return jsonify({'error': 'Failed to delete cell', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to delete cell'}), 500
 
 
 # ===== SCENARIO ENDPOINTS =====
@@ -433,7 +435,7 @@ def save_scenario(session_id: str):
         
     except Exception as e:
         logger.error(f"Error saving scenario for session {session_id}: {e}")
-        return jsonify({'error': 'Failed to save scenario', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to save scenario'}), 500
 
 
 @notebook_bp.route('/sessions/<session_id>/scenarios', methods=['GET'])
@@ -450,7 +452,7 @@ def get_scenarios(session_id: str):
         
     except Exception as e:
         logger.error(f"Error getting scenarios for session {session_id}: {e}")
-        return jsonify({'error': 'Failed to get scenarios', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to get scenarios'}), 500
 
 
 # ===== DCF SNAPSHOT ENDPOINTS =====
@@ -458,7 +460,11 @@ def get_scenarios(session_id: str):
 @notebook_bp.route('/sessions/<session_id>/recalculate-dcf', methods=['POST'])
 def recalculate_dcf(session_id: str):
     """[REMOVED] DCF recalculation removed. Use valuation-agent instead."""
-    return jsonify({'error': 'Use valuation-agent service for DCF recalculation.'}), 410
+    return jsonify({
+        'success': False,
+        'session_id': session_id,
+        'message': 'DCF recalculation is disabled in notebook local-first mode. Use valuation workflow.'
+    }), 200
 
 
 
@@ -712,35 +718,198 @@ def health_check():
         }), 503
 
 
-# ===== THESIS ENDPOINTS (REMOVED) =====
-# Thesis feature removed in local-first pivot.
-# Use conversation cells to build investment reasoning instead.
+# ===== THESIS ENDPOINTS =====
 
 @notebook_bp.route('/sessions/<session_id>/generate-thesis-stream', methods=['POST'])
 def generate_thesis_stream(session_id: str):
-    """[REMOVED] Thesis feature removed."""
-    return jsonify({'error': 'Thesis feature removed. Build reasoning in conversation cells.'}), 410
+    """
+    Generate a thesis preview with SSE streaming.
+    Events:
+      - stream: { chunk: "..." }
+      - done: { full_response: "...", session_id: "...", ticker: "..." }
+      - error: { error: "..." }
+    """
+    try:
+        service = get_notebook_service()
+        session = service.get_session(session_id)
+        if not session:
+            return jsonify({'error': 'Session not found'}), 404
+
+        cells = service.get_cells(session_id)
+        cells_dicts = [c.to_dict() for c in cells]
+        dcf_data = session.base_analysis_json or {}
+
+        def generate():
+            import json
+            from services.thesis_generator import get_thesis_generator
+
+            generator = get_thesis_generator()
+            full_response = ""
+
+            try:
+                for chunk in generator.generate_thesis_preview_stream(
+                    cells=cells_dicts,
+                    dcf_data=dcf_data,
+                    ticker=session.ticker,
+                    company_name=session.company_name or session.ticker
+                ):
+                    full_response += chunk
+                    yield f"event: stream\ndata: {json.dumps({'chunk': chunk})}\n\n"
+
+                yield f"event: done\ndata: {json.dumps({'full_response': full_response, 'session_id': session_id, 'ticker': session.ticker})}\n\n"
+            except Exception as e:
+                logger.error(f"Error streaming thesis: {e}", exc_info=True)
+                yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
+
+        return Response(
+            stream_with_context(generate()),
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'X-Accel-Buffering': 'no',
+                'Connection': 'keep-alive',
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error setting up thesis stream for session {session_id}: {e}", exc_info=True)
+        return jsonify({'error': 'Failed to generate thesis'}), 500
 
 
 @notebook_bp.route('/sessions/<session_id>/generate-thesis', methods=['POST'])
 def generate_thesis(session_id: str):
-    """[REMOVED] Thesis feature removed."""
-    return jsonify({'error': 'Thesis feature removed.'}), 410
+    """
+    Generate a thesis preview from session data without saving it.
+    """
+    try:
+        service = get_notebook_service()
+        session = service.get_session(session_id)
+        if not session:
+            return jsonify({'error': 'Session not found'}), 404
+
+        cells = service.get_cells(session_id)
+        cells_dicts = [c.to_dict() for c in cells]
+        dcf_data = session.base_analysis_json or {}
+
+        from services.thesis_generator import get_thesis_generator
+        generator = get_thesis_generator()
+
+        preview = generator.generate_thesis_preview(
+            cells=cells_dicts,
+            dcf_data=dcf_data,
+            ticker=session.ticker,
+            company_name=session.company_name or session.ticker
+        )
+
+        return jsonify({
+            'preview': preview.to_dict(),
+            'session_id': session_id,
+            'ticker': session.ticker
+        }), 200
+    except Exception as e:
+        logger.error(f"Error generating thesis for session {session_id}: {e}", exc_info=True)
+        return jsonify({'error': 'Failed to generate thesis'}), 500
 
 
 @notebook_bp.route('/sessions/<session_id>/save-thesis', methods=['POST'])
 def save_thesis(session_id: str):
-    """[REMOVED] Thesis feature removed."""
-    return jsonify({'error': 'Thesis feature removed.'}), 410
+    """
+    Save thesis (finalize notebook state snapshot for local history).
+    """
+    try:
+        data = request.get_json() or {}
+        service = get_notebook_service()
+
+        session = service.get_session(session_id)
+        if not session:
+            return jsonify({'error': 'Session not found'}), 404
+
+        user_id = (
+            data.get('user_id')
+            or request.headers.get('X-Local-User')
+            or request.headers.get('X-User-ID')
+            or session.user_id
+            or 'local'
+        )
+
+        cells = service.get_cells(session_id)
+        cells_snapshot = [c.to_dict() for c in cells]
+        scenarios_snapshot = service.get_scenarios(session_id)
+        dcf_snapshot = session.base_analysis_json or {}
+
+        title = data.get('title')
+        summary = data.get('summary')
+
+        # Local-first behavior: save conversation snapshot directly.
+        # If title/summary are not provided, use deterministic defaults.
+        if not title:
+            title = f"{session.ticker} Snapshot {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}"
+        if not summary:
+            summary = f"Saved conversation snapshot for {session.company_name or session.ticker}."
+
+        thesis = service.save_thesis(
+            session_id=session_id,
+            ticker=session.ticker,
+            company_name=session.company_name or session.ticker,
+            title=title,
+            summary=summary,
+            cells_snapshot=cells_snapshot,
+            dcf_snapshot=dcf_snapshot,
+            user_id=user_id,
+            scenarios_snapshot=scenarios_snapshot,
+            valuation_id=session.valuation_id
+        )
+
+        if not thesis:
+            return jsonify({'error': 'Failed to save thesis'}), 500
+
+        return jsonify({'thesis': thesis, 'success': True}), 201
+    except Exception as e:
+        logger.error(f"Error saving thesis for session {session_id}: {e}", exc_info=True)
+        return jsonify({'error': 'Failed to save thesis'}), 500
 
 
 @notebook_bp.route('/theses', methods=['GET'])
 def list_theses():
-    """[REMOVED] Thesis feature removed."""
-    return jsonify({'error': 'Thesis feature removed.'}), 410
+    """
+    List theses for local user, grouped by ticker/month by default.
+    Query params:
+      - user_id (optional; default local)
+      - ticker (optional)
+      - grouped (optional; default true)
+    """
+    try:
+        service = get_notebook_service()
+        user_id = (
+            request.args.get('user_id')
+            or request.headers.get('X-Local-User')
+            or request.headers.get('X-User-ID')
+            or 'local'
+        )
+        ticker = request.args.get('ticker')
+        grouped = request.args.get('grouped', 'true').lower() == 'true'
+
+        theses = service.list_user_theses(user_id=user_id, ticker=ticker)
+        if grouped:
+            grouped_theses = service.get_grouped_theses(user_id=user_id)
+            return jsonify({'theses': theses, 'grouped': grouped_theses, 'count': len(theses)}), 200
+
+        return jsonify({'theses': theses, 'count': len(theses)}), 200
+    except Exception as e:
+        logger.error(f"Error listing theses: {e}", exc_info=True)
+        return jsonify({'error': 'Failed to list theses'}), 500
 
 
 @notebook_bp.route('/theses/<thesis_id>', methods=['GET'])
 def get_thesis(thesis_id: str):
-    """[REMOVED] Thesis feature removed."""
-    return jsonify({'error': 'Thesis feature removed.'}), 410
+    """Get a single thesis by ID."""
+    try:
+        service = get_notebook_service()
+        thesis = service.get_thesis(thesis_id)
+
+        if not thesis:
+            return jsonify({'error': 'Thesis not found'}), 404
+
+        return jsonify({'thesis': thesis}), 200
+    except Exception as e:
+        logger.error(f"Error getting thesis {thesis_id}: {e}", exc_info=True)
+        return jsonify({'error': 'Failed to get thesis'}), 500

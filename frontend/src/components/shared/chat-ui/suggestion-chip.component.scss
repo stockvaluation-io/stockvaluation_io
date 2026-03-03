@@ -1,0 +1,89 @@
+.suggestion-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color, #ced4da);
+  border-radius: 8px;
+  background: var(--card-background, white);
+  color: var(--text-primary, #495057);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+  /* Dark mode support */
+  :host-context(.dark-mode) &,
+  :host-context([data-theme="dark"]) & {
+    background: #2a2a3a;
+    color: #e0e0e0;
+    border-color: #3a3a4a;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  &:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+    box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+  }
+
+  .icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+
+  /* Focus state for accessibility */
+  &:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+  }
+
+  /* Disabled state */
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+/* Animation for chip entrance */
+@keyframes chipFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.suggestion-chip {
+  animation: chipFadeIn 0.3s ease-out;
+  animation-fill-mode: both;
+
+  /* Stagger animation for multiple chips */
+  &:nth-child(1) { animation-delay: 0.05s; }
+  &:nth-child(2) { animation-delay: 0.1s; }
+  &:nth-child(3) { animation-delay: 0.15s; }
+  &:nth-child(4) { animation-delay: 0.2s; }
+  &:nth-child(5) { animation-delay: 0.25s; }
+}
+

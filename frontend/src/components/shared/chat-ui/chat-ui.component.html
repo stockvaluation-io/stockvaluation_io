@@ -1,0 +1,194 @@
+<div class="chat-ui-container" [attr.data-theme]="currentTheme()">
+  <!-- Messages Area -->
+  <div
+    #scrollContainer
+    class="chat-messages"
+    (scroll)="onScroll()"
+  >
+    <div class="messages-wrapper">
+      @if (messages.length === 0) {
+        <div class="empty-state">
+          <i class="pi pi-comments empty-icon"></i>
+          <p class="empty-text">No messages yet</p>
+          <p class="empty-subtext">Start a conversation by typing below</p>
+        </div>
+      }
+
+      @for (message of messages; track trackByMessageId($index, message)) {
+        <div
+          class="message-group"
+          [class.user-message]="message.sender === 'user'"
+          [class.ai-message]="message.sender === 'ai'"
+          [class.system-message]="message.metadata?.['system']"
+          [class.success-message]="message.metadata?.['success']"
+          [class.first-in-sequence]="isFirstInSequence($index, message.sender)"
+          [class.last-in-sequence]="isLastInSequence($index, message.sender)"
+        >
+          <!-- Avatar -->
+          @if (isFirstInSequence($index, message.sender)) {
+            <div class="message-avatar">
+              @if (message.sender === 'user') {
+                <i class="pi pi-user"></i>
+              } @else {
+                <i class="pi pi-sparkles"></i>
+              }
+            </div>
+          } @else {
+            <div class="message-avatar-spacer"></div>
+          }
+
+          <!-- Message Content -->
+          <div class="message-content-wrapper">
+            <div class="message-bubble" [class.error]="message.metadata?.error">
+              @if (message.isTyping) {
+                <div class="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              } @else {
+                <!-- Structured content view -->
+                @if (hasStructuredContent(message) && getFormattedMessage(message).sections.length > 0) {
+                  <!-- Show insight cards for structured sections -->
+                  <div class="structured-content">
+                    @for (section of getFormattedMessage(message).sections; track section.title) {
+                      <app-insight-card [section]="section"></app-insight-card>
+                    }
+                  </div>
+                } @else {
+                  <!-- Regular markdown content with enhancements -->
+                  <div class="message-text">
+                    <markdown [data]="getEnhancedContent(message)" class="markdown-content"></markdown>
+                  </div>
+                }
+                
+                <!-- Display key metrics -->
+                @if (getFormattedMessage(message).keyMetrics.length > 0) {
+                  <div class="metrics-container">
+                    @for (metric of getFormattedMessage(message).keyMetrics; track metric.label) {
+                      <app-metric-viz [metric]="metric"></app-metric-viz>
+                    }
+                  </div>
+                }
+                
+                <!-- Bull vs Bear Debate Display -->
+                @if (message.metadata?.['message_type'] === 'debate') {
+                  <div class="debate-container">
+                    @for (round of message.metadata?.['debate_rounds']; track round.round) {
+                      <div class="debate-round">
+                        <div class="debate-side bull-side">
+                          <div class="debate-header">
+                            <i class="pi pi-arrow-up"></i>
+                            <span>Bull</span>
+                          </div>
+                          <div class="debate-content" [innerHTML]="round.bull"></div>
+                        </div>
+                        <div class="debate-vs">VS</div>
+                        <div class="debate-side bear-side">
+                          <div class="debate-header">
+                            <i class="pi pi-arrow-down"></i>
+                            <span>Bear</span>
+                          </div>
+                          <div class="debate-content" [innerHTML]="round.bear"></div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+                
+                <!-- Quick Action Buttons -->
+                @if (getFormattedMessage(message).suggestedActions.length > 0 && !message.metadata?.['tool_approval']) {
+                  <app-message-actions 
+                    [actions]="getFormattedMessage(message).suggestedActions"
+                    (actionClicked)="onActionClick($event)">
+                  </app-message-actions>
+                }
+                
+                <!-- Tool Approval Buttons -->
+                @if (message.metadata?.['tool_approval'] && message.metadata?.['awaiting_response']) {
+                  <div class="tool-approval-buttons">
+                    <button 
+                      class="approval-btn approval-yes"
+                      [disabled]="message.metadata?.['responded']"
+                      (click)="onToolApprove(message)"
+                    >
+                      <i class="pi pi-check"></i> Yes
+                    </button>
+                    <button 
+                      class="approval-btn approval-no"
+                      [disabled]="message.metadata?.['responded']"
+                      (click)="onToolDeny(message)"
+                    >
+                      <i class="pi pi-times"></i> No
+                    </button>
+                  </div>
+                }
+              }
+
+              @if (message.metadata?.error) {
+                <div class="error-message">
+                  <i class="pi pi-exclamation-triangle"></i>
+                  {{ message.metadata?.errorMessage || 'An error occurred' }}
+                </div>
+              }
+            </div>
+
+            <!-- Timestamp -->
+            @if (getConfig('showTimestamp') && !message.isTyping && isLastInSequence($index, message.sender)) {
+              <div class="message-meta">
+                <span class="message-timestamp">
+                  {{ formatTimestamp(message.timestamp) }}
+                </span>
+                
+                <!-- Confidence Indicator (for AI messages) -->
+                @if (message.sender === 'ai' && message.metadata?.['confidence']) {
+                  <span class="confidence-badge" [class]="'confidence-' + message.metadata?.['confidence']">
+                    <i class="pi pi-info-circle"></i>
+                    {{ message.metadata?.['confidence'] }} confidence
+                  </span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- No separate loading indicator - handled by isTyping in messages -->
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="chat-input-container">
+    <div class="input-wrapper">
+      <textarea
+        #messageInput
+        pInputTextarea
+        [(ngModel)]="currentMessage"
+        [placeholder]="getConfig('placeholder') || 'Type your message...'"
+        [maxlength]="getConfig('maxLength') ?? null"
+        [disabled]="disabled || isLoading"
+        [rows]="1"
+        [autoResize]="true"
+        (keydown)="onKeyDown($event)"
+        class="message-input"
+        [class.disabled]="disabled || isLoading"
+      ></textarea>
+
+      <button
+        pButton
+        type="button"
+        icon="pi pi-send"
+        [disabled]="!currentMessage() || disabled || isLoading"
+        (click)="sendMessage()"
+        class="send-button"
+        [class.active]="currentMessage() && !disabled && !isLoading"
+      ></button>
+    </div>
+
+    @if (getConfig('maxLength') && currentMessage().length > 0) {
+      <div class="character-count">
+        {{ currentMessage().length }} / {{ getConfig('maxLength') }}
+      </div>
+    }
+  </div>
+</div>

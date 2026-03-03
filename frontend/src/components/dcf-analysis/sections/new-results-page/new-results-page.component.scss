@@ -225,7 +225,6 @@
   // Chrome-specific fixes
   .results-page {
     -webkit-backface-visibility: hidden;
-    -webkit-transform: translate3d(0, 0, 0);
   }
 }
 
@@ -338,6 +337,29 @@ app-empty-state {
     @media (max-width: 768px) {
       margin-right: 0; // No margin on mobile - sheet takes full width
     }
+  }
+}
+
+// Chat sidebar open - same behavior as assumptions sheet
+.results-page.chat-open {
+  .results-content {
+    margin-right: 30%; // Make room for 30% width chat
+    transition: margin-right 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    @media (max-width: 1200px) {
+      margin-right: 40%; // Make room for 40% width chat on tablet
+    }
+
+    @media (max-width: 768px) {
+      margin-right: 0; // No margin on mobile - chat takes full width
+    }
+  }
+}
+
+// When both are open, prioritize the sheet spacing
+.results-page.sheet-open.chat-open {
+  .results-content {
+    margin-right: 30%;
   }
 }
 

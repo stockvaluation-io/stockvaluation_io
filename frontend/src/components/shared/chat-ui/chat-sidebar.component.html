@@ -1,0 +1,155 @@
+<!-- Chat Toggle Button (Floating) -->
+@if (showToggleButton && !isOpen()) {
+<button class="chat-toggle-button" (click)="open()" [class.has-unread]="unreadCount() > 0" title="Open AI Assistant">
+  <i class="pi pi-comments"></i>
+  @if (unreadCount() > 0) {
+  <span class="unread-badge">{{ unreadCount() }}</span>
+  }
+</button>
+}
+
+<!-- Overlay (Mobile) -->
+@if (isOpen() && isMobile()) {
+<div class="chat-overlay" [@fadeInOut]="isOpen() ? 'in' : 'out'" (click)="close()"></div>
+}
+
+<!-- Chat Sidebar -->
+<div class="chat-sidebar" [class.open]="isOpen()" [class.minimized]="isMinimized()" [class.mobile]="isMobile()"
+  [style.width]="isMobile() ? '100%' : width" [@slideInOut]="isOpen() ? 'in' : 'out'">
+  <!-- Header - Matches DCF Assumptions Sheet -->
+  <div class="chat-header">
+    <div class="header-content">
+      <div class="header-left">
+        <h2 class="chat-title">
+          <i class="pi pi-comments"></i>
+          <span>Your Investment Thesis AI Guide</span>
+        </h2>
+        @if (ticker) {
+        <span class="ticker-badge">{{ ticker }}</span>
+        }
+      </div>
+      <div class="header-actions">
+        <!-- Expand to Notebook Mode -->
+        <button class="expand-btn" (click)="onExpandClick()" title="Open in full-screen notebook mode" type="button">
+          <i class="pi pi-external-link" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connection Status Banner -->
+  @if (!connectionStatus().connected && !isMinimized()) {
+  <div class="connection-banner" [class.disconnected]="!connectionStatus().connecting && !connectionStatus().error"
+    [class.connecting]="connectionStatus().connecting" [class.error]="connectionStatus().error">
+    @if (connectionStatus().connecting) {
+    <i class="pi pi-spin pi-spinner"></i>
+    <span>Connecting...</span>
+    } @else {
+    <i class="pi pi-exclamation-circle"></i>
+    <span>Disconnected</span>
+    <button class="reconnect-btn" (click)="reconnect()">
+      <i class="pi pi-refresh"></i> Reconnect
+    </button>
+    }
+  </div>
+  }
+
+  <!-- Tool Result Banner -->
+  @if (latestToolResult() && !isMinimized()) {
+  <div class="tool-result-banner">
+    <div class="tool-result-header">
+      <i class="pi pi-cog"></i>
+      <span>{{ latestToolResult()?.toolName }}</span>
+    </div>
+    <div class="tool-result-content">
+      {{ formatToolResult(latestToolResult()!.result) }}
+    </div>
+  </div>
+  }
+
+  <!-- Chat Content -->
+  @if (!isMinimized()) {
+  <div class="chat-content">
+    <!-- Suggestion Chips (displayed at top when available) -->
+    @if (suggestions().length > 0) {
+    <app-chat-suggestions [suggestions]="suggestions()" (suggestionSelected)="onSuggestionClick($event)" />
+    }
+
+
+    <!-- Cell-based Chat Display (Unified with Notebook) -->
+    <div class="cells-container" #cellsContainer (scroll)="onCellsScroll()">
+      @for (cell of cells(); track cell.id) {
+      <app-cell-renderer [cell]="cell" [sessionId]="socketService.getCurrentSessionId() || ''" [isFirst]="$index === 0"
+        [isLast]="$index === cells().length - 1" [isStreaming]="streamingCellId() === cell.id"
+        (onDelete)="onCellDelete($event)"
+        (onUpdateNotes)="onCellUpdateNotes($event)" />
+      }
+
+      <!-- AI Thinking Indicator (shows when streaming or initial loading) -->
+      @if (streamingCellId() || (chatService.isLoading() && cells().length === 0)) {
+      <div class="ai-thinking-indicator">
+        <div class="thinking-dots">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+        <span class="thinking-text">AI is thinking...</span>
+      </div>
+      }
+
+      @if (cells().length === 0 && !chatService.isLoading()) {
+      <div class="empty-state">
+        <i class="pi pi-comments"></i>
+        <p>Start a conversation about {{ ticker || 'this company' }}</p>
+      </div>
+      }
+    </div>
+
+    <!-- Message Input (using custom input instead of full chat-ui to avoid "No messages" state) -->
+    <div class="message-input-area">
+      <textarea [(ngModel)]="messageInput" placeholder="Ask about this valuation..."
+        (keydown.enter)="sendMessageFromInput($event)" class="message-textarea"
+        [disabled]="!connectionStatus().connected || chatService.isLoading()"></textarea>
+      <button class="send-btn" (click)="sendMessageFromInput($event)"
+        [disabled]="!messageInput || !connectionStatus().connected || chatService.isLoading()">
+        <i class="pi pi-send"></i>
+      </button>
+    </div>
+  </div>
+  }
+
+  <!-- Minimized Preview -->
+  @if (isMinimized()) {
+  <div class="minimized-preview">
+    <p>Chat minimized. Click to expand.</p>
+  </div>
+  }
+</div>
+
+<!-- Tool Plan Dialog removed - using chat-based approval instead -->
+
+<!-- Hypothesis Review Dialog -->
+<app-hypothesis-review-dialog [hypothesis]="currentHypothesis()?.hypothesis || null"
+  [hypothesisId]="currentHypothesis()?.hypothesis_id || null" [visible]="showHypothesisReviewDialog()"
+  (approved)="onHypothesisApproved($event)" (revised)="onHypothesisRevised($event)"
+  (closed)="onHypothesisReviewClosed()" />
+
+<!-- Hypothesis Save Prompt Dialog -->
+<app-hypothesis-save-prompt [visible]="showHypothesisSavePrompt()"
+  [hypothesisId]="currentSavePrompt()?.hypothesis_id || null" (saved)="onHypothesisSave($event)"
+  (cancelled)="onHypothesisSaveCancel()" (closed)="onHypothesisSavePromptClosed()" />
+
+<!-- Valuation Update Approval Dialog -->
+<app-valuation-update-approval-dialog [visible]="showValuationUpdateDialog()" [updateRequest]="currentValuationUpdate()"
+  (approved)="onValuationUpdateApproved($event)" (denied)="onValuationUpdateDenied($event)">
+</app-valuation-update-approval-dialog>
+
+<!-- Valuation Update Result Dialog -->
+<app-valuation-update-result-dialog [visible]="showValuationResultDialog()" [result]="currentValuationResult()"
+  (closed)="onValuationResultClosed()">
+</app-valuation-update-result-dialog>
+
+<!-- Scenario Heat Map Dialog -->
+<app-scenario-heatmap-dialog [visible]="showScenarioDialog()" [data]="currentScenarioData()"
+  (closed)="onScenarioDialogClosed()">
+</app-scenario-heatmap-dialog>

@@ -1,16 +1,16 @@
 export const environment = {
-    production: false,
+    production: true,
     basePath: 'http://localhost:8081/api/v1/',  // Local Java valuation-service (docker-compose.local.yml)
     agentBasePath: 'http://localhost:5001/api-s/', // Local valuation-agent (ticker-first orchestration)
     contentBaseUrl: '/assets/content',
 
     // API endpoints
-    chatBackendUrl: 'http://localhost:5002',       // Local bullbeargpt SSE backend (docker-compose.local.yml)
+    chatBackendUrl: '',                            // Default to proxied /bullbeargpt path (nginx/dev proxy)
     dashboardApiUrl: '',                           // Legacy dashboard API disabled in local-first mode
 
     authMode: 'local' as const,
     features: {
-        legacyBullbeargpt: false,
+        legacyBullbeargpt: true,
     },
 
     // Server-side configuration

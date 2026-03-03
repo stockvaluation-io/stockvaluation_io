@@ -12,7 +12,6 @@ def get_prompt(inputs: Dict[str, Any]) -> str:
             - name: Company name
             - ticker: Company ticker
             - dcf: DCF data
-            - financials: Financial data
             - news_content: Investment hypothesis or recent news
             - industry: Industry classification
             - style: 'EW-A' (structured) or 'EW-B' (narrative)
@@ -174,7 +173,7 @@ def get_prompt(inputs: Dict[str, Any]) -> str:
 
       Ticker: {ticker}
       DCF Data: {json.dumps(dcf)}
-      Financials: {json.dumps(financials)}
+      FINANCIALS_PREPROCESSED_JSON: {json.dumps(financials)}
       Investment Hypothesis: {json.dumps(news_content)}
     """
 

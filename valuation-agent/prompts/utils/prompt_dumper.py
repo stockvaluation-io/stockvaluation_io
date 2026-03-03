@@ -16,7 +16,7 @@ class PromptDumper:
     
     def __init__(self):
         gemini_configured = bool(os.getenv("GEMINI_API_KEY", "").strip())
-        auto_enable = gemini_configured and os.getenv("AUTO_ENABLE_GEMINI_DUMPS", "true").lower() == "true"
+        auto_enable = gemini_configured and os.getenv("AUTO_ENABLE_GEMINI_DUMPS", "false").lower() == "true"
         self.enabled = self._read_bool("DUMP_PROMPTS", auto_enable)
         self.dump_responses_enabled = self._read_bool("DUMP_LLM_RESPONSES", self.enabled)
         self.dump_processing_enabled = self._read_bool("DUMP_PROCESSING_STEPS", self.enabled)

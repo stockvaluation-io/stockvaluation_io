@@ -65,8 +65,6 @@ class ValuationServiceClient:
         url = f"{self.base_url}/{ticker}/valuation"
         headers = {
             "Content-Type": "application/json",
-            # Internal service-to-service bypass supported by Java JwtAuthFilter.
-            "dify_test": "true",
         }
         if auth_header:
             headers["Authorization"] = auth_header

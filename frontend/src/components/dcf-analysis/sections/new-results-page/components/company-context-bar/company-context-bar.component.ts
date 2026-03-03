@@ -43,9 +43,9 @@ import { environment } from '../../../../../../env/environment';
         
         <div class="header-actions">
           <div class="header-controls">
-            <button 
+            <button
               *ngIf="legacyBullbeargptEnabled"
-              type="button" 
+              type="button"
               class="chat-toggle-btn"
               [class.active]="isChatOpen"
               (click)="onChatToggle()"

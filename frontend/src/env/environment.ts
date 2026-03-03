@@ -5,12 +5,12 @@ export const environment = {
     contentBaseUrl: '/assets/content',
 
     // API endpoints
-    chatBackendUrl: 'http://localhost:5002',       // Local bullbeargpt SSE backend (docker-compose.local.yml)
+    chatBackendUrl: '',                            // Default to proxied /bullbeargpt path (nginx/dev proxy)
     dashboardApiUrl: '',                           // Legacy dashboard API disabled in local-first mode
 
     authMode: 'local' as const,
     features: {
-        legacyBullbeargpt: false,
+        legacyBullbeargpt: true,
     },
 
     // Server-side configuration

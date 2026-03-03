@@ -49,6 +49,27 @@ INDUSTRY_ALIASES = {
     "materials": "basic-materials",
 }
 
+DEFAULT_CORS_ORIGINS = [
+    "http://localhost:4200",
+    "http://127.0.0.1:4200",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+
+def _parse_cors_origins(raw: str) -> List[str]:
+    cleaned = (raw or "").strip()
+    if not cleaned:
+        return list(DEFAULT_CORS_ORIGINS)
+    if cleaned == "*":
+        allow_all = os.getenv("CORS_ALLOW_ALL", "false").lower() == "true"
+        if allow_all:
+            return ["*"]
+        logger.warning("CORS_ORIGINS='*' ignored unless CORS_ALLOW_ALL=true; using localhost defaults")
+        return list(DEFAULT_CORS_ORIGINS)
+    origins = [origin.strip() for origin in cleaned.split(",") if origin.strip()]
+    return origins or list(DEFAULT_CORS_ORIGINS)
+
 
 def _resolve_secret_key() -> str:
     """
@@ -68,9 +89,16 @@ class StockValuationApp:
     def __init__(self):
         self.app = Flask(__name__)
         self.setup_config()
-        
-        # Setup CORS
-        CORS(self.app, resources={r"/*": {"origins": "*"}})
+
+        # Setup CORS with explicit origin allowlist by default.
+        cors_origins = _parse_cors_origins(os.getenv("CORS_ORIGINS", ""))
+        CORS(
+            self.app,
+            resources={r"/*": {"origins": cors_origins}},
+            supports_credentials=False,
+            allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+            methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        )
         
         # Pre-load LLM Guard models at startup (only if enabled via ENABLE_LLM_GUARD=true)
         if os.getenv('ENABLE_LLM_GUARD', 'false').lower() == 'true':
@@ -301,7 +329,7 @@ class StockValuationApp:
             val_request = ValuationRequest.model_validate(data)
         except Exception as e:
             logger.error(f"Invalid request payload: {e}")
-            return None, (jsonify({"error": "Invalid payload format", "details": str(e)}), 400)
+            return None, (jsonify({"error": "Invalid payload format"}), 400)
 
         if not val_request.ticker.strip():
             return None, (jsonify({"error": "ticker is required"}), 400)
@@ -1155,9 +1183,87 @@ class StockValuationApp:
             return None
 
         financial_dto = dict(raw_dcf.get("financial_dto") or {})
+        company_dto = dict(raw_dcf.get("company_dto") or {})
+        base_year_comparison = dict(raw_dcf.get("base_year_comparison") or {})
+        terminal_value_dto = dict(raw_dcf.get("terminal_value_dto") or {})
+        assumption_transparency = dict(raw_dcf.get("assumption_transparency") or {})
+        discount_rate = assumption_transparency.get("discount_rate") or {}
+
         company_data_dto = raw_dcf.get("company_data_dto") or {}
         basic_info_dto = company_data_dto.get("basic_info_data_dto") or {}
         info_dto = raw_dcf.get("info_dto") or {}
+
+        stock_price = self._safe_number(
+            company_dto.get("price")
+            or financial_dto.get("stock_price")
+        )
+        shares_outstanding = self._safe_number(
+            company_dto.get("number_of_shares")
+            or financial_dto.get("no_of_share_outstanding")
+        )
+        market_cap = None
+        if stock_price is not None and shares_outstanding is not None:
+            market_cap = stock_price * shares_outstanding
+
+        revenues = financial_dto.get("revenues")
+        revenue_ttm = self._safe_number(base_year_comparison.get("revenue")) or self._first_numeric(revenues)
+        revenue_growth_pct = self._safe_number(base_year_comparison.get("revenue_growth_company"))
+        revenue_ltm = None
+        if revenue_ttm is not None and revenue_growth_pct is not None and revenue_growth_pct > -99.0:
+            revenue_ltm = revenue_ttm / (1.0 + (revenue_growth_pct / 100.0))
+
+        ebit_operating_income = financial_dto.get("ebit_operating_income")
+        operating_income_ttm = self._safe_number(base_year_comparison.get("operating_income")) or self._first_numeric(ebit_operating_income)
+        operating_income_ltm = None
+        if operating_income_ttm is not None and revenue_growth_pct is not None and revenue_growth_pct > -99.0:
+            operating_income_ltm = operating_income_ttm / (1.0 + (revenue_growth_pct / 100.0))
+
+        book_value_debt = self._safe_number(company_dto.get("debt"))
+        cash_and_marketable = self._safe_number(company_dto.get("cash"))
+        minority_interest = self._safe_number(company_dto.get("minority_interests"))
+        invested_capital_start = self._first_numeric(financial_dto.get("invested_capital"))
+        book_value_equity = None
+        if invested_capital_start is not None and book_value_debt is not None and cash_and_marketable is not None:
+            # Approximate book equity from invested capital identity when direct book equity is unavailable.
+            approx_equity = invested_capital_start + cash_and_marketable - book_value_debt
+            if approx_equity > 0:
+                book_value_equity = approx_equity
+
+        tax_rate_series = financial_dto.get("tax_rate")
+        effective_tax_rate = self._first_numeric(tax_rate_series)
+        marginal_tax_rate = self._last_numeric(tax_rate_series)
+        risk_free_rate = self._safe_number(discount_rate.get("risk_free_rate"))
+        initial_cost_of_capital = (
+            self._safe_number(discount_rate.get("initial_cost_of_capital"))
+            or self._first_numeric(financial_dto.get("cost_of_capital"))
+            or self._safe_number(terminal_value_dto.get("cost_of_capital"))
+        )
+
+        debt_to_equity_pct = None
+        if book_value_debt is not None and book_value_equity is not None and book_value_equity > 0:
+            debt_to_equity_pct = (book_value_debt / book_value_equity) * 100.0
+
+        financial_dto.update({
+            "stock_price": stock_price,
+            "no_of_share_outstanding": shares_outstanding,
+            "revenue_ttm": revenue_ttm,
+            "revenue_ltm": revenue_ltm,
+            "operating_income_ttm": operating_income_ttm,
+            "operating_income_ltm": operating_income_ltm,
+            "book_value_equality_ttm": book_value_equity,
+            "book_value_debt_ttm": book_value_debt,
+            "cash_and_markabl_ttm": cash_and_marketable,
+            "minority_interest_ttm": minority_interest,
+            "effective_tax_rate": effective_tax_rate,
+            "marginal_tax_rate": marginal_tax_rate,
+            "risk_free_rate": risk_free_rate,
+            "initial_cost_capital": initial_cost_of_capital,
+            "industry": (
+                financial_dto.get("industry")
+                or raw_dcf.get("industry_global")
+                or raw_dcf.get("industry_us")
+            ),
+        })
 
         industry_us = (
             raw_dcf.get("industry_us")
@@ -1197,6 +1303,13 @@ class StockValuationApp:
                 "website": website,
                 "industry_us": industry_us,
                 "industry_global": industry_global,
+                "market_cap": market_cap,
+                "debtToEquity": debt_to_equity_pct,
+                "beta": self._safe_number(
+                    basic_info_dto.get("beta")
+                    or info_dto.get("beta")
+                    or raw_dcf.get("beta")
+                ),
             },
             "financial_data_dto": financial_dto,
         }

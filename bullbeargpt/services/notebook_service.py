@@ -65,6 +65,7 @@ def _init_db():
                 author_type TEXT,
                 user_input TEXT,
                 ai_output TEXT,
+                user_notes TEXT,
                 content TEXT,
                 execution_time_ms INTEGER,
                 created_at TEXT NOT NULL,
@@ -87,10 +88,102 @@ def _init_db():
                 FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
             );
 
+            CREATE TABLE IF NOT EXISTS theses (
+                id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                ticker TEXT NOT NULL,
+                company_name TEXT,
+                title TEXT NOT NULL,
+                summary TEXT,
+                user_id TEXT,
+                cells_snapshot TEXT NOT NULL,
+                scenarios_snapshot TEXT,
+                dcf_snapshot TEXT,
+                valuation_id TEXT,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+            );
+
             CREATE INDEX IF NOT EXISTS idx_cells_session_id ON cells(session_id);
             CREATE INDEX IF NOT EXISTS idx_sessions_ticker ON sessions(ticker);
             CREATE INDEX IF NOT EXISTS idx_scenarios_session_id ON scenarios(session_id);
+            CREATE INDEX IF NOT EXISTS idx_theses_user_id ON theses(user_id);
+            CREATE INDEX IF NOT EXISTS idx_theses_ticker ON theses(ticker);
         """)
+
+        # Lightweight schema migrations for existing local DB files.
+        # Older local stacks may have these tables but without newer columns.
+        def ensure_column(table: str, column_name: str, column_def: str) -> None:
+            existing = {
+                row["name"]
+                for row in conn.execute(f"PRAGMA table_info({table})").fetchall()
+            }
+            if column_name not in existing:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {column_def}")
+
+        ensure_column("sessions", "valuation_id", "valuation_id TEXT")
+        ensure_column("sessions", "currency", "currency TEXT")
+        ensure_column("sessions", "base_analysis_json", "base_analysis_json TEXT")
+
+        ensure_column("cells", "sequence_number", "sequence_number INTEGER")
+        ensure_column("cells", "cell_type", "cell_type TEXT DEFAULT 'reasoning'")
+        ensure_column("cells", "author_type", "author_type TEXT")
+        ensure_column("cells", "user_input", "user_input TEXT")
+        ensure_column("cells", "ai_output", "ai_output TEXT")
+        ensure_column("cells", "user_notes", "user_notes TEXT")
+        ensure_column("cells", "content", "content TEXT")
+        ensure_column("cells", "execution_time_ms", "execution_time_ms INTEGER")
+        ensure_column("cells", "created_at", "created_at TEXT")
+
+        ensure_column("scenarios", "scenario_type", "scenario_type TEXT")
+        ensure_column("scenarios", "description", "description TEXT")
+        ensure_column("scenarios", "cell_id", "cell_id TEXT")
+        ensure_column("scenarios", "dcf_snapshot_id", "dcf_snapshot_id TEXT")
+        ensure_column("scenarios", "probability", "probability REAL")
+        ensure_column("scenarios", "fair_value", "fair_value REAL")
+        ensure_column("scenarios", "assumptions_summary", "assumptions_summary TEXT")
+        ensure_column("scenarios", "created_at", "created_at TEXT")
+        ensure_column("scenarios", "updated_at", "updated_at TEXT")
+
+        ensure_column("theses", "scenarios_snapshot", "scenarios_snapshot TEXT")
+        ensure_column("theses", "dcf_snapshot", "dcf_snapshot TEXT")
+        ensure_column("theses", "valuation_id", "valuation_id TEXT")
+
+        # Enforce one thesis per notebook session for local-first behavior.
+        # For older DBs that may contain duplicates, keep only the newest row.
+        duplicate_sessions = conn.execute(
+            """
+            SELECT session_id
+            FROM theses
+            GROUP BY session_id
+            HAVING COUNT(*) > 1
+            """
+        ).fetchall()
+        for row in duplicate_sessions:
+            session_id = row["session_id"]
+            ids = conn.execute(
+                """
+                SELECT id
+                FROM theses
+                WHERE session_id = ?
+                ORDER BY created_at DESC, rowid DESC
+                """,
+                (session_id,),
+            ).fetchall()
+            duplicate_ids = [thesis_row["id"] for thesis_row in ids[1:]]
+            if duplicate_ids:
+                placeholders = ",".join("?" for _ in duplicate_ids)
+                conn.execute(
+                    f"DELETE FROM theses WHERE id IN ({placeholders})",
+                    duplicate_ids,
+                )
+
+        conn.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_theses_session_id_unique
+            ON theses(session_id)
+            """
+        )
     logger.info(f"SQLite DB initialized at {_get_db_path()}")
 
 
@@ -343,8 +436,8 @@ class NotebookService:
                 conn.execute(
                     """INSERT OR IGNORE INTO cells
                        (id, session_id, sequence_number, cell_type, author_type,
-                        user_input, ai_output, content, execution_time_ms, created_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        user_input, ai_output, user_notes, content, execution_time_ms, created_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (
                         cell_id,
                         cell.session_id,
@@ -353,6 +446,7 @@ class NotebookService:
                         getattr(cell, 'author_type', None),
                         getattr(cell, 'user_input', None),
                         json.dumps(cell.ai_output) if getattr(cell, 'ai_output', None) else None,
+                        getattr(cell, 'user_notes', None),
                         json.dumps(cell.content) if getattr(cell, 'content', None) else None,
                         getattr(cell, 'execution_time_ms', None),
                         now,
@@ -396,11 +490,12 @@ class NotebookService:
             with _get_conn() as conn:
                 conn.execute(
                     """UPDATE cells SET
-                       user_input = ?, ai_output = ?, content = ?, execution_time_ms = ?
+                       user_input = ?, ai_output = ?, user_notes = ?, content = ?, execution_time_ms = ?
                        WHERE id = ?""",
                     (
                         getattr(cell, 'user_input', None),
                         json.dumps(cell.ai_output) if getattr(cell, 'ai_output', None) else None,
+                        getattr(cell, 'user_notes', None),
                         json.dumps(cell.content) if getattr(cell, 'content', None) else None,
                         getattr(cell, 'execution_time_ms', None),
                         cell.id,
@@ -415,8 +510,8 @@ class NotebookService:
         """Delete a cell."""
         try:
             with _get_conn() as conn:
-                conn.execute("DELETE FROM cells WHERE id = ?", (cell_id,))
-            return True
+                cursor = conn.execute("DELETE FROM cells WHERE id = ?", (cell_id,))
+                return cursor.rowcount > 0
         except Exception as e:
             logger.error(f"Failed to delete cell {cell_id}: {e}")
             return False
@@ -432,6 +527,202 @@ class NotebookService:
         if row and row['max_seq'] is not None:
             return row['max_seq'] + 1
         return 0
+
+    # ===== THESIS OPERATIONS =====
+
+    def save_thesis(
+        self,
+        session_id: str,
+        ticker: str,
+        company_name: str,
+        title: str,
+        summary: str,
+        cells_snapshot: List[Dict[str, Any]],
+        dcf_snapshot: Dict[str, Any],
+        user_id: Optional[str] = None,
+        scenarios_snapshot: Optional[List[Dict[str, Any]]] = None,
+        valuation_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Persist a thesis snapshot for a session.
+
+        Local requirement: one thesis per notebook session.
+        Re-saving the same session updates the existing thesis row.
+        """
+        now = datetime.utcnow().isoformat()
+        owner = user_id or "local"
+
+        try:
+            with _get_conn() as conn:
+                existing_rows = conn.execute(
+                    """
+                    SELECT id
+                    FROM theses
+                    WHERE session_id = ?
+                    ORDER BY created_at DESC, rowid DESC
+                    """,
+                    (session_id,),
+                ).fetchall()
+
+                if existing_rows:
+                    thesis_id = existing_rows[0]["id"]
+                    conn.execute(
+                        """
+                        UPDATE theses
+                        SET ticker = ?,
+                            company_name = ?,
+                            title = ?,
+                            summary = ?,
+                            user_id = ?,
+                            cells_snapshot = ?,
+                            scenarios_snapshot = ?,
+                            dcf_snapshot = ?,
+                            valuation_id = ?,
+                            created_at = ?
+                        WHERE id = ?
+                        """,
+                        (
+                            ticker,
+                            company_name,
+                            title,
+                            summary,
+                            owner,
+                            json.dumps(cells_snapshot or []),
+                            json.dumps(scenarios_snapshot or []),
+                            json.dumps(dcf_snapshot or {}),
+                            valuation_id,
+                            now,
+                            thesis_id,
+                        ),
+                    )
+
+                    duplicate_ids = [row["id"] for row in existing_rows[1:]]
+                    if duplicate_ids:
+                        placeholders = ",".join("?" for _ in duplicate_ids)
+                        conn.execute(
+                            f"DELETE FROM theses WHERE id IN ({placeholders})",
+                            duplicate_ids,
+                        )
+                else:
+                    thesis_id = str(uuid.uuid4())
+                    conn.execute(
+                        """
+                        INSERT INTO theses
+                        (id, session_id, ticker, company_name, title, summary, user_id,
+                         cells_snapshot, scenarios_snapshot, dcf_snapshot, valuation_id, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            thesis_id,
+                            session_id,
+                            ticker,
+                            company_name,
+                            title,
+                            summary,
+                            owner,
+                            json.dumps(cells_snapshot or []),
+                            json.dumps(scenarios_snapshot or []),
+                            json.dumps(dcf_snapshot or {}),
+                            valuation_id,
+                            now,
+                        ),
+                    )
+
+            return {
+                "id": thesis_id,
+                "session_id": session_id,
+                "ticker": ticker,
+                "company_name": company_name,
+                "title": title,
+                "summary": summary,
+                "user_id": owner,
+                "cells_snapshot": cells_snapshot or [],
+                "scenarios_snapshot": scenarios_snapshot or [],
+                "dcf_snapshot": dcf_snapshot or {},
+                "valuation_id": valuation_id,
+                "created_at": now,
+            }
+        except Exception as e:
+            logger.error(f"Failed to save thesis for session {session_id}: {e}")
+            return None
+
+    def get_thesis(self, thesis_id: str) -> Optional[Dict[str, Any]]:
+        """Fetch a thesis by ID."""
+        try:
+            with _get_conn() as conn:
+                row = conn.execute(
+                    """
+                    SELECT id, session_id, ticker, company_name, title, summary, user_id,
+                           cells_snapshot, scenarios_snapshot, dcf_snapshot, valuation_id, created_at
+                    FROM theses WHERE id = ?
+                    """,
+                    (thesis_id,),
+                ).fetchone()
+
+            if not row:
+                return None
+            return self._row_to_thesis(dict(row))
+        except Exception as e:
+            logger.error(f"Failed to get thesis {thesis_id}: {e}")
+            return None
+
+    def list_user_theses(self, user_id: Optional[str], ticker: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List theses for a user with optional ticker filter."""
+        query = """
+            SELECT id, session_id, ticker, company_name, title, summary, user_id,
+                   cells_snapshot, scenarios_snapshot, dcf_snapshot, valuation_id, created_at
+            FROM theses
+            WHERE 1=1
+        """
+        params: list = []
+
+        if user_id:
+            query += " AND user_id = ?"
+            params.append(user_id)
+        if ticker:
+            query += " AND ticker = ?"
+            params.append(ticker)
+
+        query += " ORDER BY created_at DESC"
+
+        try:
+            with _get_conn() as conn:
+                rows = conn.execute(query, params).fetchall()
+
+            # Defensive dedupe for older local DBs that may still contain
+            # historical duplicates created before session-level upsert behavior.
+            theses: List[Dict[str, Any]] = []
+            seen_session_ids = set()
+            for row in rows:
+                thesis = self._row_to_thesis(dict(row))
+                row_session_id = thesis.get("session_id")
+                if row_session_id and row_session_id in seen_session_ids:
+                    continue
+                if row_session_id:
+                    seen_session_ids.add(row_session_id)
+                theses.append(thesis)
+
+            return theses
+        except Exception as e:
+            logger.error(f"Failed to list theses for user {user_id}: {e}")
+            return []
+
+    def get_grouped_theses(self, user_id: Optional[str]) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
+        """Group theses by ticker, then by YYYY-MM period."""
+        grouped: Dict[str, Dict[str, List[Dict[str, Any]]]] = {}
+        theses = self.list_user_theses(user_id)
+
+        for thesis in theses:
+            ticker = thesis.get("ticker") or "UNKNOWN"
+            created_at = thesis.get("created_at") or ""
+            month_key = created_at[:7] if len(created_at) >= 7 else "unknown"
+
+            if ticker not in grouped:
+                grouped[ticker] = {}
+            if month_key not in grouped[ticker]:
+                grouped[ticker][month_key] = []
+            grouped[ticker][month_key].append(thesis)
+
+        return grouped
 
     # ===== HELPERS =====
 
@@ -484,6 +775,7 @@ class NotebookService:
             author_type=row.get('author_type', 'ai'),
             user_input=row.get('user_input'),
             ai_output=ai_output,
+            user_notes=row.get('user_notes'),
             content=content if content else {},
             execution_time_ms=row.get('execution_time_ms'),
         )
@@ -493,6 +785,31 @@ class NotebookService:
             except Exception:
                 pass
         return cell
+
+    def _row_to_thesis(self, row: dict) -> Dict[str, Any]:
+        """Convert a thesis DB row to API shape."""
+        def _loads(payload: Optional[str], default: Any) -> Any:
+            if not payload:
+                return default
+            try:
+                return json.loads(payload)
+            except Exception:
+                return default
+
+        return {
+            "id": row.get("id"),
+            "session_id": row.get("session_id"),
+            "ticker": row.get("ticker"),
+            "company_name": row.get("company_name"),
+            "title": row.get("title"),
+            "summary": row.get("summary"),
+            "user_id": row.get("user_id"),
+            "cells_snapshot": _loads(row.get("cells_snapshot"), []),
+            "scenarios_snapshot": _loads(row.get("scenarios_snapshot"), []),
+            "dcf_snapshot": _loads(row.get("dcf_snapshot"), {}),
+            "valuation_id": row.get("valuation_id"),
+            "created_at": row.get("created_at"),
+        }
 
 
 # Singleton instance

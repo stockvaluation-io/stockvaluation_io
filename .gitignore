@@ -1,42 +1,89 @@
-# Environment files with secrets
+# --- Environment and Secrets ---
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
 
-# Docker volumes
-db_data/
-redis-data/
-local_data/
-
-# Logs
-*.log
-logs/
-bullbeargpt/prompt_dump_from_container/
-valuation-agent/prompt_dump_from_container/
-
-# OS files
+# --- OS / IDE ---
 .DS_Store
 Thumbs.db
-
-# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+.history/
 
-# Temporary files
+# --- Python ---
+**/__pycache__/
+
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+/shared/prompt_dump_from_container/
+
+# --- Java / Maven ---
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.restore
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+*.class
+
+# --- Node / Angular ---
+node_modules/
+dist/
+.angular/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+.stylelintcache
+coverage/
+
+# --- Docker & Data ---
+db_data/
+redis-data/
+local_data/
+*/local_data/
+db-backup/
+pg-data/
+
+# --- Project Specific ---
+.etl/
+internal_doc/
+*/prompt_dump_from_container/
+prompt_dump/
 *.tmp
 *.bak
 *~
 
-# Damodaran workbooks / local ETL artifacts
-scripts/
-.etl/
-
-# Frontend build artifacts
-frontend/dist/
-frontend/node_modules/
-
-
-# pytest cache
-.pytest_cache/
+# Ensure standard script directory is tracked, but ignore any local overrides if needed
+!/scripts/
+# If there are specific local scripts we want to ignore, they can be added here
+# /scripts/local_only_*

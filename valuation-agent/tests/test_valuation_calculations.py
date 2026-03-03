@@ -355,9 +355,8 @@ class TestScenarioCalculations:
         
         # Get baseline valuation which should include scenarios
         url = f"{java_url}/api/v1/automated-dcf-analysis/{ticker}/valuation"
-        params = {"dify_test": "true"}
-        
-        response = requests.get(url, params=params, timeout=120)
+
+        response = requests.get(url, timeout=120)
         assert response.status_code == 200
         
         data = response.json()

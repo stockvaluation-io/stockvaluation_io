@@ -4,7 +4,7 @@ services:
     container_name: sv-local-postgres
     restart: unless-stopped
     ports:
-      - "4322:5432"
+      - "127.0.0.1:4322:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -32,6 +32,7 @@ services:
     environment:
       PORT: 5000
       SECRET_KEY: ${SECRET_KEY:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200,http://localhost:3000,http://127.0.0.1:3000}
     networks:
       - dcf-local
 
@@ -46,12 +47,13 @@ services:
       yfinance:
         condition: service_started
     ports:
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
     environment:
       APPLICATION_PORT: 8081
       YFINANCE_BASE_URL: http://yfinance:5000/api-s
       VALUATION_AGENT_BASE_URL: http://valuation-agent:5001/api-s
       ANGULAR_APP_URL: http://frontend:4200
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200,http://localhost:3000,http://127.0.0.1:3000}
       DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-stockvaluation_io}
       DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -77,7 +79,7 @@ services:
       valuation-service:
         condition: service_started
     ports:
-      - "5001:5001"
+      - "127.0.0.1:5001:5001"
     volumes:
       - ./valuation-agent:/app
       - ./shared:/app/shared
@@ -90,6 +92,7 @@ services:
       VALUATION_SERVICE_BASE_URL: http://valuation-service:8081
       VALUATION_SERVICE_URL: http://valuation-service:8081/api/v1/automated-dcf-analysis
       YFINANCE_URL: http://yfinance:5000
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200,http://localhost:3000,http://127.0.0.1:3000}
       ENABLE_LLM_GUARD: ${ENABLE_LLM_GUARD:-false}
       DEFAULT_LLM_PROVIDER: ${DEFAULT_LLM_PROVIDER:-}
       AGENT_LLM_PROVIDER: ${AGENT_LLM_PROVIDER:-}
@@ -102,7 +105,7 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       TAVILY_API_KEY: ${TAVILY_API_KEY:-}
-      DUMP_PROMPTS: ${DUMP_PROMPTS:-true}
+      DUMP_PROMPTS: ${DUMP_PROMPTS:-false}
       PROMPT_DUMP_DIR: ${PROMPT_DUMP_DIR:-/app/prompt_dump_from_container}
     networks:
       - dcf-local
@@ -119,7 +122,7 @@ services:
       valuation-agent:
         condition: service_started
     ports:
-      - "${BULLBEARGPT_PORT:-5002}:5000"
+      - "127.0.0.1:${BULLBEARGPT_PORT:-5002}:5000"
     volumes:
       - ./bullbeargpt:/app
       - ./shared:/app/shared
@@ -145,7 +148,7 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       TAVILY_API_KEY: ${TAVILY_API_KEY:-}
-      DUMP_PROMPTS: ${DUMP_PROMPTS:-true}
+      DUMP_PROMPTS: ${DUMP_PROMPTS:-false}
       PROMPT_DUMP_DIR: ${PROMPT_DUMP_DIR:-/app/prompt_dump_from_container}
     networks:
       - dcf-local
@@ -165,7 +168,7 @@ services:
     command: >
       sh -lc "npm install --no-audit --no-fund && npm run start -- --host 0.0.0.0 --port 4200"
     ports:
-      - "4200:4200"
+      - "127.0.0.1:4200:4200"
     environment:
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"

@@ -117,7 +117,6 @@ class DCFClient:
                 timeout=self.timeout,
                 headers={
                     'Content-Type': 'application/json',
-                    'dify_test': 'true'  # Bypass auth for internal service calls
                 }
             )
             
@@ -160,7 +159,6 @@ class DCFClient:
                 timeout=self.timeout,
                 headers={
                     'Accept': 'application/json',
-                    'dify_test': 'true'  # Bypass auth for internal service calls
                 }
             )
             
