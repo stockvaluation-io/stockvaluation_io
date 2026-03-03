@@ -93,3 +93,4 @@ prompt_dump/
 **/.angular/
 **/__pycache__/
 *.pyc
+frontend/.angular/
