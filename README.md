@@ -2,7 +2,10 @@
 
 StockValuation.io is a local-first development platform for performing automated stock valuations using the Discounted Cash Flow (DCF) method. It integrates deterministic financial modelling with LLM-powered qualitative analysis to provide deep financial insights and automated reports.
 
+![StockValuation.io Automated DCF Analysis](./assets/StockValuation-io-—-Automated-DCF-Analysis-03-03-2026_11_29_PM.png)
+
 This is the community version of the project, designed to be run entirely on your local machine with no external hosted dependencies for the core workflow.
+
 
 Security note:
 - This repository is intended for local-first development only.
