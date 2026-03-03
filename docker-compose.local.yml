@@ -7,7 +7,7 @@ services:
       - "127.0.0.1:4322:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_DB: ${POSTGRES_DB:-stockvaluation_io}
     volumes:
       - postgres-local-data:/var/lib/postgresql/data
@@ -31,7 +31,7 @@ services:
     restart: unless-stopped
     environment:
       PORT: 5000
-      SECRET_KEY: ${SECRET_KEY:-}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200,http://localhost:3000,http://127.0.0.1:3000}
     networks:
       - dcf-local
@@ -56,11 +56,11 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200,http://localhost:3000,http://127.0.0.1:3000}
       DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-stockvaluation_io}
       DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
-      DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       CURRENCY_API_BASE_URL: ${CURRENCY_API_BASE_URL:-https://api.currencybeacon.com/v1/latest}
-      CURRENCY_API_KEY: ${CURRENCY_API_KEY:-local-dev-currency-key}
+      CURRENCY_API_KEY: ${CURRENCY_API_KEY:?CURRENCY_API_KEY is required}
       DEFAULT_USERNAME: ${DEFAULT_USERNAME:-local_admin}
-      DEFAULT_PASSWORD: ${DEFAULT_PASSWORD:-local_admin_password}
+      DEFAULT_PASSWORD: ${DEFAULT_PASSWORD:?DEFAULT_PASSWORD is required}
       DEFAULT_FIRSTNAME: ${DEFAULT_FIRSTNAME:-Local}
       DEFAULT_LASTNAME: ${DEFAULT_LASTNAME:-Admin}
       DEFAULT_CONTACT: ${DEFAULT_CONTACT:-0000000000}
@@ -87,10 +87,11 @@ services:
       - ./local_data/valuation-agent:/app/local_data
     environment:
       PORT: 5001
-      SECRET_KEY: ${SECRET_KEY:-}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
       LOCAL_DATA_DIR: /app/local_data
       VALUATION_SERVICE_BASE_URL: http://valuation-service:8081
       VALUATION_SERVICE_URL: http://valuation-service:8081/api/v1/automated-dcf-analysis
+      VALUATION_SERVICE_TIMEOUT_SECONDS: ${VALUATION_SERVICE_TIMEOUT_SECONDS:-180}
       YFINANCE_URL: http://yfinance:5000
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200,http://localhost:3000,http://127.0.0.1:3000}
       ENABLE_LLM_GUARD: ${ENABLE_LLM_GUARD:-false}
@@ -131,7 +132,7 @@ services:
     environment:
       FLASK_ENV: production
       FLASK_DEBUG: "false"
-      SECRET_KEY: ${SECRET_KEY:-}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200,http://localhost:3000,http://127.0.0.1:3000}
       LOCAL_DATA_DIR: /app/local_data

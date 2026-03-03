@@ -20,6 +20,7 @@ Thumbs.db
 *.so
 .pytest_cache/
 .coverage
+.angular/
 htmlcov/
 .venv/
 venv/
@@ -87,3 +88,8 @@ prompt_dump/
 !/scripts/
 # If there are specific local scripts we want to ignore, they can be added here
 # /scripts/local_only_*
+
+# Generated caches accidentally tracked previously
+**/.angular/
+**/__pycache__/
+*.pyc

@@ -27,6 +27,16 @@ class ValuationServiceClient:
                 or "http://valuation-service:8081"
             ).rstrip("/")
             self.base_url = f"{service_base}/api/v1/automated-dcf-analysis"
+        configured_timeout = os.getenv("VALUATION_SERVICE_TIMEOUT_SECONDS", "").strip()
+        if configured_timeout:
+            try:
+                timeout = int(configured_timeout)
+            except ValueError:
+                logger.warning(
+                    "Invalid VALUATION_SERVICE_TIMEOUT_SECONDS='%s'; using default timeout=%s",
+                    configured_timeout,
+                    timeout,
+                )
         self.timeout = timeout
 
     def get_baseline_valuation(

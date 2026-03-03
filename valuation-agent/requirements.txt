@@ -4,11 +4,12 @@ python-dotenv==1.0.1
 pydantic>=2.8.0
 requests>=2.32.0
 
-langchain-core>=0.3.0
-langchain-openai>=0.3.0
-langchain-anthropic>=0.3.0
-langchain-groq==0.3.0
-langgraph>=0.2.0
+langchain-core>=1.2.11
+langchain-openai>=1.1.10
+langchain-anthropic>=1.3.4
+langchain-groq>=1.1.2
+langgraph>=1.0.10
+langgraph-checkpoint>=4.0.0
 tavily-python==0.7.8
 
 rapidfuzz>=3.0.0

@@ -203,7 +203,9 @@ class AgentOrchestrator:
                 metadata={"status": "success"},
             )
 
-            result = json.loads(response_content)
+            result = safe_json_loads(response_content)
+            if not isinstance(result, dict):
+                raise ValueError("Narrative output must be a JSON object")
             
             # Safety guard: enforce max_sentences cap on summary
             max_sentences = inputs.get("max_sentences", 10)
@@ -565,9 +567,8 @@ class AgentOrchestrator:
                 metadata={"status": "success"},
             )
 
-            try:
-                data = json.loads(response_content)
-            except Exception:
+            data = safe_json_loads(response_content)
+            if not isinstance(data, dict):
                 logger.warning("LLM output not valid JSON.")
                 return {"segments": []}
             

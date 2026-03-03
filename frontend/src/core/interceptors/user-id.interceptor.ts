@@ -26,12 +26,9 @@ export const userIdInterceptor: HttpInterceptorFn = (req, next) => {
       }
     });
 
-    console.log(`[UserIdInterceptor] Added X-User-ID: ${userId} to ${req.method} ${req.url}`);
-
     return next(modifiedReq);
   }
 
   // Pass through unchanged if not an API request
   return next(req);
 };
-

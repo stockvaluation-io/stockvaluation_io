@@ -4,6 +4,11 @@ StockValuation.io is a local-first development platform for performing automated
 
 This is the community version of the project, designed to be run entirely on your local machine with no external hosted dependencies for the core workflow.
 
+Security note:
+- This repository is intended for local-first development only.
+- Do not deploy these default settings directly to an internet-facing environment.
+- Docker Compose is configured for localhost-only port publishing.
+
 ## Project Overview
 
 The system provides a local workstation for Damodaran-style analysis. It uses a Java engine for precise mathematical calculations and Python-based agents for research, assumption critique, and narrative generation.

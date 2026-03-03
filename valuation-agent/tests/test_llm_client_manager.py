@@ -14,7 +14,7 @@ def test_sanitize_openai_compat_model_kwargs_for_gemini():
     assert "frequency_penalty" not in sanitized
     assert "presence_penalty" not in sanitized
     assert "logit_bias" not in sanitized
-    assert sanitized.get("response_format") == {"type": "json_object"}
+    assert "response_format" not in sanitized
 
 
 def test_sanitize_openai_compat_model_kwargs_for_openai_keeps_fields():
@@ -27,3 +27,15 @@ def test_sanitize_openai_compat_model_kwargs_for_openai_keeps_fields():
     sanitized = LLMClientManager._sanitize_openai_compat_model_kwargs("openai", raw)
 
     assert sanitized == raw
+
+
+def test_sanitize_anthropic_model_kwargs_removes_response_format():
+    raw = {
+        "response_format": {"type": "json_object"},
+        "top_p": 0.9,
+    }
+
+    sanitized = LLMClientManager._sanitize_anthropic_model_kwargs(raw)
+
+    assert "response_format" not in sanitized
+    assert sanitized.get("top_p") == 0.9

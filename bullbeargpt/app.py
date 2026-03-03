@@ -27,14 +27,11 @@ def create_app():
     
     # Enable CORS
     cors_kwargs = {
-        "supports_credentials": True,
+        "supports_credentials": False,
         "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
         "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     }
-    if config.CORS_ORIGINS == ["*"]:
-        CORS(app, resources={r"/*": {"origins": "*"}}, **cors_kwargs)
-    else:
-        CORS(app, resources={r"/*": {"origins": config.CORS_ORIGINS}}, **cors_kwargs)
+    CORS(app, resources={r"/*": {"origins": config.CORS_ORIGINS}}, **cors_kwargs)
     
     # Register blueprints
     from routes import register_routes

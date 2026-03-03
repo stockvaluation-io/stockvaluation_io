@@ -11,6 +11,8 @@ if str(REPO_ROOT) not in sys.path:
 def test_judge_uses_alternate_provider_when_multiple_keys(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "openai-key")
     monkeypatch.setenv("GROQ_API_KEY", "groq-key")
+    for key in ("ANTHROPIC_API_KEY", "GEMINI_API_KEY", "OPENROUTER_API_KEY"):
+        monkeypatch.delenv(key, raising=False)
     monkeypatch.setenv("DEFAULT_LLM_PROVIDER", "openai")
     monkeypatch.delenv("JUDGE_LLM_PROVIDER", raising=False)
 

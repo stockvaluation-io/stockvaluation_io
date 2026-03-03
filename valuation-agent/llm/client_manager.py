@@ -166,8 +166,8 @@ class LLMClientManager:
 
         sanitized = dict(model_kwargs)
         if provider == "gemini":
-            # Gemini OpenAI-compatible endpoint rejects these OpenAI-specific fields.
-            for key in ("frequency_penalty", "presence_penalty", "logit_bias"):
+            # Gemini OpenAI-compatible endpoint rejects some OpenAI-only fields.
+            for key in ("frequency_penalty", "presence_penalty", "logit_bias", "response_format"):
                 sanitized.pop(key, None)
         return sanitized
 
@@ -217,16 +217,28 @@ class LLMClientManager:
         try:
             from langchain_anthropic import ChatAnthropic
 
+            sanitized_model_kwargs = self._sanitize_anthropic_model_kwargs(model_kwargs)
+
             params: Dict[str, Any] = {
                 "model": model,
                 "temperature": temperature,
                 "anthropic_api_key": api_key,
             }
-            if model_kwargs:
-                params["model_kwargs"] = model_kwargs
+            if sanitized_model_kwargs:
+                params["model_kwargs"] = sanitized_model_kwargs
             if max_tokens:
                 params["max_tokens"] = max_tokens
             return ChatAnthropic(**params)
         except Exception as exc:
             logger.error("Failed to create %s (anthropic backend) client for model=%s: %s", spec.get("provider"), model, exc)
             return None
+
+    @staticmethod
+    def _sanitize_anthropic_model_kwargs(model_kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        if not isinstance(model_kwargs, dict):
+            return {}
+
+        sanitized = dict(model_kwargs)
+        # OpenAI-style JSON mode payload causes Anthropic SDK/endpoint failures.
+        sanitized.pop("response_format", None)
+        return sanitized

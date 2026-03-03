@@ -1,7 +1,7 @@
 # Core Flask dependencies
-Flask==3.1.1
+Flask==3.1.3
 Flask-Caching==2.3.1
-Flask-CORS==4.0.0
+Flask-CORS==6.0.0
 
 # YFinance
 yfinance[nospam]==0.2.58

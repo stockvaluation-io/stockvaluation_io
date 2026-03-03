@@ -76,6 +76,7 @@ export const errorHandlingInterceptor: HttpInterceptorFn = (
   // Check if this is a DCF analysis or notebook/chat endpoint that should not be retried
   // These are expensive, long-running operations or SSE streams that shouldn't be automatically retried
   const isDCFAnalysisEndpoint = req.url.includes('/automated-dcf-analysis') ||
+    req.url.includes('/api-s/valuate') ||
     req.url.includes('/valuation') ||
     req.url.includes('/bullbeargpt');
 

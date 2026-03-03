@@ -51,3 +51,9 @@ def test_recalculate_valuation_uses_ticker_valuation_path_and_preserves_segments
     assert captured["headers"]["Content-Type"] == "application/json"
     assert "dify_test" not in captured["headers"]
     assert captured["timeout"] == 11
+
+
+def test_timeout_can_be_configured_via_env(monkeypatch):
+    monkeypatch.setenv("VALUATION_SERVICE_TIMEOUT_SECONDS", "180")
+    client = ValuationServiceClient(base_url="http://localhost:8081/api/v1/automated-dcf-analysis")
+    assert client.timeout == 180

@@ -4,15 +4,29 @@ import { AppComponent } from './app/app.component';
 import { environment } from './env/environment';
 
 function hardenConsoleForProduction(): void {
-  if (!environment.production) {
+  if (!environment.hardenConsole) {
     return;
   }
 
   const noop = () => undefined;
-  console.log = noop;
-  console.info = noop;
-  console.debug = noop;
-  console.warn = noop;
+  const methods: Array<'log' | 'info' | 'debug' | 'trace'> = [
+    'log',
+    'info',
+    'debug',
+    'trace',
+  ];
+
+  for (const method of methods) {
+    try {
+      Object.defineProperty(console, method, {
+        value: noop,
+        writable: false,
+        configurable: false,
+      });
+    } catch {
+      console[method] = noop;
+    }
+  }
 }
 
 hardenConsoleForProduction();

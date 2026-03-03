@@ -1,5 +1,6 @@
 export const environment = {
     production: true,
+    hardenConsole: true,
     basePath: 'http://localhost:8081/api/v1/',  // Local Java valuation-service (docker-compose.local.yml)
     agentBasePath: 'http://localhost:5001/api-s/', // Local valuation-agent (ticker-first orchestration)
     contentBaseUrl: '/assets/content',

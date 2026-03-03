@@ -96,7 +96,13 @@ class StockValuationApp:
             self.app,
             resources={r"/*": {"origins": cors_origins}},
             supports_credentials=False,
-            allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+            allow_headers=[
+                "Content-Type",
+                "Authorization",
+                "X-Requested-With",
+                "X-User-ID",
+                "x-user-id",
+            ],
             methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         )
         
