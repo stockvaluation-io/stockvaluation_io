@@ -123,7 +123,7 @@ export interface NarrativeSection {
   content: string;
   icon: string;
   metrics?: NarrativeMetric[];
-  type?: 'narrative' | 'bull-bear-debate' | 'scenario-analysis' | 'sensitivity-analysis';
+  type?: 'narrative' | 'bull-bear-debate' | 'sensitivity-analysis';
   debateRounds?: BullBearDebateRound[];
   heatMapData?: HeatMapData;
 }
@@ -307,7 +307,7 @@ export class NarrativeSectionComponent implements OnInit {
         title: 'Sensitivity Analysis',
         content: 'How intrinsic value changes with growth rate and discount rate',
         icon: 'pi-th-large',
-        type: 'scenario-analysis',
+        type: 'sensitivity-analysis',
         heatMapData: this.heatMapData
       });
     }
@@ -322,19 +322,6 @@ export class NarrativeSectionComponent implements OnInit {
         icon: 'pi-comments',
         type: 'bull-bear-debate',
         debateRounds: bullBearDebate
-      });
-    }
-
-    // Add Scenario Analysis section
-    // Check both top-level and nested narrativeDTO for scenario analysis
-    const scenarioAnalysis = this.narrativeData?.scenarioAnalysis || this.narrativeData?.narrativeDTO?.scenarioAnalysis;
-
-    if (scenarioAnalysis) {
-      this.narrativeSections.push({
-        title: 'Scenario Analysis',
-        content: '',
-        icon: 'pi-chart-line',
-        type: 'scenario-analysis'
       });
     }
 

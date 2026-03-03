@@ -169,10 +169,10 @@
     </dependencies>
 
     <build>
-        <testSourceDirectory>src/'/java</testSourceDirectory>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
         <testResources>
             <testResource>
-                <directory>src/'/resources</directory>
+                <directory>src/test/resources</directory>
             </testResource>
         </testResources>
         <plugins>

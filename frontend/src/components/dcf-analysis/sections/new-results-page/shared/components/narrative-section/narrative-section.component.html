@@ -68,8 +68,7 @@
     </div>
 
     <!-- Full Width Layout: Narrative + Chart -->
-    <div class="narrative-full-layout"
-      *ngIf="section.type !== 'bull-bear-debate' && section.type !== 'scenario-analysis'">
+    <div class="narrative-full-layout" *ngIf="section.type !== 'bull-bear-debate'">
 
       <!-- 100% - Narrative Table -->
       <div class="narrative-table-column">
@@ -121,64 +120,6 @@
             </div>
           </div>
 
-          <!-- Full Width Bull-Bear Debate Display - Chat Conversation Style -->
-          <div class="debate-wrapper" *ngIf="section.type === 'bull-bear-debate'">
-            <div class="debate-conversation">
-              <!-- Conversation Messages - Bull Left, Bear Right with Connected Edges -->
-              <div class="debate-round" *ngFor="let round of section.debateRounds; let i = index">
-                <!-- Round Header -->
-                <div class="round-header">
-                  <span class="round-label">Round {{ round.round || (i + 1) }}</span>
-                </div>
 
-                <!-- Bull Message (Left side) -->
-                <div class="message-container bull-message-container">
-                  <div class="message-bubble bull-bubble">
-                    <div class="message-header">
-                      <div class="message-avatar bull-avatar">
-                        <i class="pi pi-arrow-up"></i>
-                      </div>
-                      <span class="message-author">Bull Agent</span>
-                    </div>
-                    <div class="message-content" [innerHTML]="highlightNumbers(round.bull)"></div>
-                    <div class="message-time">
-                      <i class="pi pi-check"></i>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Fancy Arrow Connection from Bull to Bear -->
-                <div class="arrow-connection-wrapper">
-                  <div class="arrow-connection bull-to-bear">
-                    <svg width="60" height="30" viewBox="0 0 60 30" preserveAspectRatio="none">
-                      <defs>
-                        <marker id="arrowhead-bull" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                          <polygon points="0 0, 10 3, 0 6" fill="var(--color-border-primary)" />
-                        </marker>
-                      </defs>
-                      <path d="M 5 15 Q 25 8, 45 15 T 55 15" stroke="var(--color-border-primary)" stroke-width="2.5"
-                        fill="none" stroke-linecap="round" marker-end="url(#arrowhead-bull)" />
-                    </svg>
-                  </div>
-                </div>
-
-                <!-- Bear Message (Right side) -->
-                <div class="message-container bear-message-container">
-                  <div class="message-bubble bear-bubble">
-                    <div class="message-header">
-                      <div class="message-avatar bear-avatar">
-                        <i class="pi pi-arrow-down"></i>
-                      </div>
-                      <span class="message-author">Bear Agent</span>
-                    </div>
-                    <div class="message-content" [innerHTML]="highlightNumbers(round.bear)"></div>
-                    <div class="message-time">
-                      <i class="pi pi-circle"></i>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>

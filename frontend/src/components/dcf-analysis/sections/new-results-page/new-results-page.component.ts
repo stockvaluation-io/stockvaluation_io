@@ -170,8 +170,7 @@ export interface NavigationItem {
               [currency]="results.currency || 'USD'"
               [stockCurrency]="results.stockCurrency || 'USD'"
               [company]="company"
-              [results]="results"
-              [heatMapData]="results.heatMapData || null">
+              [results]="results">
             </app-narrative-section>
 
             <!--<div id="optionality-premium" class="results-section" *ngIf="getRealOptionAnalysisData() as optData">
