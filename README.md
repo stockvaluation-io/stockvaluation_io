@@ -1,108 +1,169 @@
 # StockValuation.io
 
-StockValuation.io is a local-first development platform for performing automated stock valuations using the Discounted Cash Flow (DCF) method. It integrates deterministic financial modelling with LLM-powered qualitative analysis to provide deep financial insights and automated reports.
+StockValuation.io is a local-first development platform for automated stock valuation using DCF.  
+It combines deterministic valuation math with LLM-assisted research and narrative generation.
 
 ![StockValuation.io Automated DCF Analysis](./assets/StockValuation-io-—-Automated-DCF-Analysis-03-03-2026_11_29_PM.png)
 
-This is the community version of the project, designed to be run entirely on your local machine with no external hosted dependencies for the core workflow.
+This is the community/local version of the project and is intended to run entirely on your machine.
 
+## Security Note
 
-Security note:
-- This repository is intended for local-first development only.
-- Do not deploy these default settings directly to an internet-facing environment.
-- Docker Compose is configured for localhost-only port publishing.
+- This repository is local-first by design.
+- `docker-compose.local.yml` binds ports to `127.0.0.1`.
+- Do not deploy these defaults directly to an internet-facing environment.
+- Never commit `.env` with real secrets.
 
-## Project Overview
+## Quick Onboarding (Run Locally)
 
-The system provides a local workstation for Damodaran-style analysis. It uses a Java engine for precise mathematical calculations and Python-based agents for research, assumption critique, and narrative generation.
+### 1. Prerequisites
 
-Key Principles:
-- Local-First: All persistence is local (Postgres, SQLite, and JSON files).
-- Bring Your Own Key (BYOK): Users provide their own API keys for LLMs and research tools.
-- No Accounts: No login or credit management system is required for the local workstation.
-- Deterministic Math: Financial calculations are handled by code, not by LLMs, ensuring consistency and accuracy.
+- Docker + Docker Compose
+- Git
+- Optional: Node.js v22 (only if running frontend outside Docker)
 
-## System Architecture
+### 2. Configure Environment
 
-The project consists of several microservices orchestrated via Docker.
-
-| Service | Technology | Description |
-| :--- | :--- | :--- |
-| frontend | Angular | A search-first interface for analyzing stocks and visualizing DCF results. |
-| valuation-service | Java (Spring Boot) | The math authority that performs DCF calculations based on reference data. |
-| valuation-agent | Python | The orchestration layer that coordinates LLMs for research and assumption derivation. |
-| yfinance | Python | A microservice dedicated to fetching real-time market and fundamental data. |
-| bullbeargpt | Python | Handles conversational AI features and chat-based analysis. |
-| postgres | PostgreSQL 17 | Primary database for reference data like industry averages and risk-free rates. |
-
-## Prerequisites
-
-Ensure you have the following installed:
-- Docker and Docker Compose
-- Node.js (v22) - if you intend to run the frontend outside of Docker.
-- API keys for at least one LLM provider (OpenAI, Anthropic, Gemini, or Groq).
-
-## Detailed Setup and API Keys
-
-The platform requires several API keys to function fully. These are configured in your `.env` file.
-
-### 1. Environment Configuration
-Copy the template to create your local environment file:
 ```bash
 cp .env.example .env
 ```
 
-### 2. Mandatory LLM Keys
-You must provide at least one key for the AI agents to function.
-- **OpenAI**: Get a key at [platform.openai.com](https://platform.openai.com/)
-- **Anthropic**: Get a key at [console.anthropic.com](https://console.anthropic.com/)
-- **Gemini**: Get a key at [aistudio.google.com](https://aistudio.google.com/)
-- **Groq**: Get a key at [console.groq.com](https://console.groq.com/)
+Set these required values in `.env`:
 
-### 3. Search and Research Keys (Tavily)
-- **TAVILY_API_KEY**: Used by the `valuation-agent` to perform live web searches for news, earnings transcripts, and macro-economic data.
-- **Usage**: Highly recommended for the automated research phase.
-- **Where to get**: Sign up at [tavily.com](https://tavily.com/). They offer a free tier for developers.
+- `POSTGRES_PASSWORD`
+- `SECRET_KEY`
+- `CURRENCY_API_KEY`
+- `DEFAULT_PASSWORD`
+- At least one LLM key:
+`OPENAI_API_KEY` or `ANTHROPIC_API_KEY` or `GROQ_API_KEY` or `GEMINI_API_KEY` or `OPENROUTER_API_KEY`
 
-### 4. Currency Conversion Keys (CurrencyBeacon)
-- **CURRENCY_API_KEY**: Used by the `valuation-service` to fetch the latest exchange rates. This is essential for valuing companies that report in non-USD currencies (e.g., European or Asian stocks).
-- **Usage**: Used to normalize financial data into a consistent currency for the DCF model.
-- **Where to get**: Sign up at [currencybeacon.com](https://currencybeacon.com/).
+Recommended:
 
-## Running the Platform
+- `TAVILY_API_KEY` for better news/research quality
 
-To start the entire stack, use the provided local-first Docker Compose file.
+### 3. Start the Stack
 
 ```bash
 docker compose -f docker-compose.local.yml up --build
 ```
 
-Once the build is complete and containers are healthy:
-- **Frontend**: [http://localhost:4200](http://localhost:4200)
-- **Valuation Service API**: [http://localhost:8081](http://localhost:8081)
-- **Valuation Agent API**: [http://localhost:5001](http://localhost:5001)
+Detached mode:
 
-The first run may take several minutes as it downloads Docker images and installs Node.js dependencies for the frontend.
+```bash
+docker compose -f docker-compose.local.yml up -d --build
+```
 
-## Repository Structure
+### 4. Verify Everything is Up
 
-- `valuation-service/`: Core Java Spring Boot backend (DCF math).
-- `valuation-agent/`: Python-based LLM orchestrator.
-- `frontend/`: Angular-based search and results UI.
-- `yfinance/`: Data fetcher utility.
-- `bullbeargpt/`: Conversational AI components.
-- `local_data/`: Automatically generated local storage for valuation history and audits.
-- `docker/`: SQL seed files and configuration for the local database.
+```bash
+docker compose -f docker-compose.local.yml ps
+curl http://localhost:5001/health
+curl http://localhost:5002/health
+```
+
+Open:
+
+- Frontend: `http://localhost:4200`
+
+
+## System Overview
+
+| Service | Technology | Description |
+| :--- | :--- | :--- |
+| `frontend` | Angular | Search-first UI for valuation and analysis |
+| `valuation-service` | Java 21 + Spring Boot | Deterministic DCF math authority |
+| `valuation-agent` | Python + Flask | Agent orchestration and override pipeline |
+| `yfinance` | Python | Financial data provider façade |
+| `bullbeargpt` | Python | Notebook/chat workflow |
+| `postgres` | PostgreSQL 17 | Local persistence and reference data |
+
+## Current API Flow
+
+Main entrypoint:
+
+- `POST /api-s/valuate` with `{ "ticker": "AAPL" }`
+
+Pipeline:
+
+1. Segment mapping
+2. News/evidence gathering
+3. Baseline Java DCF call
+4. Analyzer generates override instructions
+5. Recalculate Java DCF with overrides
+6. Analyst generates final narrative sections
+7. Return merged payload to frontend
+
+Java valuation endpoint used by the agent:
+
+- `POST /api/v1/automated-dcf-analysis/{ticker}/valuation`
+
+## LLM Provider Configuration
+
+Provider selection supports OpenAI, Anthropic, Gemini, Groq, and OpenRouter.
+
+Key env controls:
+
+- `DEFAULT_LLM_PROVIDER`
+- `AGENT_LLM_PROVIDER`
+- `JUDGE_LLM_PROVIDER`
+- `AGENT_LLM_MODEL`
+- `JUDGE_LLM_MODEL`
+
+Notes:
+
+- Anthropic and Gemini paths sanitize OpenAI-specific request fields.
+- If keys are present but outputs are fallback-like, verify quota/billing.
+
+## Runtime Controls
+
+- `VALUATION_SERVICE_TIMEOUT_SECONDS` controls valuation-agent -> valuation-service timeout.
+- Frontend interceptor disables auto-retry for expensive valuation routes (`/api-s/valuate`).
+
+## Useful Commands
+
+Stop services:
+
+```bash
+docker compose -f docker-compose.local.yml down
+```
+
+Full reset (containers + volumes):
+
+```bash
+docker compose -f docker-compose.local.yml down -v
+```
+
+View logs:
+
+```bash
+docker compose -f docker-compose.local.yml logs -f valuation-agent
+docker compose -f docker-compose.local.yml logs -f valuation-service
+```
 
 ## Troubleshooting
 
-- **Database Errors**: Ensure port 4322 is available on your host machine.
-- **LLM Failures**: Verify your keys are active and that you have configured the `DEFAULT_LLM_PROVIDER` in your `.env` file to match one of your provided keys.
-- **Missing Data**: Some ticker data may be incomplete on Yahoo Finance; the valuation agent will attempt to fill gaps using Tavily search if enabled.
+- `403` CORS:
+  check `CORS_ORIGINS` in `.env`, then restart.
+- Missing required env var:
+  compose will fail fast; fill the variable and restart.
+- Slow valuations:
+  increase `VALUATION_SERVICE_TIMEOUT_SECONDS`.
+- Incomplete ticker outputs:
+  some upstream symbols have partial fundamentals.
 
-## Acknowledgments and Attribution
+## Project Layout
 
-This project is built upon the foundational work and datasets provided by **Aswath Damodaran**, Professor of Finance at the Stern School of Business at New York University.
+- `valuation-service/` Java DCF engine
+- `valuation-agent/` AI orchestration service
+- `frontend/` Angular UI
+- `bullbeargpt/` notebook/chat service
+- `yfinance/` data provider service
+- `docker/` local Postgres init/seeds
+- `local_data/` generated local runtime data
+- `.etl/` local ETL and regression workspace (not intended for VCS)
 
-- **Methodology**: The core valuation logic and DCF modelling principles used in this platform are based on the frameworks developed by Professor Damodaran.
-- **Reference Datasets**: The foundational data for industry averages, risk-free rates, equity risk premiums, and sector-specific financial metrics are sourced from [Damodaran Online](https://pages.stern.nyu.edu/~adamodar/New_Home_Page/data.html), which is an invaluable resource for the global finance community.
+## Acknowledgments
+
+Core valuation methodology and reference datasets are based on Aswath Damodaran resources:
+
+- https://pages.stern.nyu.edu/~adamodar/New_Home_Page/data.html
