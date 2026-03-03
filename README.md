@@ -16,6 +16,12 @@ Only two keys are required:
 CURRENCY_API_KEY='your-currency-api-key' ANTHROPIC_API_KEY='your-anthropic-api-key' docker compose -f docker-compose.local.yml up -d --build
 ```
 
+Need `CURRENCY_API_KEY`?
+
+- Create an account at `https://currencybeacon.com`
+- Copy your API key from the dashboard
+- Paste it into the command above (or `.env`)
+
 Open:
 
 - `http://localhost:4200`
@@ -43,7 +49,7 @@ docker compose -f docker-compose.local.yml up -d --build
 
 | Key | Why it is needed | Where it is used |
 | :--- | :--- | :--- |
-| `CURRENCY_API_KEY` | Used to fetch FX rates during valuation when market quote currency and financial-reporting currency differ. | `valuation-service` |
+| `CURRENCY_API_KEY` | Used to fetch FX rates during valuation when market quote currency and financial-reporting currency differ. Get it from `https://currencybeacon.com` dashboard. | `valuation-service` |
 | `ANTHROPIC_API_KEY` | Used for AI analysis/research/narrative generation in local runs. | `valuation-agent`, `bullbeargpt` |
 
 ## Optional Keys (Useful in practice)
