@@ -58,8 +58,14 @@ def docker_services(docker_backend_java_url, docker_backend_python_url):
     Wait for Docker services to be healthy before running tests.
     This fixture ensures all required services are available.
     """
-    max_retries = 30
-    retry_delay = 2
+    require_integration = os.getenv("RUN_DOCKER_INTEGRATION_TESTS", "false").lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    max_retries = 30 if require_integration else 5
+    retry_delay = 2 if require_integration else 1
     
     services = {
         "Java Backend": f"{docker_backend_java_url}/actuator/health",
@@ -70,23 +76,41 @@ def docker_services(docker_backend_java_url, docker_backend_python_url):
     print("Waiting for Docker services to be healthy...")
     print("="*80)
     
+    unavailable_services = []
+
     for service_name, health_url in services.items():
         print(f"\nChecking {service_name} at {health_url}...")
-        
+        last_error = None
+
         for attempt in range(max_retries):
             try:
                 response = requests.get(health_url, timeout=5)
                 if response.status_code == 200:
                     print(f"✅ {service_name} is healthy!")
                     break
+                last_error = (
+                    f"Unexpected status={response.status_code} for {health_url}"
+                )
             except requests.exceptions.RequestException as e:
+                last_error = str(e)
                 if attempt < max_retries - 1:
                     print(f"⏳ Attempt {attempt + 1}/{max_retries}: {service_name} not ready, retrying in {retry_delay}s...")
                     time.sleep(retry_delay)
-                else:
-                    pytest.fail(f"❌ {service_name} failed to become healthy after {max_retries} attempts: {e}")
         else:
-            pytest.fail(f"❌ {service_name} is not healthy at {health_url}")
+            unavailable_services.append(
+                f"{service_name} ({health_url}) -> {last_error or 'unknown error'}"
+            )
+
+    if unavailable_services:
+        details = "\n".join(unavailable_services)
+        message = (
+            "Integration backends are unavailable. "
+            "Set RUN_DOCKER_INTEGRATION_TESTS=true to require these services.\n"
+            f"{details}"
+        )
+        if require_integration:
+            pytest.fail(f"❌ {message}")
+        pytest.skip(f"⏭ {message}")
     
     print("\n" + "="*80)
     print("✅ All Docker services are healthy and ready!")

@@ -120,7 +120,7 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
           CI: "true"
-        run: npm run test -- --watch=false --browsers=ChromeHeadless
+        run: npm run test -- --watch=false --browsers=ChromeHeadlessNoSandbox
 
   yfinance-tests:
     name: yfinance tests
