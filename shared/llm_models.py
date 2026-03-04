@@ -56,16 +56,16 @@ logger = logging.getLogger(__name__)
 #   base_url_env  : env var to override the base URL
 #
 # VERIFIED MODEL IDs (March 2026)
-# - claude-opus-4-6       : released Feb 5, 2026 (most capable Claude)
+# - claude-sonnet-4-6       : lower-cost Anthropic default for local runs
 # - gpt-4o                : OpenAI flagship (widely available, stable)
 # - llama-3.3-70b-versatile : Groq's recommended default (Llama 4 when released)
 # - gemini-2.5-flash      : Google GA since June 2025 (fast, cost-efficient)
-# - anthropic/claude-opus-4-6 : via OpenRouter
+# - anthropic/claude-sonnet-4 : via OpenRouter
 #
 PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
     "claude": {
         "api_key_env": "ANTHROPIC_API_KEY",
-        "default_model": "claude-opus-4-6",
+        "default_model": "claude-sonnet-4-6",
         "model_env": "ANTHROPIC_MODEL",
         "backend": "anthropic",
         "base_url": None,
@@ -101,7 +101,7 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
     },
     "openrouter": {
         "api_key_env": "OPENROUTER_API_KEY",
-        "default_model": "anthropic/claude-opus-4-6",
+        "default_model": "anthropic/claude-sonnet-4",
         "model_env": "OPENROUTER_MODEL",
         "backend": "openai_compat",
         "base_url": "https://openrouter.ai/api/v1",

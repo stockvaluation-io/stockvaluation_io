@@ -112,6 +112,7 @@ services:
       TAVILY_API_KEY: ${TAVILY_API_KEY:-}
       DUMP_PROMPTS: ${DUMP_PROMPTS:-false}
       PROMPT_DUMP_DIR: ${PROMPT_DUMP_DIR:-/app/prompt_dump_from_container}
+      ALLOW_PROMPT_DUMPS_IN_PRODUCTION: ${ALLOW_PROMPT_DUMPS_IN_PRODUCTION:-false}
     networks:
       - dcf-local
 
@@ -156,6 +157,7 @@ services:
       TAVILY_API_KEY: ${TAVILY_API_KEY:-}
       DUMP_PROMPTS: ${DUMP_PROMPTS:-false}
       PROMPT_DUMP_DIR: ${PROMPT_DUMP_DIR:-/app/prompt_dump_from_container}
+      ALLOW_PROMPT_DUMPS_IN_PRODUCTION: ${ALLOW_PROMPT_DUMPS_IN_PRODUCTION:-false}
     networks:
       - dcf-local
 

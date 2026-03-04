@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Dict, Any, Optional, List
 if TYPE_CHECKING:
     from orchestration.orchestrator import AgentOrchestrator
 
+from domain.knowledge.skill_context import build_skill_bundle
 from domain.models.valuation import GraphState
 
 
@@ -103,6 +104,10 @@ class GraphBuilder:
                 "financials": state_dict.get("financials", {}) or {},
                 "segments": state_dict.get("segments", {}) or {},
                 "news": state_dict.get("news", {}) or {},
+                "skills": build_skill_bundle(
+                    industry=str(state_dict.get("industry", "")).strip(),
+                    segments_payload=state_dict.get("segments", {}) or {},
+                ),
             }
             llm_result = self.orchestrator.run_agent("analyzer", analyzer_inputs)
 
@@ -157,6 +162,10 @@ class GraphBuilder:
                 "dcf": state_dict.get("dcf", {}) or {},
                 "financials": state_dict.get("financials", {}) or {},
                 "news_content": state_dict.get("news", {}) or {},
+                "skills": build_skill_bundle(
+                    industry=str(state_dict.get("industry", "")).strip(),
+                    segments_payload=state_dict.get("segments", {}) or {},
+                ),
             }
             llm_result = self.orchestrator.run_agent("analyst", analyst_inputs)
 
@@ -214,6 +223,55 @@ class GraphBuilder:
                     }
                 )
 
+        allowed_sector_params = {
+            "revenue_growth": "percent",
+            "operating_margin": "percent",
+            "sales_to_capital": "x",
+        }
+        allowed_adjustment_types = {"absolute", "relative_multiplier", "relative_additive"}
+        allowed_timeframes = {"years_1_to_5", "years_6_to_10", "both"}
+        valid_sectors_lookup = {
+            str(segment.get("sector", "")).strip().lower(): str(segment.get("sector", "")).strip()
+            for segment in self._extract_segments(state_dict.get("segments", {}) or {})
+            if str(segment.get("sector", "")).strip()
+        }
+        normalized_sector_instructions: List[Dict[str, Any]] = []
+        raw_sector_instructions = raw_dcf_analysis.get("sector_adjustment_instructions")
+        if isinstance(raw_sector_instructions, list):
+            for item in raw_sector_instructions:
+                if not isinstance(item, dict):
+                    continue
+                parameter = str(item.get("parameter", "")).strip().lower()
+                if parameter not in allowed_sector_params:
+                    continue
+                sector_raw = str(item.get("sector", "")).strip()
+                sector_name = valid_sectors_lookup.get(sector_raw.lower())
+                if not sector_name:
+                    continue
+                value = self._safe_float(item.get("value"))
+                if value is None:
+                    continue
+                adjustment_type = str(item.get("adjustment_type", "absolute")).strip().lower()
+                if adjustment_type not in allowed_adjustment_types:
+                    continue
+                timeframe = str(item.get("timeframe", "both")).strip().lower()
+                if timeframe not in allowed_timeframes:
+                    timeframe = "both"
+                unit = str(item.get("unit", "")).strip().lower() or allowed_sector_params[parameter]
+                if unit != allowed_sector_params[parameter]:
+                    unit = allowed_sector_params[parameter]
+                normalized_sector_instructions.append(
+                    {
+                        "sector": sector_name,
+                        "parameter": parameter,
+                        "value": round(value, 3),
+                        "unit": unit,
+                        "adjustment_type": adjustment_type,
+                        "timeframe": timeframe,
+                        "rationale": str(item.get("rationale", "")).strip() or "LLM-generated sector adjustment.",
+                    }
+                )
+
         proposed = {}
         raw_proposed = raw_dcf_analysis.get("proposed_assumptions")
         if isinstance(raw_proposed, dict):
@@ -257,6 +315,7 @@ class GraphBuilder:
             "baseline_assumptions": baseline,
             "proposed_assumptions": proposed,
             "dcf_adjustment_instructions": normalized_instructions,
+            "sector_adjustment_instructions": normalized_sector_instructions,
             "adjusted_valuation": raw_dcf_analysis.get("adjusted_valuation"),
         }
 
@@ -284,7 +343,7 @@ class GraphBuilder:
             "dominant_industry": str(raw_metadata.get("dominant_industry", dominant_industry)),
             "segments_count": segments_count,
             "tone": str(raw_metadata.get("tone", tone)),
-            "generated_instruction_count": len(normalized_instructions),
+            "generated_instruction_count": len(normalized_instructions) + len(normalized_sector_instructions),
             "baseline_metrics_available": raw_baseline_available,
         }
 
@@ -343,6 +402,7 @@ class GraphBuilder:
                 "baseline_assumptions": baseline,
                 "proposed_assumptions": {},
                 "dcf_adjustment_instructions": [],
+                "sector_adjustment_instructions": [],
                 "adjusted_valuation": "Analyzer output unavailable; no assumption changes applied.",
             },
             "recommendations": {

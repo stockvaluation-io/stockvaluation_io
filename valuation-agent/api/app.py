@@ -20,6 +20,7 @@ from flask_cors import CORS
 # Import refactored modules
 from config.app_config import APIConfig
 from domain.knowledge.tool_definitions import industry_mapping
+from domain.knowledge.skill_context import build_skill_bundle
 from domain.models.valuation import GraphState, ValuationRequest
 from domain.processing.helpers import preprocess_dcf_json, preprocess_financials_json
 from orchestration.orchestrator import AgentOrchestrator
@@ -362,6 +363,7 @@ class StockValuationApp:
                 company_name=company_name,
                 dcf=recalc_result["dcf"],
                 news_result=news_result["news"],
+                mapped_segments=mapped_segments,
             )
             if isinstance(analyst_result, dict):
                 merged = dict(graph_result.get("merged_result") or {})
@@ -584,12 +586,14 @@ class StockValuationApp:
         return payload
 
     def _recalculate_java_dcf(self, ticker: str, merged_result: Dict[str, Any], mapped_segments: List[Dict[str, Any]], auth_header: Optional[str]) -> Dict[str, Any]:
-        adjustments = (
-            (merged_result.get("dcf_analysis") or {}).get("dcf_adjustment_instructions", [])
-            if isinstance(merged_result, dict)
-            else []
+        dcf_analysis = (merged_result.get("dcf_analysis") or {}) if isinstance(merged_result, dict) else {}
+        adjustments = dcf_analysis.get("dcf_adjustment_instructions", [])
+        sector_adjustments = dcf_analysis.get("sector_adjustment_instructions", [])
+        java_overrides, mapping_meta = self._map_adjustments_to_java_overrides(
+            adjustments=adjustments,
+            sector_adjustments=sector_adjustments,
+            mapped_segments=mapped_segments,
         )
-        java_overrides, mapping_meta = self._map_adjustments_to_java_overrides(adjustments)
         java_recalculate_payload = self._build_java_recalculate_payload(java_overrides, mapped_segments)
 
         dcf = self.valuation_service_client.recalculate_valuation(
@@ -611,6 +615,7 @@ class StockValuationApp:
         company_name: str,
         dcf: Dict[str, Any],
         news_result: Dict[str, Any],
+        mapped_segments: List[Dict[str, Any]],
     ) -> Dict[str, Any]:
         final_raw_dcf = self._deep_snake_case(dcf)
         raw_financials = self._build_raw_financials_from_java_output(
@@ -628,6 +633,10 @@ class StockValuationApp:
             "dcf": preprocessed_dcf,
             "financials": preprocessed_financials,
             "news_content": news_result if isinstance(news_result, dict) else {},
+            "skills": build_skill_bundle(
+                industry=str(preprocessed_financials.get("profile", {}).get("industry", "")).strip(),
+                segments_payload={"segments": mapped_segments or []},
+            ),
         }
         llm_result = self.orchestrator.run_agent("analyst", analyst_inputs)
 
@@ -731,10 +740,17 @@ class StockValuationApp:
 
         return jsonify(response_payload), 200
 
-    def _map_adjustments_to_java_overrides(self, adjustments: Any) -> tuple[Dict[str, Any], Dict[str, Any]]:
+    def _map_adjustments_to_java_overrides(
+        self,
+        adjustments: Any,
+        sector_adjustments: Any = None,
+        mapped_segments: Optional[List[Dict[str, Any]]] = None,
+    ) -> tuple[Dict[str, Any], Dict[str, Any]]:
         """Map agent dcf_adjustment_instructions to Java FinancialDataInput overrides."""
         if not isinstance(adjustments, list):
-            return {}, {"mapped": [], "unmapped": [], "count": 0}
+            adjustments = []
+        if not isinstance(sector_adjustments, list):
+            sector_adjustments = []
 
         overrides: Dict[str, Any] = {}
         mapped = []
@@ -784,7 +800,97 @@ class StockValuationApp:
                 "rationale": str(item.get("rationale", "")).strip(),
             })
 
-        return overrides, {"count": len(adjustments), "mapped": mapped, "unmapped": unmapped}
+        allowed_adjustment_types = {"absolute", "relative_multiplier", "relative_additive"}
+        allowed_timeframes = {"years_1_to_5", "years_6_to_10", "both"}
+        allowed_sector_params = {"revenue_growth", "operating_margin", "sales_to_capital"}
+        valid_sector_lookup = {
+            str(item.get("sector", "")).strip().lower(): str(item.get("sector", "")).strip()
+            for item in (mapped_segments or [])
+            if isinstance(item, dict) and str(item.get("sector", "")).strip()
+        }
+        sector_mapped = []
+        sector_unmapped = []
+        java_sector_overrides: List[Dict[str, Any]] = []
+
+        for item in sector_adjustments:
+            if not isinstance(item, dict):
+                continue
+
+            raw_sector = str(item.get("sector", "")).strip()
+            sector_name = valid_sector_lookup.get(raw_sector.lower())
+            if not sector_name:
+                sector_unmapped.append({"sector": raw_sector, "reason": "unknown_sector"})
+                continue
+
+            parameter = str(item.get("parameter", "")).strip().lower()
+            if parameter not in allowed_sector_params:
+                sector_unmapped.append(
+                    {"sector": sector_name, "parameter": parameter, "reason": "unsupported_parameter"}
+                )
+                continue
+
+            value = item.get("value", item.get("new_value"))
+            try:
+                value = float(value)
+            except (TypeError, ValueError):
+                sector_unmapped.append(
+                    {"sector": sector_name, "parameter": parameter, "reason": "invalid_value", "value": value}
+                )
+                continue
+
+            unit = str(item.get("unit", "")).strip().lower()
+            if parameter == "sales_to_capital":
+                normalized_value = round(self._normalize_sales_to_capital_value(value), 2)
+            elif unit in {"percent", "%"}:
+                normalized_value = round(self._normalize_percent_like_value(value), 2)
+            else:
+                normalized_value = round(value, 2)
+
+            adjustment_type = str(item.get("adjustment_type", "absolute")).strip().lower()
+            if adjustment_type not in allowed_adjustment_types:
+                sector_unmapped.append(
+                    {
+                        "sector": sector_name,
+                        "parameter": parameter,
+                        "reason": "invalid_adjustment_type",
+                        "adjustment_type": adjustment_type,
+                    }
+                )
+                continue
+
+            timeframe = str(item.get("timeframe", "both")).strip().lower()
+            if timeframe not in allowed_timeframes:
+                timeframe = "both"
+
+            java_item = {
+                "sectorName": sector_name,
+                "parameterType": parameter,
+                "value": normalized_value,
+                "adjustmentType": adjustment_type,
+                "timeframe": timeframe,
+            }
+            java_sector_overrides.append(java_item)
+            sector_mapped.append(
+                {
+                    "sector": sector_name,
+                    "parameter": parameter,
+                    "value": normalized_value,
+                    "adjustmentType": adjustment_type,
+                    "timeframe": timeframe,
+                }
+            )
+
+        if java_sector_overrides:
+            overrides["sectorOverrides"] = java_sector_overrides
+
+        return overrides, {
+            "count": len(adjustments),
+            "mapped": mapped,
+            "unmapped": unmapped,
+            "sector_count": len(sector_adjustments),
+            "sector_mapped": sector_mapped,
+            "sector_unmapped": sector_unmapped,
+        }
 
     @staticmethod
     def _normalize_percent_like_value(value: float) -> float:

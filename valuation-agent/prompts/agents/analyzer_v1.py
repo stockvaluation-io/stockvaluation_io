@@ -24,6 +24,7 @@ def get_prompt(inputs: Dict[str, Any]) -> str:
     financials = inputs.get("financials", {}) or {}
     segments = inputs.get("segments", {}) or {}
     news = inputs.get("news", {}) or {}
+    skills = inputs.get("skills", {}) or {}
 
     return f"""
 You are a valuation analyzer that proposes only bounded business-assumption changes for a downstream Java DCF engine.
@@ -40,7 +41,8 @@ Rules:
    - sales_to_capital (unit: x)
 2. Keep recommendations conservative and explain rationale with evidence from news + sector context.
 3. If evidence is weak, return zero instructions.
-4. Output strict JSON only.
+4. Sector-level adjustments are allowed only when SKILLS_JSON.has_segment_skills=true and sector names exactly match listed segment_skills sectors.
+5. Output strict JSON only.
 
 Input data:
 DCF_PREPROCESSED_JSON:
@@ -54,6 +56,9 @@ SEGMENTS_JSON:
 
 NEWS_JSON:
 {json.dumps(news, ensure_ascii=True)}
+
+SKILLS_JSON:
+{json.dumps(skills, ensure_ascii=True)}
 
 Return JSON in this schema:
 {{
@@ -74,6 +79,17 @@ Return JSON in this schema:
         "parameter": "revenue_cagr|operating_margin|sales_to_capital",
         "new_value": number,
         "unit": "percent|x",
+        "rationale": "string"
+      }}
+    ],
+    "sector_adjustment_instructions": [
+      {{
+        "sector": "exact sector from SKILLS_JSON.segment_skills",
+        "parameter": "revenue_growth|operating_margin|sales_to_capital",
+        "value": number,
+        "unit": "percent|x",
+        "adjustment_type": "absolute|relative_multiplier|relative_additive",
+        "timeframe": "years_1_to_5|years_6_to_10|both",
         "rationale": "string"
       }}
     ],

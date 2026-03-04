@@ -29,6 +29,7 @@ def get_prompt(inputs: Dict[str, Any]) -> str:
     financials = inputs.get("financials", {})
     news_content = inputs.get("news_content", "")
     industry = inputs.get("industry", "default")
+    skills = inputs.get("skills", {}) or {}
     style = inputs.get("style", "EW-B")
     persona = inputs.get("persona", "Aswath Damodaran")
     mode = inputs.get("mode", None)
@@ -38,8 +39,19 @@ def get_prompt(inputs: Dict[str, Any]) -> str:
 
     from domain.knowledge.tool_definitions import NARRATIVE_SECTOR_CONTEXTS
 
+    industry_skill = skills.get("industry_skill") if isinstance(skills, dict) else {}
+    segment_skills = skills.get("segment_skills") if isinstance(skills, dict) else []
+    if not isinstance(segment_skills, list):
+        segment_skills = []
+
     sector_context = NARRATIVE_SECTOR_CONTEXTS.get(
         str(industry).lower(), NARRATIVE_SECTOR_CONTEXTS["default"]
+    )
+    industry_context = str(industry_skill.get("narrative_context", "")).strip() or str(
+        sector_context.get("context", "")
+    )
+    industry_sensitivity = str(industry_skill.get("sensitivity_focus", "")).strip() or str(
+        sector_context.get("sensitivity_focus", "")
     )
 
     enable_vs = inputs.get("enable_vs", True)
@@ -138,8 +150,9 @@ def get_prompt(inputs: Dict[str, Any]) -> str:
 
       Context:
       - Valuation Date: {valuation_date}
-      - Sector Context: {sector_context.get("context", "")}
-      - Focus Parameters: {sector_context.get("sensitivity_focus", "")}
+      - Industry Context: {industry_context}
+      - Focus Parameters: {industry_sensitivity}
+      - Segment Skills: {json.dumps(segment_skills, ensure_ascii=True)}
 
       JSON Schema (mandatory):
       {{
@@ -175,6 +188,7 @@ def get_prompt(inputs: Dict[str, Any]) -> str:
       DCF Data: {json.dumps(dcf)}
       FINANCIALS_PREPROCESSED_JSON: {json.dumps(financials)}
       Investment Hypothesis: {json.dumps(news_content)}
+      SKILLS_JSON: {json.dumps(skills, ensure_ascii=True)}
     """
 
     return f"System: {system_prompt.strip()}\n\nUser: {user_content.strip()}"

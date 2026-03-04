@@ -31,7 +31,18 @@ def test_analyzer_wrapper_uses_llm_analyzer_agent():
             "dcf_analysis": {
                 "dcf_adjustment_instructions": [
                     {"parameter": "revenue_cagr", "new_value": 11.0, "unit": "percent", "rationale": "Improved demand."}
-                ]
+                ],
+                "sector_adjustment_instructions": [
+                    {
+                        "sector": "software-application",
+                        "parameter": "operating_margin",
+                        "value": 2.0,
+                        "unit": "percent",
+                        "adjustment_type": "relative_additive",
+                        "timeframe": "years_1_to_5",
+                        "rationale": "Higher mix from software subscriptions.",
+                    }
+                ],
             },
             "recommendations": {"confidence_level": "medium"},
             "analyzer_metadata": {"version": "analyzer_v1"},
@@ -43,8 +54,10 @@ def test_analyzer_wrapper_uses_llm_analyzer_agent():
 
     assert orchestrator.calls
     assert orchestrator.calls[0][0] == "analyzer"
+    assert orchestrator.calls[0][1]["skills"]["has_segment_skills"] is True
     assert "merged_result" in result
     assert result["merged_result"]["dcf_analysis"]["dcf_adjustment_instructions"][0]["parameter"] == "revenue_cagr"
+    assert result["merged_result"]["dcf_analysis"]["sector_adjustment_instructions"][0]["sector"] == "software-application"
 
 
 def test_analyzer_wrapper_falls_back_when_llm_fails():
@@ -77,6 +90,7 @@ def test_analyst_wrapper_adds_narrative_sections():
 
     assert orchestrator.calls
     assert orchestrator.calls[0][0] == "analyst"
+    assert orchestrator.calls[0][1]["skills"]["has_segment_skills"] is True
     assert "merged_result" in result
     assert result["merged_result"]["growth"]["narrative"] == "Growth is supported by product expansion."
     assert "dcf_analysis" in result["merged_result"]
