@@ -5,8 +5,11 @@ import json
 import logging
 import os
 import re
-import secrets
 import hashlib
+import secrets
+import time
+import threading
+from collections import deque
 from difflib import SequenceMatcher
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -74,14 +77,12 @@ def _parse_cors_origins(raw: str) -> List[str]:
 def _resolve_secret_key() -> str:
     """
     Resolve Flask SECRET_KEY from env.
-    Falls back to a per-process random key to avoid hardcoded secrets.
+    Fail fast when not configured to avoid insecure implicit runtime keys.
     """
     configured = os.getenv("SECRET_KEY", "").strip()
-    if configured:
-        return configured
-    ephemeral = secrets.token_urlsafe(48)
-    logger.warning("SECRET_KEY is not set; using ephemeral process-local key")
-    return ephemeral
+    if not configured:
+        raise RuntimeError("SECRET_KEY environment variable is required for valuation-agent")
+    return configured
 
 class StockValuationApp:
     """Main application class."""
@@ -89,6 +90,17 @@ class StockValuationApp:
     def __init__(self):
         self.app = Flask(__name__)
         self.setup_config()
+        self.internal_api_key = os.getenv("INTERNAL_API_KEY", "").strip()
+        self.rate_limit_enabled = os.getenv("RATE_LIMIT_ENABLED", "true").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }
+        self.rate_limit_requests = max(1, int(os.getenv("RATE_LIMIT_REQUESTS_PER_SECOND", "2")))
+        self.rate_limit_window_seconds = max(1, int(os.getenv("RATE_LIMIT_DURATION_SECONDS", "1")))
+        self._rate_limit_lock = threading.Lock()
+        self._rate_limit_buckets: Dict[str, deque[float]] = {}
 
         # Setup CORS with explicit origin allowlist by default.
         cors_origins = _parse_cors_origins(os.getenv("CORS_ORIGINS", ""))
@@ -177,17 +189,17 @@ class StockValuationApp:
 
         @self.app.post('/api-s/valuate')
         def valuate():
+            if not self._is_internal_request_authorized():
+                return jsonify({"error": "unauthorized"}), 401
+            if self._is_rate_limited():
+                return jsonify({"error": "rate_limited"}), 429
             return self.valuate_endpoint()
         
         @self.app.get('/api-s/valuation/<valuation_id>')
         def get_valuation(valuation_id: str):
-            """
-            Get valuation data by ID.
-            Used by bullbeargpt to load valuation context for chat sessions.
-            
-            Returns:
-                Full valuation record including valuation_data JSON
-            """
+            # Used by bullbeargpt to load valuation context for chat sessions.
+            if not self._is_internal_request_authorized():
+                return jsonify({"error": "unauthorized"}), 401
             valuation = valuation_service.get_valuation_by_id(valuation_id)
             if not valuation:
                 return jsonify({'error': 'Valuation not found'}), 404
@@ -206,18 +218,72 @@ class StockValuationApp:
                 'valuation_data': valuation_data,
             })
 
+    def _is_internal_request_authorized(self) -> bool:
+        """
+        Optional internal API guard.
+        If INTERNAL_API_KEY is configured, requests must provide matching key via:
+        - X-Internal-API-Key
+        - Authorization: Bearer <key>
+        """
+        if not self.internal_api_key:
+            return True
+
+        header_key = (request.headers.get("X-Internal-API-Key") or "").strip()
+        if header_key and secrets.compare_digest(header_key, self.internal_api_key):
+            return True
+
+        auth_header = (request.headers.get("Authorization") or "").strip()
+        if auth_header.startswith("Bearer "):
+            bearer_token = auth_header[7:].strip()
+            if bearer_token and secrets.compare_digest(bearer_token, self.internal_api_key):
+                return True
+
+        return False
+
+    def _extract_client_id(self) -> str:
+        forwarded_for = (request.headers.get("X-Forwarded-For") or "").split(",")[0].strip()
+        if forwarded_for:
+            return forwarded_for
+        if request.remote_addr:
+            return request.remote_addr
+        return "unknown"
+
+    def _is_rate_limited(self) -> bool:
+        if not self.rate_limit_enabled:
+            return False
+
+        now = time.monotonic()
+        cutoff = now - self.rate_limit_window_seconds
+        client_id = self._extract_client_id()
+
+        with self._rate_limit_lock:
+            bucket = self._rate_limit_buckets.get(client_id)
+            if bucket is None:
+                bucket = deque()
+                self._rate_limit_buckets[client_id] = bucket
+
+            while bucket and bucket[0] < cutoff:
+                bucket.popleft()
+
+            if len(bucket) >= self.rate_limit_requests:
+                return True
+
+            bucket.append(now)
+            return False
+
     def valuate_endpoint(self) -> Response:
         """
         Ticker-first orchestration endpoint.
 
         Flow:
-        1. Segment mapping
-        2. News gathering + cleaning
-        3. Baseline valuation with segments payload
-        4. Analyzer judgement (override instructions only)
-        5. Recalculate Java DCF with overrides + segments
-        6. Analyst narrative on final recalculated DCF
-        7. Persist and return merged response
+        1. Fetch baseline valuation without segment payload (for profile/industry context)
+        2. Segment mapping
+        3. News gathering + cleaning
+        4. Baseline valuation with segment payload
+        5. Analyzer judgement (override instructions only)
+        6. Recalculate Java DCF with overrides + segments
+        7. Analyst narrative on final recalculated DCF
+        8. Persist and return merged response
         """
         audit_run_id = str(uuid4())
         auth_header = request.headers.get("Authorization")
@@ -233,11 +299,20 @@ class StockValuationApp:
         try:
             company_name = requested_name or ticker
             
-            # Step 1: Segment mapping
+            # Step 1: Baseline DCF context (no segments) for robust profile/industry extraction
+            prebaseline_result = self._fetch_baseline_valuation(
+                ticker=ticker,
+                requested_name=company_name,
+                auth_header=auth_header,
+                mapped_segments=None,
+            )
+            company_name = prebaseline_result["company_name"]
+
+            # Step 2: Segment mapping with financial/profile context
             segments_result = self._run_segment_mapping(
                 ticker, 
                 company_name, 
-                {}
+                prebaseline_result["preprocessed_financials"],
             )
             
             if not segments_result["mapped_segments"]:
@@ -245,15 +320,15 @@ class StockValuationApp:
 
             mapped_segments = segments_result["mapped_segments"]
 
-            # Step 2: News and evidence gathering
+            # Step 3: News and evidence gathering
             news_result = self._gather_news(
                 ticker, 
                 company_name, 
-                {}, 
-                {}
+                prebaseline_result["preprocessed_dcf"],
+                prebaseline_result["preprocessed_financials"],
             )
 
-            # Step 3: Baseline DCF from Java with segment payload attached
+            # Step 4: Baseline DCF from Java with segment payload attached
             baseline_result = self._fetch_baseline_valuation(
                 ticker=ticker,
                 requested_name=company_name,
@@ -262,7 +337,7 @@ class StockValuationApp:
             )
             company_name = baseline_result["company_name"]
             
-            # Step 4: Generate DCF override judgement from baseline+news
+            # Step 5: Generate DCF override judgement from baseline+news
             graph_result = self._run_dcf_graph(
                 ticker,
                 company_name,
@@ -273,7 +348,7 @@ class StockValuationApp:
                 audit_run_id
             )
             
-            # Step 5: Recalculate Java DCF with overrides + segments
+            # Step 6: Recalculate Java DCF with overrides + segments
             recalc_result = self._recalculate_java_dcf(
                 ticker,
                 graph_result["merged_result"],
@@ -281,7 +356,7 @@ class StockValuationApp:
                 auth_header
             )
 
-            # Step 6: Run analyst on fresh DCF after recalculation
+            # Step 7: Run analyst on fresh DCF after recalculation
             analyst_result = self._run_analyst_on_final_dcf(
                 ticker=ticker,
                 company_name=company_name,
@@ -310,7 +385,7 @@ class StockValuationApp:
                     mapped_segments=mapped_segments,
                 )
             
-            # Step 7: Build narrative, persist valuation, return response
+            # Step 8: Build narrative, persist valuation, return response
             return self._finalize_and_persist(
                 ticker=ticker,
                 company_name=company_name,
@@ -739,25 +814,83 @@ class StockValuationApp:
         if not isinstance(raw_segments, list):
             return []
 
-        mapped = []
+        candidates: List[Dict[str, Any]] = []
         for item in raw_segments:
             if not isinstance(item, dict):
                 continue
             sector = str(item.get("sector", "")).strip()
             if not sector or sector.upper() == "UNKNOWN":
                 continue
+
             mapping_score = self._safe_number(item.get("mapping_score"))
-            if mapping_score is None or mapping_score < 0.55:
-                continue
+            if mapping_score is None:
+                mapping_score = 0.0
+
             item_industry = self._normalize_industry(item.get("industry", ""))
             if not item_industry:
                 item_industry = SECTOR_TO_INDUSTRY.get(sector.lower(), "")
-            if normalized_expected_industry and item_industry and item_industry != normalized_expected_industry:
-                continue
+
             normalized_item = dict(item)
             normalized_item["industry"] = item_industry
-            mapped.append(normalized_item)
-        return mapped
+            normalized_item["_mapping_score"] = mapping_score
+            normalized_item["_industry_match"] = (
+                not normalized_expected_industry
+                or not item_industry
+                or item_industry == normalized_expected_industry
+            )
+            candidates.append(normalized_item)
+
+        if not candidates:
+            return []
+
+        strict = [
+            segment for segment in candidates
+            if segment["_mapping_score"] >= 0.55 and segment["_industry_match"]
+        ]
+
+        if len(strict) >= 2:
+            selected = strict
+        else:
+            relaxed = [
+                segment for segment in candidates
+                if segment["_mapping_score"] >= 0.45
+                and (segment["_industry_match"] or not normalized_expected_industry)
+            ]
+            if len(relaxed) >= 2:
+                selected = relaxed
+            else:
+                selected = sorted(
+                    candidates,
+                    key=lambda segment: segment["_mapping_score"],
+                    reverse=True,
+                )[:3]
+
+        deduped: Dict[str, Dict[str, Any]] = {}
+        for segment in selected:
+            sector_key = str(segment.get("sector", "")).strip().lower()
+            if not sector_key:
+                continue
+            existing = deduped.get(sector_key)
+            if not existing or segment["_mapping_score"] > existing["_mapping_score"]:
+                deduped[sector_key] = segment
+
+        final_segments = list(deduped.values())
+        final_segments.sort(
+            key=lambda segment: (
+                self._safe_number(segment.get("revenue_share")) or 0.0,
+                segment["_mapping_score"],
+            ),
+            reverse=True,
+        )
+
+        cleaned: List[Dict[str, Any]] = []
+        for segment in final_segments:
+            normalized_segment = dict(segment)
+            normalized_segment.pop("_mapping_score", None)
+            normalized_segment.pop("_industry_match", None)
+            cleaned.append(normalized_segment)
+
+        return cleaned
 
     def _build_java_recalculate_payload(
         self,

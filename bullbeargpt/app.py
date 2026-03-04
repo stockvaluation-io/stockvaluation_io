@@ -4,7 +4,8 @@ Jupyter-style Investment Reasoning API with SSE streaming.
 """
 import logging
 import os
-from flask import Flask
+import secrets
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 from config import get_config
@@ -36,6 +37,29 @@ def create_app():
     # Register blueprints
     from routes import register_routes
     register_routes(app)
+
+    internal_api_key = os.getenv("INTERNAL_API_KEY", "").strip()
+
+    @app.before_request
+    def _optional_internal_auth():
+        # Keep health unauthenticated for container healthchecks.
+        if request.path == "/health":
+            return None
+
+        if not internal_api_key:
+            return None
+
+        header_key = (request.headers.get("X-Internal-API-Key") or "").strip()
+        if header_key and secrets.compare_digest(header_key, internal_api_key):
+            return None
+
+        auth_header = (request.headers.get("Authorization") or "").strip()
+        if auth_header.startswith("Bearer "):
+            bearer_token = auth_header[7:].strip()
+            if bearer_token and secrets.compare_digest(bearer_token, internal_api_key):
+                return None
+
+        return jsonify({"error": "unauthorized"}), 401
     
     # Health check endpoint
     @app.route('/health')

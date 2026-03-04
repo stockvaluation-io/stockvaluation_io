@@ -10,10 +10,25 @@ StockValuation.io is a local-first DCF valuation workspace that runs fully on yo
 
 ### One-line startup
 
-Only two keys are required:
+Minimum required env vars:
 
 ```bash
-CURRENCY_API_KEY='your-currency-api-key' ANTHROPIC_API_KEY='your-anthropic-api-key' docker compose -f docker-compose.local.yml up -d --build
+POSTGRES_PASSWORD='change-me' \
+DEFAULT_PASSWORD='change-me' \
+YFINANCE_SECRET_KEY='change-me-yfinance-secret' \
+VALUATION_AGENT_SECRET_KEY='change-me-valuation-agent-secret' \
+BULLBEARGPT_SECRET_KEY='change-me-bullbeargpt-secret' \
+VALUATION_SERVICE_JWT_SECRET='change-me-valuation-service-jwt-secret-32chars' \
+CURRENCY_API_KEY='your-currency-api-key' \
+ANTHROPIC_API_KEY='your-anthropic-api-key' \
+docker compose -f docker-compose.local.yml up -d --build
+```
+
+Or bootstrap local secrets automatically:
+
+```bash
+./scripts/bootstrap_local_secrets.sh
+docker compose -f docker-compose.local.yml up -d --build
 ```
 
 Need `CURRENCY_API_KEY`?
@@ -42,6 +57,7 @@ cp .env.example .env
 Then fill the required keys below and run:
 
 ```bash
+./scripts/bootstrap_local_secrets.sh
 docker compose -f docker-compose.local.yml up -d --build
 ```
 
@@ -49,16 +65,26 @@ docker compose -f docker-compose.local.yml up -d --build
 
 | Key | Why it is needed | Where it is used |
 | :--- | :--- | :--- |
+| `POSTGRES_PASSWORD` | Required DB password for local startup. | `postgres`, `valuation-service` |
+| `DEFAULT_PASSWORD` | Required default local user credential in valuation-service. | `valuation-service` |
+| `YFINANCE_SECRET_KEY` | Required Flask secret for yfinance session security. | `yfinance` |
+| `VALUATION_AGENT_SECRET_KEY` | Required Flask secret for valuation-agent session security. | `valuation-agent` |
+| `BULLBEARGPT_SECRET_KEY` | Required Flask secret for bullbeargpt session security. | `bullbeargpt` |
+| `VALUATION_SERVICE_JWT_SECRET` | Required JWT signing/validation secret (32+ chars). | `valuation-service` |
 | `CURRENCY_API_KEY` | Used to fetch FX rates during valuation when market quote currency and financial-reporting currency differ. Get it from `https://currencybeacon.com` dashboard. | `valuation-service` |
-| `ANTHROPIC_API_KEY` | Used for AI analysis/research/narrative generation in local runs. | `valuation-agent`, `bullbeargpt` |
+| One LLM key (`ANTHROPIC_API_KEY` or `OPENAI_API_KEY` or `GROQ_API_KEY` or `GEMINI_API_KEY` or `OPENROUTER_API_KEY`) | Used for AI analysis/research/narrative generation. | `valuation-agent`, `bullbeargpt` |
 
 ## Optional Keys (Useful in practice)
 
 | Key | Why it is useful | Where it is used |
 | :--- | :--- | :--- |
-| `POSTGRES_PASSWORD` | Override local DB password (default is `postgres`). | `postgres`, `valuation-service` |
-| `SECRET_KEY` | Override local secret (default is `local-dev-secret-key`). | `valuation-agent`, `bullbeargpt`, `yfinance`, `valuation-service` |
-| `DEFAULT_PASSWORD` | Override seeded local user password (default is `local_admin_password`). | `valuation-service` |
+| `POSTGRES_PASSWORD` | Required DB password for local Postgres and Java datasource. | `postgres`, `valuation-service` |
+| `YFINANCE_SECRET_KEY` | Service secret key for yfinance. | `yfinance` |
+| `VALUATION_AGENT_SECRET_KEY` | Service secret key for valuation-agent. | `valuation-agent` |
+| `BULLBEARGPT_SECRET_KEY` | Service secret key for bullbeargpt. | `bullbeargpt` |
+| `VALUATION_SERVICE_JWT_SECRET` | JWT signing/validation secret used by valuation-service auth filter (use 32+ chars). | `valuation-service` |
+| `DEFAULT_PASSWORD` | Required seeded local user password. | `valuation-service` |
+| `INTERNAL_API_KEY` | Optional shared API key to restrict internal endpoints (recommended). | `valuation-agent`, `bullbeargpt`, `yfinance` |
 | `TAVILY_API_KEY` | Better external news/evidence retrieval. | `valuation-agent`, `bullbeargpt` |
 | `DEFAULT_LLM_PROVIDER` | Global provider default. | `valuation-agent`, `bullbeargpt` |
 | `AGENT_LLM_PROVIDER` | Force provider for agent path. | `valuation-agent`, `bullbeargpt` |

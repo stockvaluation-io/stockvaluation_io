@@ -1,0 +1,15 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+.DS_Store
+
+tests/
+local_data/
+prompt_dump/
+prompt_dump_from_container/
+
+**/__pycache__/
+**/.pytest_cache/
+*.log

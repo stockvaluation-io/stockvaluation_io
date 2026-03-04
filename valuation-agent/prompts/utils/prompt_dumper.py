@@ -20,6 +20,12 @@ class PromptDumper:
         self.enabled = self._read_bool("DUMP_PROMPTS", auto_enable)
         self.dump_responses_enabled = self._read_bool("DUMP_LLM_RESPONSES", self.enabled)
         self.dump_processing_enabled = self._read_bool("DUMP_PROCESSING_STEPS", self.enabled)
+        in_production = os.getenv("FLASK_ENV", "production").strip().lower() == "production"
+        allow_in_production = self._read_bool("ALLOW_PROMPT_DUMPS_IN_PRODUCTION", False)
+        if in_production and not allow_in_production:
+            self.enabled = False
+            self.dump_responses_enabled = False
+            self.dump_processing_enabled = False
         # Resolve to absolute path to avoid CWD ambiguity (esp. in Docker)
         self.dump_dir = Path(os.getenv("PROMPT_DUMP_DIR", ".etl/prompt_dump")).resolve()
         

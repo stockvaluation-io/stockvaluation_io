@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Collections;
-import java.util.UUID;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -25,13 +24,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final Key signingKey;
 
     public JwtAuthFilter() {
-        // Prefer explicit JWT_SECRET, then SECRET_KEY. Final fallback is process-local random secret.
+        // JWT signing key must be explicitly configured.
         String jwtSecret = System.getenv("JWT_SECRET");
         if (jwtSecret == null || jwtSecret.isBlank()) {
-            jwtSecret = System.getenv("SECRET_KEY");
+            throw new IllegalStateException("JWT_SECRET environment variable is required for valuation-service");
         }
-        if (jwtSecret == null || jwtSecret.isBlank()) {
-            jwtSecret = UUID.randomUUID() + "-" + UUID.randomUUID();
+        if (jwtSecret.length() < 32) {
+            throw new IllegalStateException("JWT_SECRET must be at least 32 characters");
         }
         this.signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }

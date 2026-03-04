@@ -20,7 +20,6 @@ Optional overrides:
   AGENT_LLM_MODEL=gpt-4o-mini        (force a specific model)
 """
 import os
-import secrets
 import sys
 from dotenv import load_dotenv
 
@@ -56,9 +55,9 @@ def _parse_cors_origins(raw: str) -> list[str]:
 
 def _resolve_secret_key() -> str:
     configured = os.getenv("SECRET_KEY", "").strip()
-    if configured:
-        return configured
-    return secrets.token_urlsafe(48)
+    if not configured:
+        raise RuntimeError("SECRET_KEY environment variable is required for bullbeargpt")
+    return configured
 
 
 class Config:

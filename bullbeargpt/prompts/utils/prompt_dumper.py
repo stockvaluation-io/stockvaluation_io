@@ -17,6 +17,10 @@ class PromptDumper:
     
     def __init__(self):
         self.enabled = os.getenv("DUMP_PROMPTS", "false").lower() == "true"
+        in_production = os.getenv("FLASK_ENV", "production").strip().lower() == "production"
+        allow_in_production = os.getenv("ALLOW_PROMPT_DUMPS_IN_PRODUCTION", "false").lower() in {"1", "true", "yes", "on"}
+        if in_production and not allow_in_production:
+            self.enabled = False
         # Resolve to absolute path to avoid CWD ambiguity (esp. in Docker)
         self.dump_dir = Path(os.getenv("PROMPT_DUMP_DIR", "prompt_dump")).resolve()
         

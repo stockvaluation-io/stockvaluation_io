@@ -4,7 +4,6 @@ Refactored Flask application for stockvaluation.io - Yfinance Service
 import json
 import logging
 import os
-import secrets
 from typing import Any, Callable, Dict
 from flask import Flask, Response, abort, jsonify, request
 from flask_caching import Cache
@@ -41,10 +40,9 @@ def _parse_cors_origins(raw: str) -> list[str]:
 
 def _resolve_secret_key() -> str:
     configured = os.getenv("SECRET_KEY", "").strip()
-    if configured:
-        return configured
-    logger.warning("SECRET_KEY is not set; using ephemeral process-local key")
-    return secrets.token_urlsafe(48)
+    if not configured:
+        raise RuntimeError("SECRET_KEY environment variable is required for yfinance")
+    return configured
 
 def make_cache_key() -> str:
     """Generate cache key for API endpoints."""

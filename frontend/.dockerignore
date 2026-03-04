@@ -1,2 +1,12 @@
-stockvaluation.io/StockValuationFrontend/node_modules
-stockvaluation.io/StockValuationFrontend/dist
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+.DS_Store
+
+node_modules/
+dist/
+.angular/
+coverage/
+*.log
