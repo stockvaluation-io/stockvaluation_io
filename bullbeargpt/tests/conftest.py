@@ -14,6 +14,9 @@ for path in (str(BULLBEAR_ROOT), str(REPO_ROOT)):
     if path not in sys.path:
         sys.path.insert(0, path)
 
+# Keep production config strict, but ensure tests always have a local secret.
+os.environ.setdefault("SECRET_KEY", "test-bullbeargpt-secret")
+
 
 @pytest.fixture(scope="session")
 def valuation_service_base_url() -> str:
