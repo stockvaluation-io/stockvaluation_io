@@ -4,8 +4,6 @@ StockValuation.io is a local-first DCF valuation workspace that runs fully on yo
 
 > **Warning: This project is for educational use and is not financial advice.**
 
-![StockValuation.io Automated DCF Analysis](./assets/StockValuation-io-—-Automated-DCF-Analysis-03-05-2026_02_04_PM.png)
-
 
 ## Fast Onboarding
 
@@ -17,13 +15,15 @@ To install and run StockValuation.io on your machine using our automated script:
 curl -fsSL https://raw.githubusercontent.com/stockvaluation-io/stockvaluation_io/main/install.sh | bash
 ```
 
-> **Note:** The script will check prerequisites, clone the repository, bootstrap local secrets, and optionally prompt for your `ANTHROPIC_API_KEY` and `CURRENCY_API_KEY` before starting up the containers.
+> **Note:** The script will check prerequisites, clone the repository, and bootstrap local secrets. It will interactively prompt for the mandatory keys: **an LLM API Key (Anthropic, OpenAI, Gemini, or Groq)**, your **`TAVILY_API_KEY`**, and your **`CURRENCY_API_KEY`** before starting up the containers.
 
-Need `CURRENCY_API_KEY`?
+Need these APIs?
 
-- Create an account at `https://currencybeacon.com`
-- Copy your API key from the dashboard
-- Paste it into the command above (or `.env`)
+- **Tavily (Web Search):** Create a free account at [tavily.com](https://tavily.com)
+- **CurrencyBeacon (FX Rates):** Create a free account at [currencybeacon.com](https://currencybeacon.com)
+
+![StockValuation.io Automated DCF Analysis](./assets/StockValuation-io-—-Automated-DCF-Analysis-03-05-2026_02_04_PM.png)
+
 
 ## What Runs Locally
 

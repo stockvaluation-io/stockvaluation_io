@@ -76,11 +76,10 @@ chmod +x ./scripts/bootstrap_local_secrets.sh
 echo -e "\n${BLUE}===========================================================${NC}"
 echo -e "${YELLOW} 🔑 API Keys Setup${NC}"
 echo -e "${BLUE}===========================================================${NC}"
-echo "To run full valuations, you will need:"
-echo " 1. An LLM API Key (e.g., Anthropic, OpenAI) for AI analysis."
-echo " 2. CurrencyBeacon API Key (CURRENCY_API_KEY)."
-echo "    Why is this needed? It is used to fetch FX rates during valuation when"
-echo "    the market quote currency and financial-reporting currency differ."
+echo "To run full valuations, you MUST provide the following keys:"
+echo " 1. One LLM API Key (Anthropic, OpenAI, Gemini, or Groq)"
+echo " 2. Tavily API Key (TAVILY_API_KEY) - for web search"
+echo " 3. CurrencyBeacon API Key (CURRENCY_API_KEY) - for FX rates"
 echo "    Get it for free at: https://currencybeacon.com"
 echo ""
 
@@ -90,42 +89,90 @@ else
   SED_INPLACE="sed -i"
 fi
 
-# Only ask for API keys if running interactively
-if [ -t 0 ]; then
-  read -p "Would you like to enter your Anthropic API Key now? [y/N]: " -n 1 -r
-  echo
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    read -sp "Enter ANTHROPIC_API_KEY: " anthropic_key
-    echo
-    if grep -q "^ANTHROPIC_API_KEY=" .env; then
-      $SED_INPLACE "s|^ANTHROPIC_API_KEY=.*|ANTHROPIC_API_KEY=$anthropic_key|" .env
-    else
-      echo "ANTHROPIC_API_KEY=$anthropic_key" >> .env
-    fi
-    echo -e "${GREEN}✔ Saved ANTHROPIC_API_KEY${NC}"
-  fi
+check_env() {
+  local var_name=$1
+  # Matches any printable non-whitespace char right after '='
+  grep -E -q "^${var_name}=[^[:space:]]+" .env
+}
 
-  echo ""
-  read -p "Would you like to enter your Currency API Key now? [y/N]: " -n 1 -r
-  echo
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    read -sp "Enter CURRENCY_API_KEY: " currency_key
-    echo
-    if grep -q "^CURRENCY_API_KEY=" .env; then
-      $SED_INPLACE "s|^CURRENCY_API_KEY=.*|CURRENCY_API_KEY=$currency_key|" .env
+prompt_for_key() {
+  local var_name=$1
+  local prompt_text=$2
+  local key_val
+
+  while ! check_env "$var_name"; do
+    if [ -t 0 ]; then
+      read -sp "$prompt_text " key_val
+      echo
+      if [[ -n "$key_val" ]]; then
+        if grep -q "^${var_name}=" .env; then
+          $SED_INPLACE "s|^${var_name}=.*|${var_name}=$key_val|" .env
+        else
+          echo "${var_name}=$key_val" >> .env
+        fi
+        echo -e "${GREEN}✔ Saved $var_name${NC}"
+      else
+        echo -e "${RED}❌ $var_name is required. Please enter a valid key.${NC}"
+      fi
     else
-      echo "CURRENCY_API_KEY=$currency_key" >> .env
+      echo -e "${RED}❌ $var_name is missing. In non-interactive mode, you must set $var_name in .env before running.${NC}"
+      exit 1
     fi
-    echo -e "${GREEN}✔ Saved CURRENCY_API_KEY${NC}"
+  done
+}
+
+# 1) Prompt for LLM Key
+has_llm_key=false
+for key in ANTHROPIC_API_KEY OPENAI_API_KEY GEMINI_API_KEY GROQ_API_KEY; do
+  if check_env "$key"; then
+    has_llm_key=true
+    break
+  fi
+done
+
+if [ "$has_llm_key" = false ]; then
+  if [ -t 0 ]; then
+    while [ "$has_llm_key" = false ]; do
+      echo -e "${YELLOW}Choose an LLM provider to configure:${NC}"
+      echo "  1) Anthropic"
+      echo "  2) OpenAI"
+      echo "  3) Gemini"
+      echo "  4) Groq"
+      read -p "Enter Choice [1-4]: " llm_choice
+
+      case $llm_choice in
+        1) llm_var="ANTHROPIC_API_KEY"; llm_name="Anthropic" ;;
+        2) llm_var="OPENAI_API_KEY"; llm_name="OpenAI" ;;
+        3) llm_var="GEMINI_API_KEY"; llm_name="Gemini" ;;
+        4) llm_var="GROQ_API_KEY"; llm_name="Groq" ;;
+        *) echo -e "${RED}❌ Invalid choice.${NC}"; echo ""; continue ;;
+      esac
+      
+      prompt_for_key "$llm_var" "Enter $llm_name API Key:"
+      has_llm_key=true
+    done
+  else
+    echo -e "${RED}❌ No LLM API Key found. In non-interactive mode, you must set an LLM key in .env.${NC}"
+    exit 1
   fi
 else
-  echo -e "${YELLOW}Running in non-interactive mode. Skipping API key prompts.${NC}"
-  echo "Please ensure you update .env with your keys manually later."
+    echo -e "${GREEN}✔ LLM API Key already configured in .env${NC}"
 fi
 
-# Fallback: ensure CURRENCY_API_KEY is not empty so docker-compose doesn't crash
-if grep -q "^CURRENCY_API_KEY=$" .env; then
-  $SED_INPLACE "s|^CURRENCY_API_KEY=$|CURRENCY_API_KEY=CHANGE_ME_CURRENCY_API_KEY|" .env
+# 2) Prompt for TAVILY
+echo ""
+if check_env "TAVILY_API_KEY"; then
+  echo -e "${GREEN}✔ TAVILY_API_KEY already configured in .env${NC}"
+else
+  prompt_for_key "TAVILY_API_KEY" "Enter Tavily API Key (TAVILY_API_KEY):"
+fi
+
+# 3) Prompt for CURRENCY
+echo ""
+if check_env "CURRENCY_API_KEY"; then
+  echo -e "${GREEN}✔ CURRENCY_API_KEY already configured in .env${NC}"
+else
+  prompt_for_key "CURRENCY_API_KEY" "Enter CurrencyBeacon API Key (CURRENCY_API_KEY):"
 fi
 
 # 6. Start Containers
