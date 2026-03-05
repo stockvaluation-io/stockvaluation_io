@@ -135,6 +135,9 @@ export class ChatSidebarComponent implements OnInit, OnDestroy, OnChanges, After
   streamingCellId = signal<string | null>(null);
   nextSequenceNumber = 1;
 
+  /** Prevents double-initialization when valuationId arrives after ngOnInit */
+  private chatInitialized = false;
+
   // Message input for custom textarea
   messageInput = '';
 
@@ -353,6 +356,7 @@ export class ChatSidebarComponent implements OnInit, OnDestroy, OnChanges, After
 
     // Initialize chat session
     this.initializeChat();
+    this.chatInitialized = true;
   }
 
   ngAfterViewInit(): void {
@@ -380,17 +384,23 @@ export class ChatSidebarComponent implements OnInit, OnDestroy, OnChanges, After
       console.log(`[ChatSidebar] valuationId update detected: ${previousValue} -> ${this.valuationId}`);
 
       if (isFirstTimeSet) {
-        // First time valuationId is set - connect with context
+        // valuationId just arrived for the first time.
+        // ngOnInit already called initializeChat() without it; reconnect so the
+        // backend gets the full valuation context, but DON'T call initializeChat()
+        // again — that would send the opening message twice.
         console.log(`[ChatSidebar] valuationId now available: ${this.valuationId}`);
         if (this.socketService.isConnected()) {
-          // Already connected without context, reconnect with context
           console.log(`[ChatSidebar] Reconnecting with valuationId context...`);
           this.socketService.disconnect();
         }
         this.connect();
-        this.initializeChat();
+        // Only re-init if chat wasn't already fully initialized with this ID
+        if (!this.chatInitialized) {
+          this.initializeChat();
+          this.chatInitialized = true;
+        }
       } else if (previousValue !== this.valuationId) {
-        // valuationId changed to a different value - reconnect with new context
+        // valuationId genuinely changed to a different stock — full reset.
         console.log(`[ChatSidebar] valuationId changed, reconnecting...`);
         this.socketService.disconnect();
         this.connect();

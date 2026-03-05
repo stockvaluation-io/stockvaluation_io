@@ -985,8 +985,24 @@ export class ReasoningCellComponent {
   formatMarkdown(text: string): string {
     if (!text) return '';
 
-    // Enhanced markdown formatting
-    let html = text
+    let html = text;
+
+    // ── Pre-pass 1: normalize punctuation ────────────────────────────────────
+    // Replace em-dashes with commas for better reading flow
+    html = html.replace(/ — /g, ', ').replace(/—/g, ', ');
+
+    // ── Pre-pass 2: expand inline bullet points onto their own lines ─────────
+    // LLM often writes: "**Header:** • item one • item two **Next:**"
+    // Split each • into a newline so the line-by-line processor picks it up.
+    html = html.replace(/\s*•\s*/g, '\n• ');
+
+    // ── Pre-pass 3: **Bold:** section labels → their own line ────────────────
+    // Matches "**Label:**" at start of line or with leading space.
+    // Turns them into visible paragraph breaks.
+    html = html.replace(/(^|\s+)(\*\*[^*]+\*\*:)/g, '$1\n$2\n');
+
+    // ── Standard markdown rendering ──────────────────────────────────────────
+    html = html
       // Escape HTML entities first (security)
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
@@ -1004,12 +1020,12 @@ export class ReasoningCellComponent {
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
       // Horizontal rule
       .replace(/^---$/gm, '<hr class="md-hr">')
-      // Line breaks
-      .replace(/\\n/g, '<br>')
+      // Paragraph breaks (double newline)
       .replace(/\n\n/g, '</p><p>')
+      // Single newlines → <br>
       .replace(/\n/g, '<br>');
 
-    // Handle lists separately for better structure
+    // ── List processing ──────────────────────────────────────────────────────
     const lines = html.split('<br>');
     let inList = false;
     let listType = '';
@@ -1050,7 +1066,10 @@ export class ReasoningCellComponent {
     return `<p>${processedLines.join('<br>')}</p>`
       .replace(/<p><\/p>/g, '')
       .replace(/<p><br>/g, '<p>')
-      .replace(/<br><\/p>/g, '</p>');
+      .replace(/<br><\/p>/g, '</p>')
+      // Remove <br> directly before/after block-level elements
+      .replace(/<br>(<\/?(?:ul|ol|li|h[2-4]|pre|hr)[^>]*>)/g, '$1')
+      .replace(/(<\/?(?:ul|ol|li|h[2-4]|pre|hr)[^>]*>)<br>/g, '$1');
   }
 
   getToolIcon(toolName: string): string {

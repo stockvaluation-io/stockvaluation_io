@@ -334,106 +334,107 @@ export class NarrativeSectionComponent implements OnInit {
       .map(sentence => sentence.trim() + (sentence.endsWith('.') ? '' : '.'));
   }
 
+  /**
+   * Keep numbers exactly as the LLM wrote them — no reformatting.
+   */
   formatNumbers(value: string): string {
-    // Handle percentages
-    if (value.endsWith('%')) {
-      const num = parseFloat(value.replace('%', ''));
-      return `${num.toFixed(2)}%`;
-    }
-
-    // Handle $ prefixed values
-    if (value.startsWith('$')) {
-      const num = parseFloat(value.replace(/[^0-9.]/g, ''));
-      return `$${this.shortenLargeNumbers(num)}`;
-    }
-
-    // Handle large numbers (plain integers/floats)
-    const num = parseFloat(value.replace(/,/g, ''));
-    if (!isNaN(num)) {
-      return this.shortenLargeNumbers(num);
-    }
-
-    return value; // fallback
+    return value;
   }
 
-  shortenLargeNumbers(num: number): string {
-    if (num >= 1_000_000_000) {
-      return (num / 1_000_000_000).toFixed(2).replace(/\.00$/, '') + ' Billion';
-    } else if (num >= 1_000_000) {
-      return (num / 1_000_000).toFixed(2).replace(/\.00$/, '') + ' Million';
-    } else if (num >= 1_000) {
-      return (num / 1_000).toFixed(2).replace(/\.00$/, '') + ' Thousand';
-    } else {
-      return num.toString();
-    }
-  }
-
+  /**
+   * Format and structure LLM narrative text for readability.
+   *
+   * Problems solved:
+   *  1. LLM produces one dense wall of text — we split it into 2–4 readable paragraphs.
+   *  2. Excessive em-dashes (— or --) are cleaned up.
+   *  3. Dollar amounts, percentages and CAGR are subtly colour-highlighted.
+   *
+   * Paragraph-splitting strategy:
+   *  - First honour any explicit \n\n paragraph breaks.
+   *  - If none exist, split at sentence boundaries where the next sentence
+   *    "pivots" to a new topic: identified by starting with a capitalised
+   *    proper noun/entity OR after every ~3 sentences to keep chunks digestible.
+   */
   highlightNumbers(text: string): string {
     if (!text) return '';
 
     let result = text;
 
-    // Add subtle line breaks after major ideas (sentences ending with periods)
-    // Only split on periods that are clearly sentence endings (followed by space and capital letter)
-    // This creates better visual separation without breaking the flow too much
-    result = result.replace(/([.!?])\s+([A-Z][a-z])/g, '$1</p><p class="narrative-paragraph">$2');
+    // ── Step 1: Normalise punctuation ────────────────────────────────────────
+    // Convert em-dashes (and double-hyphens used as em-dashes) to a comma+space
+    // so the text flows as natural prose rather than feeling like code comments.
+    result = result.replace(/\s*---+\s*/g, ', ');
+    result = result.replace(/\s*--\s*/g, ', ');
+    result = result.replace(/\s*\u2014\s*/g, ', ');
 
-    // Wrap the entire content in a paragraph if it's not already wrapped
-    if (!result.includes('<p')) {
-      result = '<p class="narrative-paragraph">' + result;
+    // Collapse tilde spacing: "~ 29 %" → "~29%"
+    result = result.replace(/~\s+/g, '~');
+
+    // ── Step 2: Colour-highlight numbers (before paragraph-splitting) ────────
+    // Dollar values — keep the full phrase include unit (e.g. $305B, $1.4 trillion)
+    const dollarRegex = /\$\s*[\d,.]+(?:\s*(?:billion|million|thousand|trillion|[KMBTkmbt]))?/gi;
+    result = result.replace(dollarRegex, m =>
+      m.includes('<span') ? m : `<span class="narrative-number narrative-number-currency">${m.trim()}</span>`
+    );
+
+    // Percentages
+    const pctRegex = /~?\d+(?:\.\d+)?\s*%/gi;
+    result = result.replace(pctRegex, m =>
+      m.includes('<span') ? m : `<span class="narrative-number narrative-number-percentage">${m.trim()}</span>`
+    );
+
+    // CAGR / R²
+    result = result.replace(/\b(CAGR|R²)\b/gi, m =>
+      m.includes('<span') ? m : `<span class="narrative-number narrative-number-keyword">${m}</span>`
+    );
+
+    // ── Step 3: Paragraph segmentation ──────────────────────────────────────
+    // 3a. If the LLM already used blank lines, honour them.
+    const explicitParas = result.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+    if (explicitParas.length > 1) {
+      return explicitParas.map(p => `<p class="narrative-paragraph">${p}</p>`).join('');
     }
-    if (!result.endsWith('</p>')) {
-      result = result + '</p>';
+
+    // 3b. Single block — split at sentence boundaries into groups of ~3 sentences.
+    //     A "sentence end" is a period/!/? that is:
+    //       - not preceded by an abbreviation (e.g. "Mr.", "vs.", single caps)
+    //       - followed by a space and an uppercase letter
+    const sentenceEndRe = /(?<![A-Z]\.|[Vv]s\.|[Ee]tc\.|[Ii]nc\.|[Cc]o\.|[Nn]o\.)([.!?])\s+(?=[A-Z])/g;
+
+    // Collect sentence-end positions
+    const splits: number[] = [];
+    let m: RegExpExecArray | null;
+    // reset lastIndex
+    sentenceEndRe.lastIndex = 0;
+    while ((m = sentenceEndRe.exec(result)) !== null) {
+      splits.push(m.index + m[1].length); // position right after the period
     }
 
-    // Match dollar values (currency) - use cyan/blue accent
-    // Pattern: $ followed by numbers, optionally with commas, decimals, and units
-    // Improved to capture full phrases like "$5 trillion" even if separated, and handle quote marks
-    // This regex matches: $5, $5 trillion, $5.5B, etc., but avoids matching inside quotes incorrectly
-    const dollarRegex = /\$\s*[\d,]+(?:\.\d+)?(?:\s*(?:billion|million|thousand|trillion|[KMBTkmbtkMBT]))?\b/gi;
+    if (splits.length === 0) {
+      // No splits found — single paragraph
+      return `<p class="narrative-paragraph">${result}</p>`;
+    }
 
-    // Match percentages - use primary green
-    const percentageRegex = /\d+(?:\.\d+)?\s*%/gi;
+    // Group into chunks of ~3 sentences (target 3 sentences per paragraph)
+    const SENTENCES_PER_PARA = 3;
+    const paragraphs: string[] = [];
+    let start = 0;
+    for (let i = SENTENCES_PER_PARA - 1; i < splits.length; i += SENTENCES_PER_PARA) {
+      const splitAt = splits[i];
+      const chunk = result.slice(start, splitAt).trim();
+      if (chunk) paragraphs.push(chunk);
+      start = splitAt;
+    }
+    // Remainder
+    const tail = result.slice(start).trim();
+    if (tail) paragraphs.push(tail);
 
-    // Match CAGR and percentage points - use primary green
-    const cagrRegex = /\bCAGR\b|percentage\s+points/gi;
+    // Merge a very short last paragraph (< 60 chars) into the previous one
+    if (paragraphs.length > 1 && paragraphs[paragraphs.length - 1].replace(/<[^>]+>/g, '').length < 60) {
+      paragraphs[paragraphs.length - 2] += ' ' + paragraphs.pop();
+    }
 
-    // Match other significant numeric values (like "21.60", "2.02 Thousand") - use primary green
-    // Skip single digits and numbers that are part of dates or other contexts
-    const numberRegex = /\b\d{2,}(?:\.\d+)?(?:\s*(?:billion|million|thousand|trillion))?\b/gi;
-
-    // First, highlight dollar values with cyan class
-    result = result.replace(dollarRegex, (match) => {
-      // Skip if already wrapped in a span
-      if (match.includes('<span') || match.includes('</span>')) return match;
-      const formatted = this.formatNumbers(match);
-      return `<span class="narrative-number narrative-number-currency">${formatted}</span>`;
-    });
-
-    // Then highlight percentages with green class
-    result = result.replace(percentageRegex, (match) => {
-      // Skip if already wrapped in a span
-      if (match.includes('<span') || match.includes('</span>')) return match;
-      return `<span class="narrative-number narrative-number-percentage">${match}</span>`;
-    });
-
-    // Highlight CAGR and percentage points
-    result = result.replace(cagrRegex, (match) => {
-      if (match.includes('<span') || match.includes('</span>')) return match;
-      return `<span class="narrative-number narrative-number-percentage">${match}</span>`;
-    });
-
-    // Finally, highlight other significant numbers with green class
-    result = result.replace(numberRegex, (match) => {
-      // Skip if already wrapped in a span or if it's part of a dollar value
-      if (match.includes('<span') || match.includes('</span>') || match.includes('$')) return match;
-      // Skip if it looks like a year (4 digits starting with 19 or 20)
-      if (/^(19|20)\d{2}$/.test(match)) return match;
-      const formatted = this.formatNumbers(match);
-      return `<span class="narrative-number narrative-number-value">${formatted}</span>`;
-    });
-
-    return result;
+    return paragraphs.map(p => `<p class="narrative-paragraph">${p.trim()}</p>`).join('');
   }
 
   highlightNumbersAndBreakLines(text: string): string {

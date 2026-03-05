@@ -401,25 +401,21 @@ export class DCFAnalysisPageContainer implements OnInit, OnDestroy {
     // URL navigation and context navigation don't need router.navigate (already handled)
   }
 
-  private simulateRemainingStages(results: any): void {
-    // First mark DCF analysis as completed
-    this.markStageCompleted('dcf-analysis');
-
-    // Random delay between 500-1000ms for "Generating Insights" stage
-    const insightsDelay = Math.random() * 500 + 500; // 500-1000ms
-
-    setTimeout(() => {
-      this.markStageCompleted('narrative-insights');
-
-      // Show 100% completion for a moment to display completion animation
-      setTimeout(() => {
-        // Additional delay to show the loader disappear animation for better UX
-        setTimeout(() => {
-          // Results are already set by facade, just need to complete the loading animation
-          // The facade handles the state management
-        }, 600); // 600ms delay to show completion animation
-      }, 200);
-    }, insightsDelay);
+  private simulateRemainingStages(_results: any): void {
+    // Mark all pipeline stages as completed so the progress bar can reach 100%.
+    // The time-based ticker in EnhancedLoadingComponent already advances stages visually;
+    // completing them here signals that the API has actually returned.
+    const allStageIds = [
+      'company-data',
+      'segment-mapping',
+      'news-gathering',
+      'baseline-valuation',
+      'dcf-analysis',
+      'recalculation',
+      'narrative-insights',
+      'finalizing'
+    ];
+    allStageIds.forEach(id => this.markStageCompleted(id));
   }
 
   private showImmediateProgress(): void {

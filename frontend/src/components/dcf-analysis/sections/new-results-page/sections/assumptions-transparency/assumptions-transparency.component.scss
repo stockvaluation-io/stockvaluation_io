@@ -87,12 +87,49 @@
   margin: var(--space-2) 0;
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
-  line-height: 1.45;
+  line-height: 1.6;
+
+  strong {
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+  }
 }
 
 .rationale-card {
   border-left: 4px solid var(--color-status-info);
   margin-bottom: var(--space-4);
+}
+
+// Each "Why These Inputs" entry
+.rationale-item {
+  margin-bottom: var(--space-4);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.rationale-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-1);
+}
+
+.rationale-body {
+  p {
+    margin: 0 0 var(--space-3) 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.65;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
 }
 
 .notes-card {
@@ -104,6 +141,8 @@
   padding: 0;
   color: var(--color-text-secondary);
   list-style: none;
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
 }
 
 .notes-list li {

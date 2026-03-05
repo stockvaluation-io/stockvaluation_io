@@ -4,13 +4,24 @@ Quick verification for bullbeargpt tests in current layout.
 """
 import subprocess
 import sys
+from pathlib import Path
 
 
 def main() -> int:
+    tests_dir = Path(__file__).resolve().parent
+    project_root = tests_dir.parent
     try:
-        result = subprocess.run(["pytest", "-q", "tests"], text=True)
+        result = subprocess.run(
+            ["pytest", "-q", str(tests_dir)],
+            text=True,
+            cwd=project_root,
+        )
     except FileNotFoundError:
-        result = subprocess.run([sys.executable, "-m", "pytest", "-q", "tests"], text=True)
+        result = subprocess.run(
+            [sys.executable, "-m", "pytest", "-q", str(tests_dir)],
+            text=True,
+            cwd=project_root,
+        )
     return result.returncode
 
 

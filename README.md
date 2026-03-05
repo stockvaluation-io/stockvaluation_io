@@ -2,7 +2,7 @@
 
 StockValuation.io is a local-first DCF valuation workspace that runs fully on your machine, with structured research and narrative output layered on top of core valuation calculations.
 
-![StockValuation.io Automated DCF Analysis](./assets/StockValuation-io-—-Automated-DCF-Analysis-03-03-2026_11_29_PM.png)
+![StockValuation.io Automated DCF Analysis](./assets/StockValuation-io-—-Automated-DCF-Analysis-03-05-2026_02_04_PM.png)
 
 **Warning: This project is for educational use and is not financial advice.**
 
