@@ -2,100 +2,28 @@
 
 StockValuation.io is a local-first DCF valuation workspace that runs fully on your machine, with structured research and narrative output layered on top of core valuation calculations.
 
+> **Warning: This project is for educational use and is not financial advice.**
+
 ![StockValuation.io Automated DCF Analysis](./assets/StockValuation-io-—-Automated-DCF-Analysis-03-05-2026_02_04_PM.png)
 
-**Warning: This project is for educational use and is not financial advice.**
 
 ## Fast Onboarding
 
 ### One-line startup
 
-Minimum required env vars:
+To install and run StockValuation.io on your machine using our automated script:
 
 ```bash
-POSTGRES_PASSWORD='change-me' \
-DEFAULT_PASSWORD='change-me' \
-YFINANCE_SECRET_KEY='change-me-yfinance-secret' \
-VALUATION_AGENT_SECRET_KEY='change-me-valuation-agent-secret' \
-BULLBEARGPT_SECRET_KEY='change-me-bullbeargpt-secret' \
-VALUATION_SERVICE_JWT_SECRET='change-me-valuation-service-jwt-secret-32chars' \
-CURRENCY_API_KEY='your-currency-api-key' \
-ANTHROPIC_API_KEY='your-anthropic-api-key' \
-docker compose -f docker-compose.local.yml up -d --build
+curl -fsSL https://raw.githubusercontent.com/stockvaluation-io/stockvaluation_io/main/install.sh | bash
 ```
 
-Or bootstrap local secrets automatically:
-
-```bash
-./scripts/bootstrap_local_secrets.sh
-docker compose -f docker-compose.local.yml up -d --build
-```
+> **Note:** The script will check prerequisites, clone the repository, bootstrap local secrets, and optionally prompt for your `ANTHROPIC_API_KEY` and `CURRENCY_API_KEY` before starting up the containers.
 
 Need `CURRENCY_API_KEY`?
 
 - Create an account at `https://currencybeacon.com`
 - Copy your API key from the dashboard
 - Paste it into the command above (or `.env`)
-
-Open:
-
-- `http://localhost:4200`
-
-Health checks:
-
-```bash
-curl http://localhost:5001/health
-curl http://localhost:5002/health
-```
-
-### `.env` setup (recommended for regular use)
-
-```bash
-cp .env.example .env
-```
-
-Then fill the required keys below and run:
-
-```bash
-./scripts/bootstrap_local_secrets.sh
-docker compose -f docker-compose.local.yml up -d --build
-```
-
-## Required Keys (What they do)
-
-| Key | Why it is needed | Where it is used |
-| :--- | :--- | :--- |
-| `POSTGRES_PASSWORD` | Required DB password for local startup. | `postgres`, `valuation-service` |
-| `DEFAULT_PASSWORD` | Required default local user credential in valuation-service. | `valuation-service` |
-| `YFINANCE_SECRET_KEY` | Required Flask secret for yfinance session security. | `yfinance` |
-| `VALUATION_AGENT_SECRET_KEY` | Required Flask secret for valuation-agent session security. | `valuation-agent` |
-| `BULLBEARGPT_SECRET_KEY` | Required Flask secret for bullbeargpt session security. | `bullbeargpt` |
-| `VALUATION_SERVICE_JWT_SECRET` | Required JWT signing/validation secret (32+ chars). | `valuation-service` |
-| `CURRENCY_API_KEY` | Used to fetch FX rates during valuation when market quote currency and financial-reporting currency differ. Get it from `https://currencybeacon.com` dashboard. | `valuation-service` |
-| One LLM key (`ANTHROPIC_API_KEY` or `OPENAI_API_KEY` or `GROQ_API_KEY` or `GEMINI_API_KEY` or `OPENROUTER_API_KEY`) | Used for AI analysis/research/narrative generation. | `valuation-agent`, `bullbeargpt` |
-
-## Optional Keys (Useful in practice)
-
-| Key | Why it is useful | Where it is used |
-| :--- | :--- | :--- |
-| `POSTGRES_PASSWORD` | Required DB password for local Postgres and Java datasource. | `postgres`, `valuation-service` |
-| `YFINANCE_SECRET_KEY` | Service secret key for yfinance. | `yfinance` |
-| `VALUATION_AGENT_SECRET_KEY` | Service secret key for valuation-agent. | `valuation-agent` |
-| `BULLBEARGPT_SECRET_KEY` | Service secret key for bullbeargpt. | `bullbeargpt` |
-| `VALUATION_SERVICE_JWT_SECRET` | JWT signing/validation secret used by valuation-service auth filter (use 32+ chars). | `valuation-service` |
-| `DEFAULT_PASSWORD` | Required seeded local user password. | `valuation-service` |
-| `INTERNAL_API_KEY` | Optional shared API key to restrict internal endpoints (recommended). | `valuation-agent`, `bullbeargpt`, `yfinance` |
-| `TAVILY_API_KEY` | Better external news/evidence retrieval. | `valuation-agent`, `bullbeargpt` |
-| `DEFAULT_LLM_PROVIDER` | Global provider default. | `valuation-agent`, `bullbeargpt` |
-| `AGENT_LLM_PROVIDER` | Force provider for agent path. | `valuation-agent`, `bullbeargpt` |
-| `JUDGE_LLM_PROVIDER` | Force provider for judge/review path. | `valuation-agent`, `bullbeargpt` |
-| `AGENT_LLM_MODEL` | Pin model for agent path. | `valuation-agent`, `bullbeargpt` |
-| `JUDGE_LLM_MODEL` | Pin model for judge path. | `valuation-agent`, `bullbeargpt` |
-| `VALUATION_SERVICE_TIMEOUT_SECONDS` | Prevent timeout failures for heavy valuations. | `valuation-agent` |
-| `CORS_ORIGINS` | Controls which local browser origins can call APIs. | `bullbeargpt` |
-| `BULLBEARGPT_PORT` | Changes notebook/chat API host port mapping. | Compose runtime |
-| `LOG_LEVEL` | Controls runtime log verbosity. | `bullbeargpt` |
-| `DUMP_PROMPTS`, `PROMPT_DUMP_DIR` | Writes prompt payloads for local debugging. | `valuation-agent`, `bullbeargpt` |
 
 ## What Runs Locally
 
@@ -123,23 +51,6 @@ Pipeline:
 6. Narrative assembly
 7. Merged response returned to UI
 
-## Useful Commands
-
-```bash
-# show running containers
-docker compose -f docker-compose.local.yml ps
-
-# logs
-docker compose -f docker-compose.local.yml logs -f valuation-agent
-docker compose -f docker-compose.local.yml logs -f valuation-service
-docker compose -f docker-compose.local.yml logs -f bullbeargpt
-
-# stop
-docker compose -f docker-compose.local.yml down
-
-# full reset (containers + volumes)
-docker compose -f docker-compose.local.yml down -v
-```
 
 ## Troubleshooting
 
