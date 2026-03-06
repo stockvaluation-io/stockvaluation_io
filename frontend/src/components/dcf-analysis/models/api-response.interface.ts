@@ -312,6 +312,22 @@ export interface ValuationSegment {
   operatingMargin?: number | null;
 }
 
+export interface GrowthAnchor {
+  entity?: string;
+  entityDisplay?: string;
+  region?: string;
+  year?: number;
+  numberOfFirms?: number;
+  fundamentalGrowth?: number;
+  historicalGrowthProxy?: number;
+  expectedGrowthProxy?: number;
+  confidenceScore?: number;
+  p25?: number;
+  p50?: number;
+  p75?: number;
+  source?: string;
+}
+
 export interface AssumptionTransparency {
   valuationModel?: string;
   industryUs?: string;
@@ -346,6 +362,22 @@ export interface AssumptionTransparency {
     operatingMargin?: string;
     salesToCapital?: string;
     costOfCapital?: string;
+  };
+  growthAnchor?: GrowthAnchor;
+  marketImpliedExpectations?: {
+    marketPrice?: number | null;
+    modelIntrinsicValue?: number | null;
+    method?: string;
+    metrics?: Array<{
+      key?: string;
+      label?: string;
+      unit?: string;
+      modelValue?: number | null;
+      impliedValue?: number | null;
+      gap?: number | null;
+      solved?: boolean;
+      note?: string;
+    }>;
   };
   notes?: string[];
 }

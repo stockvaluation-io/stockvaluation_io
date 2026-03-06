@@ -3,6 +3,7 @@ package io.stockvaluation.service;
 import io.stockvaluation.config.ValuationAssumptionProperties;
 import io.stockvaluation.constant.RDResult;
 import io.stockvaluation.dto.*;
+import io.stockvaluation.dto.valuationoutput.AssumptionTransparencyDTO;
 import io.stockvaluation.dto.valuationoutput.CalibrationResultDTO;
 import io.stockvaluation.dto.valuationoutput.CompanyDTO;
 import io.stockvaluation.dto.valuationoutput.FinancialDTO;
@@ -13,7 +14,9 @@ import io.stockvaluation.utils.SegmentParameterContext;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,6 +34,7 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
         private final ValuationOutputService valuationOutputService;
         private final ValuationTemplateService valuationTemplateService;
         private final ValuationAssumptionProperties valuationAssumptionProperties;
+        private final GrowthAnchorService growthAnchorService;
 
         @Override
         public ValuationOutputDTO getValuation(String ticker, FinancialDataInput financialDataInputOverrides,
@@ -100,10 +104,37 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                 FinancialDataInput financialDataInput = initializeFinancialDataInput(companyDataDTO, template);
 
                 // Step 4: Apply user overrides (if any)
+                List<String> adjustedParameters = new ArrayList<>();
                 if (overrides != null) {
-                        applyUserOverrides(financialDataInput, overrides);
-                        // Handle segments and sector overrides from user input
-                        handleSegmentsAndOverrides(financialDataInput, companyDataDTO, ticker);
+                        adjustedParameters = applyUserOverrides(financialDataInput, overrides);
+                }
+
+                // VAL-3: Strict Growth Policy Guard (Optional)
+                if (valuationAssumptionProperties.isStrictGrowthPolicy()) {
+                        growthAnchorService.getAnchorByYahooIndustry(
+                                        companyDataDTO.getBasicInfoDataDTO().getIndustryGlobal(),
+                                        companyDataDTO.getBasicInfoDataDTO().getCountryOfIncorporation())
+                                        .ifPresent(anchor -> {
+                                                // Only enforce rigorously if we have high heuristic confidence
+                                                if (anchor.getConfidenceScore() != null
+                                                                && anchor.getConfidenceScore() > 0.8) {
+                                                        double inputCagr = financialDataInput
+                                                                        .getCompoundAnnualGrowth2_5() / 100.0;
+                                                        Double p10 = anchor.getP10();
+                                                        Double p90 = anchor.getP90();
+
+                                                        if (p10 != null && p90 != null
+                                                                        && (inputCagr < p10 || inputCagr > p90)) {
+                                                                log.warn("VAL-3 Guard tripped: Intolerable growth assumption {} for {}, anchor p10={}, p90={}",
+                                                                                inputCagr, ticker, p10, p90);
+                                                                String msg = String.format(
+                                                                                "{\"error\": \"GROWTH_ASSUMPTION_INCOHERENT\", \"band\": {\"p10\": %.3f, \"p90\": %.3f}, \"provided\": %.3f}",
+                                                                                p10, p90, inputCagr);
+                                                                throw new ResponseStatusException(
+                                                                                HttpStatus.UNPROCESSABLE_ENTITY, msg);
+                                                        }
+                                                }
+                                        });
                 }
 
                 // Step 5: Adjust sales-to-capital ratio to be at least current ratio
@@ -121,12 +152,20 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                 // after any calibration adjustments, ensuring consistent parameter processing
                 ValuationOutputDTO valuationOutputDTO = applyCalibrationAndMLAdjustments(
                                 ticker, financialDataInput, companyDataDTO, valuationOutputDTOCheck, enableDCFAnalysis,
-                                addStory, template, true);
+                                addStory, template, true, adjustedParameters);
 
                 // Step 8: Single calibration to market price
-                valuationOutputDTO.setCalibrationResultDTO(
-                                calibrateToMarketPrice(ticker, new FinancialDataInput(financialDataInput),
-                                                valuationOutputDTO.getCompanyDTO().getPrice()));
+                Double currentMarketPrice = valuationOutputDTO.getCompanyDTO() != null
+                                ? valuationOutputDTO.getCompanyDTO().getPrice()
+                                : null;
+                if (currentMarketPrice != null && currentMarketPrice > 0) {
+                        valuationOutputDTO.setCalibrationResultDTO(
+                                        calibrateToMarketPrice(ticker, new FinancialDataInput(financialDataInput),
+                                                        currentMarketPrice));
+                } else {
+                        log.warn("Skipping calibration for {} because current market price is missing or non-positive: {}",
+                                        ticker, currentMarketPrice);
+                }
 
                 // Step 9: Process scenario valuation
                 processScenarioValuation(valuationOutputDTO, new FinancialDataInput(financialDataInput),
@@ -139,9 +178,29 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                         valuationOutputDTO.setIndustryGlobal(companyDataDTO.getBasicInfoDataDTO().getIndustryGlobal());
                 }
 
-                // Step 11: Add story (if requested)
+                // Step 11: Add assumption transparency (including market-implied expectations)
+                valuationOutputDTO.setAssumptionTransparency(buildAssumptionTransparency(
+                                ticker,
+                                financialDataInput,
+                                valuationOutputDTO,
+                                template));
+
+                // Step 12: Add story (if requested)
                 if (addStory) {
                         valuationOutputDTO = valuationOutputService.addStory(valuationOutputDTO);
+                }
+
+                // Step 13: Add Growth Anchor Diagnostics
+                Optional<io.stockvaluation.dto.GrowthAnchorDTO> anchorDtoOpt = growthAnchorService
+                                .getAnchorByYahooIndustry(
+                                                companyDataDTO.getBasicInfoDataDTO().getIndustryGlobal(),
+                                                companyDataDTO.getBasicInfoDataDTO().getCountryOfIncorporation());
+                if (anchorDtoOpt.isPresent()) {
+                        GrowthAnchorDTO anchor = anchorDtoOpt.get();
+                        valuationOutputDTO.setGrowthSkillContext(anchor);
+                        if (valuationOutputDTO.getAssumptionTransparency() != null) {
+                                valuationOutputDTO.getAssumptionTransparency().setGrowthAnchor(toGrowthAnchor(anchor));
+                        }
                 }
 
                 return valuationOutputDTO;
@@ -174,6 +233,407 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                         CashflowType primaryModel,
                         CashflowType requestedModel,
                         String rationale) {
+        }
+
+        private AssumptionTransparencyDTO buildAssumptionTransparency(
+                        String ticker,
+                        FinancialDataInput financialDataInput,
+                        ValuationOutputDTO valuationOutputDTO,
+                        ValuationTemplate template) {
+                AssumptionTransparencyDTO dto = new AssumptionTransparencyDTO();
+                dto.setValuationModel(valuationOutputDTO.getPrimaryModel() != null
+                                ? valuationOutputDTO.getPrimaryModel().name()
+                                : CashflowType.FCFF.name());
+                dto.setIndustryUs(valuationOutputDTO.getIndustryUs());
+                dto.setIndustryGlobal(valuationOutputDTO.getIndustryGlobal());
+                dto.setCurrency(valuationOutputDTO.getCurrency());
+                dto.setSegmentCount(financialDataInput.getSegments() != null
+                                && financialDataInput.getSegments().getSegments() != null
+                                                ? financialDataInput.getSegments().getSegments().size()
+                                                : 0);
+                dto.setSegmentAware(dto.getSegmentCount() != null && dto.getSegmentCount() > 1);
+
+                FinancialDTO financialDTO = valuationOutputDTO.getFinancialDTO();
+                Double riskFreeRate = normalizePercent(financialDataInput.getRiskFreeRate());
+                Double initialCostOfCapital = normalizePercent(firstNonNull(
+                                financialDataInput.getInitialCostCapital(),
+                                firstFinite(financialDTO != null ? financialDTO.getCostOfCapital() : null)));
+                Double terminalCostOfCapital = normalizePercent(firstNonNull(
+                                valuationOutputDTO.getTerminalValueDTO() != null
+                                                ? valuationOutputDTO.getTerminalValueDTO().getCostOfCapital()
+                                                : null,
+                                lastFinite(financialDTO != null ? financialDTO.getCostOfCapital() : null)));
+
+                Double equityRiskPremium = null;
+                if (riskFreeRate != null && terminalCostOfCapital != null) {
+                        equityRiskPremium = round2(terminalCostOfCapital - riskFreeRate);
+                }
+
+                dto.setDiscountRate(new AssumptionTransparencyDTO.DiscountRate(
+                                riskFreeRate,
+                                equityRiskPremium,
+                                initialCostOfCapital,
+                                terminalCostOfCapital,
+                                "Terminal WACC = risk-free rate + mature market premium; path values from FCFF model output.",
+                                riskFreeRate != null ? "Valuation input baseline/override" : "Not available",
+                                equityRiskPremium != null ? "Derived from terminal WACC minus risk-free anchor."
+                                                : "Not available",
+                                "Final FCFF output"));
+
+                dto.setOperatingAssumptions(new AssumptionTransparencyDTO.OperatingAssumptions(
+                                normalizePercent(financialDataInput.getCompoundAnnualGrowth2_5()),
+                                normalizePercent(financialDataInput.getTargetPreTaxOperatingMargin()),
+                                normalizeMultiple(financialDataInput.getSalesToCapitalYears1To5()),
+                                normalizeMultiple(financialDataInput.getSalesToCapitalYears6To10()),
+                                "Valuation input baseline/override",
+                                "Valuation input baseline/override",
+                                "Valuation input baseline/override",
+                                null,
+                                null,
+                                null));
+
+                dto.setNotes(List.of(
+                                "Rates are shown in percent.",
+                                "Sales-to-capital is shown as x multiple.",
+                                "Market-implied values solve one variable at a time while others stay fixed."));
+
+                dto.setMarketImpliedExpectations(buildMarketImpliedExpectations(
+                                ticker,
+                                financialDataInput,
+                                valuationOutputDTO,
+                                template));
+                return dto;
+        }
+
+        private AssumptionTransparencyDTO.MarketImpliedExpectations buildMarketImpliedExpectations(
+                        String ticker,
+                        FinancialDataInput baseInput,
+                        ValuationOutputDTO valuationOutputDTO,
+                        ValuationTemplate template) {
+                CompanyDTO company = valuationOutputDTO.getCompanyDTO();
+                AssumptionTransparencyDTO.MarketImpliedExpectations expectations = new AssumptionTransparencyDTO.MarketImpliedExpectations();
+                expectations.setMethod("Single-variable reverse DCF via bounded grid scan + bisection.");
+
+                if (company == null || company.getPrice() == null || company.getPrice() <= 0) {
+                        expectations.setMetrics(new ArrayList<>());
+                        return expectations;
+                }
+
+                double marketPrice = company.getPrice();
+                expectations.setMarketPrice(round2(marketPrice));
+                expectations.setModelIntrinsicValue(round2(company.getEstimatedValuePerShare()));
+
+                RDResult rdResult = commonService.calculateRDConverterValue(
+                                baseInput.getIndustry(),
+                                baseInput.getFinancialDataDTO().getMarginalTaxRate(),
+                                baseInput.getFinancialDataDTO().getResearchAndDevelopmentMap());
+                OptionValueResultDTO optionValue = optionValueService.calculateOptionValue(
+                                ticker,
+                                baseInput.getAverageStrikePrice(),
+                                baseInput.getAverageMaturity(),
+                                baseInput.getNumberOfOptions(),
+                                baseInput.getStockPriceStdDev());
+                LeaseResultDTO leaseResult = commonService.calculateOperatingLeaseConverter();
+
+                List<AssumptionTransparencyDTO.ImpliedMetric> metrics = new ArrayList<>();
+
+                SolveResult impliedGrowth = solveImpliedVariable(
+                                baseInput,
+                                marketPrice,
+                                (input, value) -> input.setCompoundAnnualGrowth2_5(value),
+                                -30.0,
+                                50.0,
+                                ticker,
+                                rdResult,
+                                optionValue,
+                                leaseResult,
+                                template);
+                metrics.add(toImpliedMetric(
+                                "revenue_cagr",
+                                "Revenue Growth (Years 2-5)",
+                                "percent",
+                                normalizePercent(baseInput.getCompoundAnnualGrowth2_5()),
+                                normalizePercent(impliedGrowth.value()),
+                                impliedGrowth.solved()));
+
+                SolveResult impliedMargin = solveImpliedVariable(
+                                baseInput,
+                                marketPrice,
+                                (input, value) -> input.setTargetPreTaxOperatingMargin(value),
+                                0.5,
+                                85.0,
+                                ticker,
+                                rdResult,
+                                optionValue,
+                                leaseResult,
+                                template);
+                metrics.add(toImpliedMetric(
+                                "operating_margin",
+                                "Operating Margin",
+                                "percent",
+                                normalizePercent(baseInput.getTargetPreTaxOperatingMargin()),
+                                normalizePercent(impliedMargin.value()),
+                                impliedMargin.solved()));
+
+                double stcBaseRaw = firstNonNull(baseInput.getSalesToCapitalYears1To5(), 2.0);
+                double stcLower = stcBaseRaw > 20.0 ? 25.0 : 0.25;
+                double stcUpper = stcBaseRaw > 20.0 ? 2000.0 : 20.0;
+                SolveResult impliedSalesToCapital = solveImpliedVariable(
+                                baseInput,
+                                marketPrice,
+                                (input, value) -> {
+                                        input.setSalesToCapitalYears1To5(value);
+                                        input.setSalesToCapitalYears6To10(value);
+                                },
+                                stcLower,
+                                stcUpper,
+                                ticker,
+                                rdResult,
+                                optionValue,
+                                leaseResult,
+                                template);
+                metrics.add(toImpliedMetric(
+                                "sales_to_capital",
+                                "Sales/Capital",
+                                "multiple",
+                                normalizeMultiple(baseInput.getSalesToCapitalYears1To5()),
+                                normalizeMultiple(impliedSalesToCapital.value()),
+                                impliedSalesToCapital.solved()));
+
+                SolveResult impliedCostOfCapital = solveImpliedVariable(
+                                baseInput,
+                                marketPrice,
+                                (input, value) -> input.setInitialCostCapital(value),
+                                1.0,
+                                35.0,
+                                ticker,
+                                rdResult,
+                                optionValue,
+                                leaseResult,
+                                template);
+                metrics.add(toImpliedMetric(
+                                "cost_of_capital",
+                                "Initial Cost of Capital",
+                                "percent",
+                                normalizePercent(baseInput.getInitialCostCapital()),
+                                normalizePercent(impliedCostOfCapital.value()),
+                                impliedCostOfCapital.solved()));
+
+                expectations.setMetrics(metrics);
+                return expectations;
+        }
+
+        private AssumptionTransparencyDTO.ImpliedMetric toImpliedMetric(
+                        String key,
+                        String label,
+                        String unit,
+                        Double modelValue,
+                        Double impliedValue,
+                        boolean solved) {
+                Double gap = null;
+                if (modelValue != null && impliedValue != null) {
+                        gap = round2(impliedValue - modelValue);
+                }
+                return new AssumptionTransparencyDTO.ImpliedMetric(
+                                key,
+                                label,
+                                unit,
+                                modelValue,
+                                impliedValue,
+                                gap,
+                                solved,
+                                solved ? "Solved to current market price." : "Nearest bounded estimate in configured range.");
+        }
+
+        private SolveResult solveImpliedVariable(
+                        FinancialDataInput baseInput,
+                        double targetPrice,
+                        InputMutator mutator,
+                        double lower,
+                        double upper,
+                        String ticker,
+                        RDResult rdResult,
+                        OptionValueResultDTO optionValue,
+                        LeaseResultDTO leaseResult,
+                        ValuationTemplate template) {
+                int steps = Math.max(8, valuationAssumptionProperties.getImpliedExpectationGridSteps());
+                double tolerance = Math.max(0.01, valuationAssumptionProperties.getImpliedExpectationTolerance());
+                int bisectionIterations = Math.max(8, valuationAssumptionProperties.getImpliedExpectationBisectionIterations());
+
+                double bestX = lower;
+                double bestAbsDiff = Double.POSITIVE_INFINITY;
+                Double prevX = null;
+                Double prevDiff = null;
+                Double bracketLow = null;
+                Double bracketHigh = null;
+
+                for (int i = 0; i <= steps; i++) {
+                        double x = lower + (upper - lower) * (i / (double) steps);
+                        Double estimate = evaluateImpliedPrice(baseInput, mutator, x, rdResult, optionValue, leaseResult, ticker,
+                                        template);
+                        if (estimate == null || estimate.isNaN() || estimate.isInfinite()) {
+                                continue;
+                        }
+                        double diff = estimate - targetPrice;
+                        double absDiff = Math.abs(diff);
+                        if (absDiff < bestAbsDiff) {
+                                bestAbsDiff = absDiff;
+                                bestX = x;
+                        }
+
+                        if (prevDiff != null && prevX != null && (diff == 0.0 || (prevDiff > 0 && diff < 0) || (prevDiff < 0 && diff > 0))) {
+                                bracketLow = prevX;
+                                bracketHigh = x;
+                                break;
+                        }
+
+                        prevX = x;
+                        prevDiff = diff;
+                }
+
+                if (bestAbsDiff <= tolerance) {
+                        return new SolveResult(bestX, true);
+                }
+                if (bracketLow == null || bracketHigh == null) {
+                        return new SolveResult(bestX, false);
+                }
+
+                double lo = bracketLow;
+                double hi = bracketHigh;
+                double midpoint = bestX;
+                for (int i = 0; i < bisectionIterations; i++) {
+                        midpoint = (lo + hi) / 2.0;
+                        Double estimate = evaluateImpliedPrice(baseInput, mutator, midpoint, rdResult, optionValue, leaseResult,
+                                        ticker, template);
+                        if (estimate == null || estimate.isNaN() || estimate.isInfinite()) {
+                                break;
+                        }
+                        double diffMid = estimate - targetPrice;
+                        double absDiff = Math.abs(diffMid);
+                        if (absDiff < bestAbsDiff) {
+                                bestAbsDiff = absDiff;
+                                bestX = midpoint;
+                        }
+                        if (absDiff <= tolerance) {
+                                return new SolveResult(midpoint, true);
+                        }
+                        Double loEstimate = evaluateImpliedPrice(baseInput, mutator, lo, rdResult, optionValue, leaseResult, ticker,
+                                        template);
+                        if (loEstimate == null || loEstimate.isNaN() || loEstimate.isInfinite()) {
+                                break;
+                        }
+                        double diffLo = loEstimate - targetPrice;
+                        if ((diffLo > 0 && diffMid < 0) || (diffLo < 0 && diffMid > 0)) {
+                                hi = midpoint;
+                        } else {
+                                lo = midpoint;
+                        }
+                }
+                return new SolveResult(bestX, bestAbsDiff <= tolerance);
+        }
+
+        private Double evaluateImpliedPrice(
+                        FinancialDataInput baseInput,
+                        InputMutator mutator,
+                        double value,
+                        RDResult rdResult,
+                        OptionValueResultDTO optionValue,
+                        LeaseResultDTO leaseResult,
+                        String ticker,
+                        ValuationTemplate template) {
+                try {
+                        FinancialDataInput scenario = new FinancialDataInput(baseInput);
+                        mutator.apply(scenario, value);
+                        return getEstimatedValuePerShare(scenario, rdResult, optionValue, leaseResult, ticker, template);
+                } catch (RuntimeException ex) {
+                        log.debug("Skipping implied valuation point for {} due to evaluation error: {}", ticker, ex.getMessage());
+                        return null;
+                }
+        }
+
+        private AssumptionTransparencyDTO.GrowthAnchor toGrowthAnchor(GrowthAnchorDTO anchor) {
+                return new AssumptionTransparencyDTO.GrowthAnchor(
+                                anchor.getEntity(),
+                                anchor.getEntityDisplay(),
+                                anchor.getRegion(),
+                                anchor.getYear(),
+                                anchor.getNumberOfFirms(),
+                                anchor.getFundamentalGrowth(),
+                                anchor.getHistoricalGrowthProxy(),
+                                anchor.getExpectedGrowthProxy(),
+                                anchor.getConfidenceScore(),
+                                anchor.getP25(),
+                                anchor.getP50(),
+                                anchor.getP75(),
+                                "Damodaran Historical Growth Rate in Earnings");
+        }
+
+        private Double normalizePercent(Double rawValue) {
+                if (rawValue == null) {
+                        return null;
+                }
+                double normalized = rawValue;
+                if (Math.abs(normalized) <= 1.0) {
+                        normalized *= 100.0;
+                } else if (Math.abs(normalized) > 100.0) {
+                        normalized /= 100.0;
+                }
+                return round2(normalized);
+        }
+
+        private Double normalizeMultiple(Double rawValue) {
+                if (rawValue == null) {
+                        return null;
+                }
+                double normalized = rawValue;
+                if (Math.abs(normalized) > 10.0) {
+                        normalized /= 100.0;
+                }
+                return round2(normalized);
+        }
+
+        private Double firstFinite(Double[] values) {
+                if (values == null) {
+                        return null;
+                }
+                for (Double value : values) {
+                        if (value != null && Double.isFinite(value)) {
+                                return value;
+                        }
+                }
+                return null;
+        }
+
+        private Double lastFinite(Double[] values) {
+                if (values == null) {
+                        return null;
+                }
+                for (int i = values.length - 1; i >= 0; i--) {
+                        Double value = values[i];
+                        if (value != null && Double.isFinite(value)) {
+                                return value;
+                        }
+                }
+                return null;
+        }
+
+        private Double firstNonNull(Double primary, Double fallback) {
+                return primary != null ? primary : fallback;
+        }
+
+        private Double round2(Double value) {
+                if (value == null) {
+                        return null;
+                }
+                return Math.round(value * 100.0) / 100.0;
+        }
+
+        @FunctionalInterface
+        private interface InputMutator {
+                void apply(FinancialDataInput input, double value);
+        }
+
+        private record SolveResult(Double value, boolean solved) {
         }
 
         private double[] calculatePercentiles(List<Double> values, double[] percentiles) {
@@ -581,8 +1041,14 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
         private double getEstimatedValuePerShare(FinancialDataInput input, RDResult rdResult,
                         OptionValueResultDTO optionValueResultDTO, LeaseResultDTO leaseResultDTO,
                         String ticker) {
+                return getEstimatedValuePerShare(input, rdResult, optionValueResultDTO, leaseResultDTO, ticker, null);
+        }
+
+        private double getEstimatedValuePerShare(FinancialDataInput input, RDResult rdResult,
+                        OptionValueResultDTO optionValueResultDTO, LeaseResultDTO leaseResultDTO,
+                        String ticker, ValuationTemplate template) {
                 FinancialDTO financialDTO = valuationOutputService.calculateFinancialData(input, rdResult,
-                                leaseResultDTO, ticker, null);
+                                leaseResultDTO, ticker, template);
                 CompanyDTO companyDTO = valuationOutputService.calculateCompanyData(financialDTO, input,
                                 optionValueResultDTO, leaseResultDTO);
 
@@ -608,44 +1074,6 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                 financialDataInput.setOverrideAssumptionRiskFreeRate(new OverrideAssumption(0D, false, 0D, null));
                 financialDataInput.setOverrideAssumptionGrowthRate(new OverrideAssumption(0D, false, 0D, null));
                 financialDataInput.setOverrideAssumptionCashPosition(new OverrideAssumption(0D, false, 0D, null));
-        }
-
-        /**
-         * Handles segment fetching and sector override application.
-         * Common logic for processing sector-specific parameter overrides.
-         */
-        private void handleSegmentsAndOverrides(FinancialDataInput financialDataInput, CompanyDataDTO companyDataDTO,
-                        String ticker) {
-                if (financialDataInput.getSectorOverrides() != null
-                                && !financialDataInput.getSectorOverrides().isEmpty()) {
-                        log.info("Sector overrides detected ({} overrides) - fetching segment data for {}",
-                                        financialDataInput.getSectorOverrides().size(), ticker);
-
-                        // Fetch segments from company data
-                        if (financialDataInput.getSegments() != null
-                                        && financialDataInput.getSegments().getSegments() != null
-                                        && !financialDataInput.getSegments().getSegments().isEmpty()) {
-                                log.info("✅ Loaded {} segments for sector override processing",
-                                                financialDataInput.getSegments().getSegments().size());
-
-                                // Apply segment-weighted parameters with overrides
-                                List<String> adjustedParameters = new ArrayList<>();
-                                commonService.applySegmentWeightedParameters(financialDataInput, companyDataDTO,
-                                                adjustedParameters);
-                                log.info("✅ Applied sector overrides successfully for {}", ticker);
-                        } else {
-                                log.warn("⚠️ Sector overrides requested but no segment data available for {}. Overrides will be ignored.",
-                                                ticker);
-                        }
-                } else if (financialDataInput.getSegments() != null
-                                && financialDataInput.getSegments().getSegments() != null
-                                && financialDataInput.getSegments().getSegments().size() > 1) {
-                        // Segments provided in input (existing behavior)
-                        List<String> adjustedParameters = new ArrayList<>();
-                        commonService.applySegmentWeightedParameters(financialDataInput, companyDataDTO,
-                                        adjustedParameters);
-
-                }
         }
 
         /**
@@ -711,7 +1139,8 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                         FinancialDataInput financialDataInput,
                         CompanyDataDTO companyDataDTO,
                         String ticker,
-                        boolean enableSegments) {
+                        boolean enableSegments,
+                        List<String> adjustedParameters) {
 
                 if (!enableSegments) {
                         log.info("Multi-segment analysis disabled for {}", ticker);
@@ -720,7 +1149,6 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
 
                 if (financialDataInput.getSegments() != null && financialDataInput.getSegments().getSegments() != null
                                 && financialDataInput.getSegments().getSegments().size() > 1) {
-                        List<String> adjustedParameters = new ArrayList<>();
                         commonService.applySegmentWeightedParameters(financialDataInput, companyDataDTO,
                                         adjustedParameters);
                         log.info("Multi-segment analysis applied for {} with {} segments",
@@ -738,7 +1166,8 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                         boolean enableDCFAnalysis,
                         boolean addStory,
                         ValuationTemplate template,
-                        boolean enableSegments) {
+                        boolean enableSegments,
+                        List<String> adjustedParameters) {
 
                 // If intrinsic value is negative, apply calibration
                 if (valuationOutputDTOCheck.getCompanyDTO().getEstimatedValuePerShare() < 0) {
@@ -754,12 +1183,14 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                         financialDataInput.setTargetPreTaxOperatingMargin(
                                         calibrationResultDTO.getOperatingMargin() * 0.80);
 
-                        processSegmentAnalysis(financialDataInput, companyDataDTO, ticker, enableSegments);
+                        processSegmentAnalysis(financialDataInput, companyDataDTO, ticker, enableSegments,
+                                        adjustedParameters);
 
                         return valuationOutputService.getValuationOutput(ticker,
                                         financialDataInput, addStory, template);
                 } else {
-                        processSegmentAnalysis(financialDataInput, companyDataDTO, ticker, enableSegments);
+                        processSegmentAnalysis(financialDataInput, companyDataDTO, ticker, enableSegments,
+                                        adjustedParameters);
 
                         return valuationOutputService.getValuationOutput(ticker,
                                         financialDataInput, addStory, template);
@@ -822,15 +1253,17 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
          * @param overrides The minimal FinancialDataInput containing ONLY user
          *                  overrides
          */
-        private void applyUserOverrides(FinancialDataInput baseline, FinancialDataInput overrides) {
+        private List<String> applyUserOverrides(FinancialDataInput baseline, FinancialDataInput overrides) {
                 log.info("Applying user overrides to baseline parameters...");
                 int overrideCount = 0;
+                Set<String> adjustedParameters = new LinkedHashSet<>();
 
                 // Apply each override if present (non-null)
                 if (overrides.getRevenueNextYear() != null) {
                         baseline.setRevenueNextYear(overrides.getRevenueNextYear());
                         log.info("   Override: revenueNextYear = {}", overrides.getRevenueNextYear());
                         overrideCount++;
+                        adjustedParameters.add("revenueNextYear");
                 }
 
                 if (overrides.getOperatingMarginNextYear() != null) {
@@ -840,14 +1273,17 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                                 baseline.setTargetPreTaxOperatingMargin(overrides.getOperatingMarginNextYear());
                                 log.info("   Derived override: targetPreTaxOperatingMargin = {} (from operatingMarginNextYear)",
                                                 overrides.getOperatingMarginNextYear());
+                                adjustedParameters.add("targetPreTaxOperatingMargin");
                         }
                         overrideCount++;
+                        adjustedParameters.add("operatingMarginNextYear");
                 }
 
                 if (overrides.getCompoundAnnualGrowth2_5() != null) {
                         baseline.setCompoundAnnualGrowth2_5(overrides.getCompoundAnnualGrowth2_5());
                         log.info("   Override: compoundAnnualGrowth2_5 = {}", overrides.getCompoundAnnualGrowth2_5());
                         overrideCount++;
+                        adjustedParameters.add("compoundAnnualGrowth2_5");
                 }
 
                 if (overrides.getTargetPreTaxOperatingMargin() != null) {
@@ -855,6 +1291,7 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                         log.info("   Override: targetPreTaxOperatingMargin = {}",
                                         overrides.getTargetPreTaxOperatingMargin());
                         overrideCount++;
+                        adjustedParameters.add("targetPreTaxOperatingMargin");
                 }
 
                 if (overrides.getConvergenceYearMargin() != null) {
@@ -867,24 +1304,28 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                         baseline.setSalesToCapitalYears1To5(overrides.getSalesToCapitalYears1To5());
                         log.info("   Override: salesToCapitalYears1To5 = {}", overrides.getSalesToCapitalYears1To5());
                         overrideCount++;
+                        adjustedParameters.add("salesToCapitalYears1To5");
                 }
 
                 if (overrides.getSalesToCapitalYears6To10() != null) {
                         baseline.setSalesToCapitalYears6To10(overrides.getSalesToCapitalYears6To10());
                         log.info("   Override: salesToCapitalYears6To10 = {}", overrides.getSalesToCapitalYears6To10());
                         overrideCount++;
+                        adjustedParameters.add("salesToCapitalYears6To10");
                 }
 
                 if (overrides.getRiskFreeRate() != null) {
                         baseline.setRiskFreeRate(overrides.getRiskFreeRate());
                         log.info("   Override: riskFreeRate = {}", overrides.getRiskFreeRate());
                         overrideCount++;
+                        adjustedParameters.add("riskFreeRate");
                 }
 
                 if (overrides.getInitialCostCapital() != null) {
                         baseline.setInitialCostCapital(overrides.getInitialCostCapital());
                         log.info("   Override: initialCostCapital = {}", overrides.getInitialCostCapital());
                         overrideCount++;
+                        adjustedParameters.add("initialCostCapital");
                 }
 
                 // Terminal growth rate override (for dcf_recalculator tool)
@@ -903,6 +1344,7 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                         log.info("   Override: segments = {} segment(s)",
                                         overrides.getSegments().getSegments().size());
                         overrideCount++;
+                        adjustedParameters.add("segments");
                 }
 
                 // Copy sector overrides if present
@@ -911,15 +1353,20 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                         log.info("   Override: sectorOverrides = {} override(s)",
                                         overrides.getSectorOverrides().size());
                         overrideCount++;
+                        adjustedParameters.add("sectorOverrides");
                 }
 
                 log.info("Applied {} user override(s) to baseline", overrideCount);
+                return new ArrayList<>(adjustedParameters);
         }
 
         /**
          * Count non-null fields in FinancialDataInput for logging purposes.
          */
         private int countNonNullFields(FinancialDataInput input) {
+                if (input == null) {
+                        return 0;
+                }
                 int count = 0;
                 if (input.getRevenueNextYear() != null)
                         count++;

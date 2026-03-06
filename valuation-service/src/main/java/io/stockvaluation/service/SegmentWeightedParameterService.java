@@ -291,6 +291,10 @@ public class SegmentWeightedParameterService {
 
         List<SegmentResponseDTO.Segment> segments = financialDataInput.getSegments().getSegments();
         log.info("Calculating segment-weighted parameters for {} segments", segments.size());
+        Set<String> adjustedParameterSet = adjustedParameters == null ? Set.of()
+                : adjustedParameters.stream()
+                        .filter(param -> param != null && !param.isBlank())
+                        .collect(Collectors.toSet());
 
         // Validate sector overrides
         List<SectorParameterOverride> validatedOverrides = validateSectorOverrides(
@@ -323,47 +327,52 @@ public class SegmentWeightedParameterService {
         if (missingMappingRevenueShare > 0) {
             log.info("Redistributing {} revenue share equally among {} valid segments ({}% each)",
                     missingMappingRevenueShare, validSegmentCount, redistributionPerSegment);
+        }
 
-        } else {
-            double weightedRevGrowthNext = 0.0;
-            double weightedRevGrowth2_5 = 0.0;
-            double weightedTargetMargin = 0.0;
-            double weightedSalesToCapital1To5 = 0.0;
-            double weightedSalesToCapital6To10 = 0.0;
-            double weightedCostOfCapital = 0.0;
+        double weightedRevGrowthNext = 0.0;
+        double weightedRevGrowth2_5 = 0.0;
+        double weightedTargetMargin = 0.0;
+        double weightedSalesToCapital1To5 = 0.0;
+        double weightedSalesToCapital6To10 = 0.0;
+        double weightedCostOfCapital = 0.0;
 
-            String country = companyDataDTO.getBasicInfoDataDTO().getCountryOfIncorporation();
-            boolean isUS = country != null && country.equalsIgnoreCase("United States");
+        String country = companyDataDTO.getBasicInfoDataDTO().getCountryOfIncorporation();
+        boolean isUS = country != null && country.equalsIgnoreCase("United States");
+        double riskFreeRate = companyDataDTO.getCompanyDriveDataDTO().getRiskFreeRate();
+        if (financialDataInput.getRiskFreeRate() != null) {
+            riskFreeRate = financialDataInput.getRiskFreeRate() / 100.0;
+        }
 
-            Double revenueGrowthNext = companyDataDTO.getCompanyDriveDataDTO().getRevenueNextYear();
-            Double operatingMarginNextYear = companyDataDTO.getCompanyDriveDataDTO().getOperatingMarginNextYear();
-            Double targetPreTaxOperatingMargin = companyDataDTO.getCompanyDriveDataDTO()
-                    .getTargetPreTaxOperatingMargin();
-            Double companyRevGrowth2_5 = companyDataDTO.getCompanyDriveDataDTO().getCompoundAnnualGrowth2_5();
-            Double salesToCapitalYears1To5 = companyDataDTO.getCompanyDriveDataDTO().getSalesToCapitalYears1To5();
-            Double salesToCapitalYears6To10 = companyDataDTO.getCompanyDriveDataDTO().getSalesToCapitalYears6To10();
+        // IMPORTANT:
+        // Use FinancialDataInput as the source of truth so caller overrides (valuation-agent
+        // or UI) remain effective even in segment-aware runs.
+        // CompanyDataDTO is used only as fallback.
+        Double revenueGrowthNextPct = coalesce(
+                financialDataInput.getRevenueNextYear(),
+                asPercent(companyDataDTO.getCompanyDriveDataDTO().getRevenueNextYear()));
+        Double operatingMarginNextYearPct = coalesce(
+                financialDataInput.getOperatingMarginNextYear(),
+                asPercent(companyDataDTO.getCompanyDriveDataDTO().getOperatingMarginNextYear()));
+        Double targetPreTaxOperatingMargin = coalesce(
+                financialDataInput.getTargetPreTaxOperatingMargin(),
+                asPercent(companyDataDTO.getCompanyDriveDataDTO().getTargetPreTaxOperatingMargin()));
+        Double companyRevGrowth2_5 = coalesce(
+                financialDataInput.getCompoundAnnualGrowth2_5(),
+                asPercent(companyDataDTO.getCompanyDriveDataDTO().getCompoundAnnualGrowth2_5()));
+        Double salesToCapitalYears1To5 = coalesce(
+                financialDataInput.getSalesToCapitalYears1To5(),
+                asSalesToCapitalPercent(companyDataDTO.getCompanyDriveDataDTO().getSalesToCapitalYears1To5()));
+        Double salesToCapitalYears6To10 = coalesce(
+                financialDataInput.getSalesToCapitalYears6To10(),
+                asSalesToCapitalPercent(companyDataDTO.getCompanyDriveDataDTO().getSalesToCapitalYears6To10()));
 
-            if (!adjustedParameters.isEmpty()) {
-                if (adjustedParameters.contains("revenue_cagr")) {
-                    companyRevGrowth2_5 = financialDataInput.getCompoundAnnualGrowth2_5();
-                }
-                if (adjustedParameters.contains("operating_margin")) {
-                    targetPreTaxOperatingMargin = financialDataInput.getOperatingMarginNextYear();
-                }
-            }
-            /*
-             * Double revenueGrowthNext = financialDataInput.getRevenueNextYear() / 100;
-             * Double operatingMarginNextYear =
-             * financialDataInput.getOperatingMarginNextYear() / 100;
-             * Double targetPreTaxOperatingMargin =
-             * financialDataInput.getTargetPreTaxOperatingMargin() / 100;
-             * Double salesToCapitalYears1To5 =
-             * financialDataInput.getSalesToCapitalYears1To5() / 100;
-             * Double salesToCapitalYears6To10 =
-             * financialDataInput.getSalesToCapitalYears6To10();
-             * Double companyRevGrowth2_5 = financialDataInput.getCompoundAnnualGrowth2_5()
-             * / 100 ;
-             */
+        // Growth helper uses decimal form for next-year growth/margin (e.g., 0.10 not 10.0).
+        Double revenueGrowthNext = revenueGrowthNextPct / 100.0;
+        Double operatingMarginNextYear = operatingMarginNextYearPct / 100.0;
+
+        if (!adjustedParameterSet.isEmpty()) {
+            log.debug("Segment-weighted run received adjusted parameter hints: {}", adjustedParameterSet);
+        }
 
             for (SegmentResponseDTO.Segment segment : segments) {
                 Double revenueShare = segment.getRevenueShare();
@@ -523,7 +532,6 @@ public class SegmentWeightedParameterService {
             }
 
             // Apply weighted cost of capital adjustment (matching line 563-564)
-            double riskFreeRate = companyDataDTO.getCompanyDriveDataDTO().getRiskFreeRate();
             weightedCostOfCapital = (weightedCostOfCapital - baselineRiskFreeRate)
                     + riskFreeRate;
 
@@ -723,23 +731,28 @@ public class SegmentWeightedParameterService {
                 // weighted averaging
                 applySectorOverrides(validatedOverrides, sectorParams, segment.getSector());
 
+                // Explicit top-level overrides should remain authoritative in segment-aware runs.
+                applyTopLevelOverridesToSector(sectorParams, financialDataInput, adjustedParameterSet, validatedOverrides);
+
                 // Store sector parameters
                 segmentParams.setSectorParameters(segment.getSector(), sectorParams);
 
                 log.debug("Created sector parameters for {}: {}", segment.getSector(), sectorParams);
             }
 
-            // Store in thread-safe context for use in ValuationOutputService
-            SegmentParameterContext.setParameters(segmentParams);
+        // Recalculate weighted values from final per-sector parameters (after sector + top-level overrides)
+        recomputeWeightedFromSectorParameters(segmentParams);
 
-            // Apply weighted parameters to FinancialDataInput (for backward compatibility)
-            financialDataInput.setRevenueNextYear(weightedRevGrowthNext);
-            financialDataInput.setCompoundAnnualGrowth2_5(weightedRevGrowth2_5);
-            financialDataInput.setTargetPreTaxOperatingMargin(weightedTargetMargin);
-            financialDataInput.setSalesToCapitalYears1To5(weightedSalesToCapital1To5);
-            financialDataInput.setSalesToCapitalYears6To10(weightedSalesToCapital6To10);
-            financialDataInput.setInitialCostCapital(weightedCostOfCapital);
-        }
+        // Store in thread-safe context for use in ValuationOutputService
+        SegmentParameterContext.setParameters(segmentParams);
+
+        // Apply weighted parameters to FinancialDataInput (for backward compatibility)
+        financialDataInput.setRevenueNextYear(segmentParams.getWeightedRevenueNextYear());
+        financialDataInput.setCompoundAnnualGrowth2_5(segmentParams.getWeightedCompoundAnnualGrowth2_5());
+        financialDataInput.setTargetPreTaxOperatingMargin(segmentParams.getWeightedTargetPreTaxOperatingMargin());
+        financialDataInput.setSalesToCapitalYears1To5(segmentParams.getWeightedSalesToCapitalYears1To5());
+        financialDataInput.setSalesToCapitalYears6To10(segmentParams.getWeightedSalesToCapitalYears6To10());
+        financialDataInput.setInitialCostCapital(segmentParams.getWeightedInitialCostCapital());
 
     }
 
@@ -750,10 +763,139 @@ public class SegmentWeightedParameterService {
         return salesToCapital / 100;
     }
 
+    private static Double coalesce(Double primary, Double fallback) {
+        return primary != null ? primary : fallback;
+    }
+
+    private static double asPercent(Double value) {
+        if (value == null) {
+            return 0.0;
+        }
+        return Math.abs(value) <= 1.0 ? value * 100.0 : value;
+    }
+
+    private static double asSalesToCapitalPercent(Double value) {
+        if (value == null) {
+            return 0.0;
+        }
+        return value * 100.0;
+    }
+
     private double reAdjustSalesToCapitalFirstPhases(Double salesToCapitalFirstPhase, Double salesToCapital) {
         if (salesToCapitalFirstPhase != null) {
             return Math.max(salesToCapitalFirstPhase / 2, salesToCapital);
         }
         return salesToCapital;
+    }
+
+    private static boolean hasSectorOverrideForParameter(List<SectorParameterOverride> overrides, String sectorName,
+            String parameterType) {
+        if (overrides == null || overrides.isEmpty()) {
+            return false;
+        }
+        return overrides.stream()
+                .anyMatch(override -> sectorName.equalsIgnoreCase(override.getSectorName())
+                        && parameterType.equalsIgnoreCase(override.getParameterType()));
+    }
+
+    private static void recomputeWeightedFromSectorParameters(SegmentWeightedParameters segmentParams) {
+        if (segmentParams == null || !segmentParams.hasSectorParameters()) {
+            return;
+        }
+
+        double totalShare = 0.0;
+        double weightedRevenueNextYear = 0.0;
+        double weightedRevenueGrowth2To5 = 0.0;
+        double weightedOperatingMarginNextYear = 0.0;
+        double weightedTargetMargin = 0.0;
+        double weightedSalesToCapital1To5 = 0.0;
+        double weightedSalesToCapital6To10 = 0.0;
+        double weightedInitialCostCapital = 0.0;
+
+        for (SegmentWeightedParameters.SectorParameters sector : segmentParams.getSectorParameters().values()) {
+            if (sector == null || sector.getRevenueShare() == null || sector.getRevenueShare() <= 0) {
+                continue;
+            }
+            double share = sector.getRevenueShare();
+            totalShare += share;
+            weightedRevenueNextYear += (sector.getRevenueNextYear() == null ? 0.0 : sector.getRevenueNextYear()) * share;
+            weightedRevenueGrowth2To5 += (sector.getCompoundAnnualGrowth2_5() == null ? 0.0
+                    : sector.getCompoundAnnualGrowth2_5()) * share;
+            weightedOperatingMarginNextYear += (sector.getOperatingMarginNextYear() == null ? 0.0
+                    : sector.getOperatingMarginNextYear()) * share;
+            weightedTargetMargin += (sector.getTargetPreTaxOperatingMargin() == null ? 0.0
+                    : sector.getTargetPreTaxOperatingMargin()) * share;
+            weightedSalesToCapital1To5 += (sector.getSalesToCapitalYears1To5() == null ? 0.0
+                    : sector.getSalesToCapitalYears1To5()) * share;
+            weightedSalesToCapital6To10 += (sector.getSalesToCapitalYears6To10() == null ? 0.0
+                    : sector.getSalesToCapitalYears6To10()) * share;
+            weightedInitialCostCapital += (sector.getInitialCostCapital() == null ? 0.0
+                    : sector.getInitialCostCapital()) * share;
+        }
+
+        if (totalShare <= 0) {
+            return;
+        }
+
+        segmentParams.setWeightedRevenueNextYear(weightedRevenueNextYear / totalShare);
+        segmentParams.setWeightedCompoundAnnualGrowth2_5(weightedRevenueGrowth2To5 / totalShare);
+        segmentParams.setWeightedOperatingMarginNextYear(weightedOperatingMarginNextYear / totalShare);
+        segmentParams.setWeightedTargetPreTaxOperatingMargin(weightedTargetMargin / totalShare);
+        segmentParams.setWeightedSalesToCapitalYears1To5(weightedSalesToCapital1To5 / totalShare);
+        segmentParams.setWeightedSalesToCapitalYears6To10(weightedSalesToCapital6To10 / totalShare);
+        segmentParams.setWeightedInitialCostCapital(weightedInitialCostCapital / totalShare);
+    }
+
+    private static void applyTopLevelOverridesToSector(
+            SegmentWeightedParameters.SectorParameters sectorParams,
+            FinancialDataInput financialDataInput,
+            Set<String> adjustedParameterSet,
+            List<SectorParameterOverride> validatedOverrides) {
+        if (sectorParams == null || financialDataInput == null || adjustedParameterSet == null || adjustedParameterSet.isEmpty()) {
+            return;
+        }
+
+        boolean hasRevenueOverride = hasSectorOverrideForParameter(validatedOverrides, sectorParams.getSectorName(),
+                "revenue_growth");
+        boolean hasOperatingMarginOverride = hasSectorOverrideForParameter(validatedOverrides,
+                sectorParams.getSectorName(), "operating_margin");
+        boolean hasSalesToCapitalOverride = hasSectorOverrideForParameter(validatedOverrides, sectorParams.getSectorName(),
+                "sales_to_capital");
+
+        if (!hasRevenueOverride) {
+            if (adjustedParameterSet.contains("revenueNextYear") && financialDataInput.getRevenueNextYear() != null) {
+                sectorParams.setRevenueNextYear(financialDataInput.getRevenueNextYear());
+            }
+            if (adjustedParameterSet.contains("compoundAnnualGrowth2_5")
+                    && financialDataInput.getCompoundAnnualGrowth2_5() != null) {
+                sectorParams.setCompoundAnnualGrowth2_5(financialDataInput.getCompoundAnnualGrowth2_5());
+            }
+        }
+
+        if (!hasOperatingMarginOverride) {
+            if (adjustedParameterSet.contains("operatingMarginNextYear")
+                    && financialDataInput.getOperatingMarginNextYear() != null) {
+                sectorParams.setOperatingMarginNextYear(financialDataInput.getOperatingMarginNextYear());
+            }
+            if (adjustedParameterSet.contains("targetPreTaxOperatingMargin")
+                    && financialDataInput.getTargetPreTaxOperatingMargin() != null) {
+                sectorParams.setTargetPreTaxOperatingMargin(financialDataInput.getTargetPreTaxOperatingMargin());
+            }
+        }
+
+        if (!hasSalesToCapitalOverride) {
+            if (adjustedParameterSet.contains("salesToCapitalYears1To5")
+                    && financialDataInput.getSalesToCapitalYears1To5() != null) {
+                sectorParams.setSalesToCapitalYears1To5(financialDataInput.getSalesToCapitalYears1To5());
+            }
+            if (adjustedParameterSet.contains("salesToCapitalYears6To10")
+                    && financialDataInput.getSalesToCapitalYears6To10() != null) {
+                sectorParams.setSalesToCapitalYears6To10(financialDataInput.getSalesToCapitalYears6To10());
+            }
+        }
+
+        if (adjustedParameterSet.contains("initialCostCapital") && financialDataInput.getInitialCostCapital() != null) {
+            sectorParams.setInitialCostCapital(financialDataInput.getInitialCostCapital());
+        }
     }
 }

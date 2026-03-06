@@ -1663,16 +1663,14 @@ public class ValuationOutputService {
 
             if (SegmentParameterContext.hasSectorParameters()) {
                 // Use sector-specific parameters from stored context
-                sectorSalesToCapitalValue1To5 = Math.max(
-                        SegmentParameterContext.getSectorParameterOrDefault(
-                                sectorKey,
-                                SegmentWeightedParameters.SectorParameters::getSalesToCapitalYears1To5,
-                                companySalesToCapital1To5),
+                sectorSalesToCapitalValue1To5 = SegmentParameterContext.getSectorParameterOrDefault(
+                        sectorKey,
+                        SegmentWeightedParameters.SectorParameters::getSalesToCapitalYears1To5,
                         companySalesToCapital1To5);
-                sectorSalesToCapitalValue6To10 = Math.max(SegmentParameterContext.getSectorParameterOrDefault(
+                sectorSalesToCapitalValue6To10 = SegmentParameterContext.getSectorParameterOrDefault(
                         sectorKey,
                         SegmentWeightedParameters.SectorParameters::getSalesToCapitalYears6To10,
-                        companySalesToCapital6To10), companySalesToCapital6To10);
+                        companySalesToCapital6To10);
 
                 log.debug("Sector {}: Using stored sector-specific sales-to-capital - Phase 1: {}, Phase 2: {}",
                         sectorKey, sectorSalesToCapitalValue1To5, sectorSalesToCapitalValue6To10);

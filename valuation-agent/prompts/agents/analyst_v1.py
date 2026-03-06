@@ -180,6 +180,8 @@ def get_prompt(inputs: Dict[str, Any]) -> str:
       }}
     """
 
+    growth_skill = skills.get("growth_skill", {}) if isinstance(skills, dict) else {}
+
     user_content = f"""
       Company: {name} ({ticker})
       Valuation Date: {valuation_date}
@@ -189,6 +191,11 @@ def get_prompt(inputs: Dict[str, Any]) -> str:
       FINANCIALS_PREPROCESSED_JSON: {json.dumps(financials)}
       Investment Hypothesis: {json.dumps(news_content)}
       SKILLS_JSON: {json.dumps(skills, ensure_ascii=True)}
+      GROWTH_SKILL_JSON: {json.dumps(growth_skill, ensure_ascii=True)}
+
+      Note: If GROWTH_SKILL_JSON is present, reference the historical growth bands
+      (p25/p50/p75, fundamental_growth, regime_tag) when discussing growth assumptions.
+      This provides evidence-based anchors from Damodaran's industry dataset.
     """
 
     return f"System: {system_prompt.strip()}\n\nUser: {user_content.strip()}"

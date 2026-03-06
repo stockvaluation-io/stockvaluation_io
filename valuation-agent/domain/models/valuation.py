@@ -27,6 +27,7 @@ class GraphState(BaseModel):
     name: Annotated[str, merge_strings] = ""
     industry: Annotated[str, merge_strings] = ""
     news: Annotated[Dict[str, Any], merge_dicts] = Field(default_factory=dict)
+    growth_skill_context: Annotated[Dict[str, Any], merge_dicts] = Field(default_factory=dict)
     merged_result: Annotated[Dict[str, Any], merge_dicts] = Field(default_factory=dict)
 
 class ValuationRequest(BaseModel):

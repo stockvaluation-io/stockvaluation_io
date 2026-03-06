@@ -96,6 +96,7 @@ class GraphBuilder:
         logger.debug(f"ANALYZER AGENT WRAPPER CALLED for {state_dict.get('name', 'Unknown')}")
         try:
             del config  # no config inputs currently required for analyzer
+            _profile = (state_dict.get("financials") or {}).get("profile") or {}
             analyzer_inputs = {
                 "ticker": state_dict.get("ticker", ""),
                 "name": state_dict.get("name", ""),
@@ -107,6 +108,9 @@ class GraphBuilder:
                 "skills": build_skill_bundle(
                     industry=str(state_dict.get("industry", "")).strip(),
                     segments_payload=state_dict.get("segments", {}) or {},
+                    yahoo_industry=str(_profile.get("industry") or _profile.get("industry_us") or "").strip(),
+                    region=str(_profile.get("country") or _profile.get("country_of_incorporation") or "").strip(),
+                    growth_skill_override=state_dict.get("growth_skill_context") or {},
                 ),
             }
             llm_result = self.orchestrator.run_agent("analyzer", analyzer_inputs)
@@ -145,7 +149,7 @@ class GraphBuilder:
             return {
                 "merged_result": {
                     "dcf_analysis": {"dcf_adjustment_instructions": []},
-                    "recommendations": {"confidence_level": "low"},
+                    "recommendations": {},
                     "analyzer_metadata": {"version": "analyzer_v1", "error": True},
                 },
             }
@@ -155,6 +159,7 @@ class GraphBuilder:
         """Analyst V1 wrapper for narrative sections consumed by frontend."""
         try:
             del config  # no config inputs currently required for analyst
+            _profile = (state_dict.get("financials") or {}).get("profile") or {}
             analyst_inputs = {
                 "ticker": state_dict.get("ticker", ""),
                 "name": state_dict.get("name", ""),
@@ -165,6 +170,9 @@ class GraphBuilder:
                 "skills": build_skill_bundle(
                     industry=str(state_dict.get("industry", "")).strip(),
                     segments_payload=state_dict.get("segments", {}) or {},
+                    yahoo_industry=str(_profile.get("industry") or _profile.get("industry_us") or "").strip(),
+                    region=str(_profile.get("country") or _profile.get("country_of_incorporation") or "").strip(),
+                    growth_skill_override=state_dict.get("growth_skill_context") or {},
                 ),
             }
             llm_result = self.orchestrator.run_agent("analyst", analyst_inputs)
@@ -282,6 +290,52 @@ class GraphBuilder:
         for item in normalized_instructions:
             proposed[item["parameter"]] = item["new_value"]
 
+        # Phase 3: Controlled Enforcement for Growth Assumptions
+        growth_skill_override_reason = None
+        try:
+            _profile = (state_dict.get("financials") or {}).get("profile") or {}
+            _skills = build_skill_bundle(
+                industry=str(state_dict.get("industry", "")).strip(),
+                segments_payload=state_dict.get("segments", {}) or {},
+                yahoo_industry=str(_profile.get("industry") or _profile.get("industry_us") or "").strip(),
+                region=str(_profile.get("country") or _profile.get("country_of_incorporation") or "").strip(),
+                growth_skill_override=state_dict.get("growth_skill_context") or {},
+            )
+            g_skill = _skills.get("growth_skill", {})
+            if isinstance(g_skill, dict) and str(g_skill.get("confidence", "")).upper() == "HIGH":
+                p10 = (g_skill.get("revenue_cagr_band") or {}).get("p10")
+                p90 = (g_skill.get("revenue_cagr_band") or {}).get("p90")
+                cagr = proposed.get("revenue_cagr")
+
+                cagr_percent = self._normalize_percent_like(cagr)
+                p10_percent = self._normalize_percent_like(p10)
+                p90_percent = self._normalize_percent_like(p90)
+
+                if cagr_percent is not None and p10_percent is not None and p90_percent is not None:
+                    clamped = None
+                    if cagr_percent > p90_percent:
+                        clamped = self._restore_percent_scale(cagr, p90_percent)
+                        growth_skill_override_reason = (
+                            f"Clamped revenue_cagr from {cagr_percent:.1f}% "
+                            f"down to HIGH-confidence ceiling p90 ({p90_percent:.1f}%)."
+                        )
+                    elif cagr_percent < p10_percent:
+                        clamped = self._restore_percent_scale(cagr, p10_percent)
+                        growth_skill_override_reason = (
+                            f"Clamped revenue_cagr from {cagr_percent:.1f}% "
+                            f"up to HIGH-confidence floor p10 ({p10_percent:.1f}%)."
+                        )
+
+                    if clamped is not None:
+                        proposed["revenue_cagr"] = clamped
+                        for inst in normalized_instructions:
+                            if inst["parameter"] == "revenue_cagr":
+                                inst["new_value"] = clamped
+                                inst["growth_skill_override_reason"] = growth_skill_override_reason
+                        logger.warning(f"[AGENT-3 Phase3 Guard] {growth_skill_override_reason}")
+        except Exception as e:
+            logger.error(f"Failed to enforce growth bounds: {e}")
+
         segments = self._extract_segments(state_dict.get("segments", {}) or {})
         dominant_segment = self._get_dominant_segment(segments)
         dominant_sector = str(dominant_segment.get("sector", "")).strip()
@@ -304,10 +358,6 @@ class GraphBuilder:
         if tone not in {"optimistic", "cautious", "neutral"}:
             tone = "neutral"
 
-        confidence = str(raw_recommendations.get("confidence_level", "low")).lower()
-        if confidence not in {"low", "medium", "high"}:
-            confidence = "low"
-
         baseline_available = [key for key, value in baseline.items() if value is not None]
 
         dcf_analysis = {
@@ -320,7 +370,6 @@ class GraphBuilder:
         }
 
         recommendations = {
-            "confidence_level": confidence,
             "focus_variables": ["revenue_cagr", "operating_margin", "sales_to_capital"],
             "summary": raw_recommendations.get("summary")
             or "Narrow assumption adjuster only. DCF math, data retrieval, and final valuation remain in Java.",
@@ -346,6 +395,8 @@ class GraphBuilder:
             "generated_instruction_count": len(normalized_instructions) + len(normalized_sector_instructions),
             "baseline_metrics_available": raw_baseline_available,
         }
+        if growth_skill_override_reason:
+            analyzer_metadata["growth_skill_override_reason"] = growth_skill_override_reason
 
         return {
             "dcf_analysis": dcf_analysis,
@@ -406,7 +457,6 @@ class GraphBuilder:
                 "adjusted_valuation": "Analyzer output unavailable; no assumption changes applied.",
             },
             "recommendations": {
-                "confidence_level": "low",
                 "focus_variables": ["revenue_cagr", "operating_margin", "sales_to_capital"],
                 "summary": "Analyzer output unavailable. Keeping baseline assumptions.",
             },
@@ -431,6 +481,22 @@ class GraphBuilder:
             return float(value)
         except (TypeError, ValueError):
             return None
+
+    @classmethod
+    def _normalize_percent_like(cls, value: Any) -> Optional[float]:
+        parsed = cls._safe_float(value)
+        if parsed is None:
+            return None
+        if abs(parsed) <= 1.0:
+            return parsed * 100.0
+        return parsed
+
+    @classmethod
+    def _restore_percent_scale(cls, reference_value: Any, percent_value: float) -> float:
+        reference = cls._safe_float(reference_value)
+        if reference is not None and abs(reference) <= 1.0:
+            return round(percent_value / 100.0, 3)
+        return round(percent_value, 3)
 
     def _normalize_analyst_result(self, llm_result: Dict[str, Any], state_dict: Dict[str, Any]) -> Dict[str, Any]:
         news_data = state_dict.get("news", {}) if isinstance(state_dict.get("news"), dict) else {}

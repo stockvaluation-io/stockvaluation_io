@@ -597,8 +597,7 @@ export class NotebookService {
             request || {}
         ).pipe(
             map(response => {
-                // Refresh theses list
-                this.loadTheses().subscribe();
+                this.upsertGroupedThesis(response.thesis);
                 this._isLoading.set(false);
                 return response.thesis;
             }),
@@ -610,14 +609,51 @@ export class NotebookService {
         );
     }
 
+    private upsertGroupedThesis(thesis: Thesis): void {
+        if (!thesis?.ticker || !thesis?.id) {
+            return;
+        }
+
+        const createdAt = thesis.created_at ? new Date(thesis.created_at) : new Date();
+        const year = createdAt.getUTCFullYear();
+        const month = String(createdAt.getUTCMonth() + 1).padStart(2, '0');
+        const monthKey = `${year}-${month}`;
+
+        const grouped = { ...this._groupedTheses() };
+        const tickerGroup = { ...(grouped[thesis.ticker] || {}) };
+        const currentMonth = [...(tickerGroup[monthKey] || [])];
+        const existingIndex = currentMonth.findIndex(item => item.id === thesis.id);
+
+        if (existingIndex >= 0) {
+            currentMonth[existingIndex] = thesis;
+        } else {
+            currentMonth.unshift(thesis);
+        }
+
+        tickerGroup[monthKey] = currentMonth;
+        grouped[thesis.ticker] = tickerGroup;
+        this._groupedTheses.set(grouped);
+    }
+
     /**
      * Load all theses (grouped by company/date).
      */
     loadTheses(): Observable<GroupedTheses> {
-        return this.http.get<ThesesListResponse>(`${this.baseUrl}/theses`).pipe(
+        return this.http.get<ThesesListResponse>(`${this.baseUrl}/theses?grouped=true`).pipe(
             map(response => {
-                this._groupedTheses.set(response.grouped);
-                return response.grouped;
+                const grouped = response?.grouped || {};
+                this._groupedTheses.set(grouped);
+                return grouped;
+            }),
+            catchError((error) => {
+                // Some stale frontend bundles can hit deprecated route states and receive 410.
+                // Keep notebook usable and prevent save flow from appearing broken.
+                if (error?.status === 404 || error?.status === 410) {
+                    console.warn('Theses endpoint unavailable, falling back to empty grouped list.', error);
+                    this._groupedTheses.set({});
+                    return of({});
+                }
+                throw error;
             })
         );
     }

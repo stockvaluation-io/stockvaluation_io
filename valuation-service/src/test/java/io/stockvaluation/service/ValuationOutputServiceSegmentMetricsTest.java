@@ -143,6 +143,48 @@ class ValuationOutputServiceSegmentMetricsTest {
         assertNotNull(financial.getCostOfCapitalBySector().get("hardware")[1]);
     }
 
+    @Test
+    void calculateFinancialData_honorsLowerSectorSalesToCapitalOverride() {
+        ValuationOutputService service = service();
+        when(commonService.resolveMatureMarketPremium()).thenReturn(4.0);
+
+        FinancialDataInput input = baseInput();
+        input.setSalesToCapitalYears1To5(4.0);
+        input.setSalesToCapitalYears6To10(4.0);
+        input.setSegments(new SegmentResponseDTO(List.of(
+                new SegmentResponseDTO.Segment("software", "technology", List.of("cloud"), 1.0, 0.6, 0.3),
+                new SegmentResponseDTO.Segment("hardware", "technology", List.of("devices"), 1.0, 0.4, 0.2)
+        )));
+
+        SegmentWeightedParameters params = new SegmentWeightedParameters();
+        params.setSegmentWeighted(true);
+        params.setSegmentCount(2);
+        params.setWeightedRevenueNextYear(8.0);
+        params.setWeightedCompoundAnnualGrowth2_5(6.0);
+        params.setWeightedOperatingMarginNextYear(25.0);
+        params.setWeightedTargetPreTaxOperatingMargin(25.0);
+        params.setConvergenceYearMargin(5.0);
+        params.setWeightedSalesToCapitalYears1To5(3.68);
+        params.setWeightedSalesToCapitalYears6To10(3.68);
+        params.setWeightedInitialCostCapital(8.0);
+        params.setRiskFreeRate(4.0);
+
+        // Intentionally lower than company-level sales-to-capital to verify override is respected.
+        params.setSectorParameters("software", sectorParams("software", 0.6, 9.0, 7.0, 0.04, 30.0, 30.0, 5.0, 3.2, 3.2));
+        params.setSectorParameters("hardware", sectorParams("hardware", 0.4, 6.0, 5.5, 0.04, 22.0, 22.0, 5.0, 4.0, 4.0));
+        SegmentParameterContext.setParameters(params);
+
+        FinancialDTO financial = service.calculateFinancialData(
+                input,
+                new RDResult(0.0, 0.0, 0.0, 0.0),
+                new io.stockvaluation.dto.LeaseResultDTO(0.0, 0.0, 0.0, 0.0),
+                "MSFT",
+                null
+        );
+
+        assertEquals(3.2, financial.getSalesToCapitalRatioBySector().get("software")[1], 0.0001);
+    }
+
     private ValuationOutputService service() {
         return new ValuationOutputService(
                 commonService,

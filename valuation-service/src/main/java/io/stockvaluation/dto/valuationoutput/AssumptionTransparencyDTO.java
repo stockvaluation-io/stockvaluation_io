@@ -23,6 +23,39 @@ public class AssumptionTransparencyDTO {
     private DiscountRate discountRate;
     private OperatingAssumptions operatingAssumptions;
     private List<String> notes = new ArrayList<>();
+    private GrowthAnchor growthAnchor;
+    private MarketImpliedExpectations marketImpliedExpectations;
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class GrowthAnchor {
+        /** Damodaran entity key used for matching. */
+        private String entity;
+        /** Human-readable display name. */
+        private String entityDisplay;
+        /** Region the data is sourced from. */
+        private String region;
+        /** Dataset year. */
+        private Integer year;
+        /** Number of firms in the industry. */
+        private Double numberOfFirms;
+        /** Fundamental growth = ROE x Reinvestment Rate. */
+        private Double fundamentalGrowth;
+        /** Historical growth proxy (median of historical measures). */
+        private Double historicalGrowthProxy;
+        /** Expected growth proxy (median of forward measures). */
+        private Double expectedGrowthProxy;
+        /** Heuristic confidence in [0,1]. */
+        private Double confidenceScore;
+        /** Growth distribution percentiles. */
+        private Double p25;
+        private Double p50;
+        private Double p75;
+        /** Data provenance. */
+        private String source;
+    }
 
     @NoArgsConstructor
     @AllArgsConstructor
@@ -54,5 +87,31 @@ public class AssumptionTransparencyDTO {
         private String revenueGrowthRationale;
         private String operatingMarginRationale;
         private String salesToCapitalRationale;
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class MarketImpliedExpectations {
+        private Double marketPrice;
+        private Double modelIntrinsicValue;
+        private String method;
+        private List<ImpliedMetric> metrics = new ArrayList<>();
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class ImpliedMetric {
+        private String key;
+        private String label;
+        private String unit;
+        private Double modelValue;
+        private Double impliedValue;
+        private Double gap;
+        private Boolean solved;
+        private String note;
     }
 }

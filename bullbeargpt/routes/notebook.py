@@ -718,6 +718,93 @@ def health_check():
         }), 503
 
 
+@notebook_bp.route('/assumption-rationale/<valuation_id>', methods=['GET'])
+def get_assumption_rationale(valuation_id: str):
+    """
+    CHAT-1: Growth skill explainability endpoint.
+    Returns the rationale for growth assumptions using historical anchor data
+    specifically for a given valuation ID.
+    
+    Returns:
+        Structured JSON with assumption rationale.
+    """
+    try:
+        from services.valuation_client import ValuationClient
+        client = ValuationClient()
+        
+        # 1. Fetch valuation record from valuation-agent.
+        valuation_record = client.get_valuation_by_id(valuation_id)
+        if not valuation_record:
+            return jsonify({'error': f'Valuation {valuation_id} not found'}), 404
+
+        payload = valuation_record.get('valuation_data') if isinstance(valuation_record, dict) else {}
+        if not isinstance(payload, dict):
+            payload = {}
+
+        java_output = payload.get('java_valuation_output') if isinstance(payload.get('java_valuation_output'), dict) else {}
+        transparency = java_output.get('assumptionTransparency') if isinstance(java_output.get('assumptionTransparency'), dict) else {}
+        if not transparency:
+            transparency = payload.get('assumptionTransparency') if isinstance(payload.get('assumptionTransparency'), dict) else {}
+
+        anchor = (
+            transparency.get('growthAnchor')
+            or java_output.get('growthSkillContext')
+            or payload.get('growthSkillContext')
+        )
+        
+        if not anchor:
+            return jsonify({'error': 'No growth anchor data found for this valuation'}), 404
+
+        operating = transparency.get('operatingAssumptions') if isinstance(transparency.get('operatingAssumptions'), dict) else {}
+        selected_growth_pct = operating.get('revenueGrowthRateYears2To5')
+        selected_growth = float(selected_growth_pct) / 100.0 if selected_growth_pct is not None else 0.0
+
+        def _to_ratio(value):
+            if value is None:
+                return None
+            try:
+                parsed = float(value)
+            except (TypeError, ValueError):
+                return None
+            return parsed / 100.0 if abs(parsed) > 1.0 else parsed
+
+        band_p25 = _to_ratio(anchor.get('p25'))
+        band_p50 = _to_ratio(anchor.get('p50'))
+        band_p75 = _to_ratio(anchor.get('p75'))
+        entity_name = anchor.get('entityDisplay') or anchor.get('entity', 'Unknown')
+        
+        confidence = "HIGH" if anchor.get('confidenceScore', 0) > 0.8 else "MEDIUM" if anchor.get('confidenceScore', 0) > 0.5 else "LOW"
+        
+        # Build explanation
+        explanation = f"Selected value ({selected_growth:.1%}) "
+        if band_p50 is not None:
+            if selected_growth > band_p75:
+                explanation += f"is above the 75th percentile ({band_p75:.1%}) for {entity_name}."
+            elif selected_growth < band_p25:
+                explanation += f"is below the 25th percentile ({band_p25:.1%}) for {entity_name}."
+            else:
+                explanation += f"sits near the median ({band_p50:.1%}) within the {entity_name} industry band."
+        else:
+            explanation += f"was chosen, but specific historical bands for {entity_name} are unavailable."
+
+        return jsonify({
+            "assumption": "revenue_cagr",
+            "selected_value": selected_growth,
+            "industry_band": {
+                "p25": band_p25,
+                "p50": band_p50,
+                "p75": band_p75
+            },
+            "damodaran_entity": entity_name,
+            "confidence": confidence,
+            "explanation": explanation
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error fetching assumption rationale: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 # ===== THESIS ENDPOINTS =====
 
 @notebook_bp.route('/sessions/<session_id>/generate-thesis-stream', methods=['POST'])

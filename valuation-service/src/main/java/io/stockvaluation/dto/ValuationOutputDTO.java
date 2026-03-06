@@ -78,6 +78,11 @@ public class ValuationOutputDTO {
     private AssumptionTransparencyDTO assumptionTransparency;
 
     /**
+     * Skill diagnostics representing the industry priors.
+     */
+    private io.stockvaluation.dto.GrowthAnchorDTO growthSkillContext;
+
+    /**
      * The primary valuation model selected for this company.
      * FCFF (current supported model)
      */

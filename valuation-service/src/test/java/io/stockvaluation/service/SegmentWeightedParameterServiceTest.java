@@ -1,6 +1,7 @@
 package io.stockvaluation.service;
 
 import io.stockvaluation.domain.SectorMapping;
+import io.stockvaluation.domain.IndustryAveragesUS;
 import io.stockvaluation.dto.BasicInfoDataDTO;
 import io.stockvaluation.dto.CompanyDataDTO;
 import io.stockvaluation.dto.CompanyDriveDataDTO;
@@ -99,15 +100,15 @@ class SegmentWeightedParameterServiceTest {
 
         assertNotNull(a);
         assertNotNull(b);
-        assertEquals(25.0, a.getTargetPreTaxOperatingMargin(), 0.0001);
-        assertEquals(20.0, b.getTargetPreTaxOperatingMargin(), 0.0001);
+        assertEquals(23.0, a.getTargetPreTaxOperatingMargin(), 0.0001);
+        assertEquals(18.0, b.getTargetPreTaxOperatingMargin(), 0.0001);
 
-        assertEquals(10.0, input.getRevenueNextYear(), 0.0001);
+        assertEquals(3.0, input.getRevenueNextYear(), 0.0001);
         assertNotNull(input.getInitialCostCapital());
     }
 
     @Test
-    void applySegmentWeightedParameters_missingSectorMapping_keepsInputUnchanged() {
+    void applySegmentWeightedParameters_missingSectorMapping_redistributesToMappedSegments() {
         FinancialDataInput input = baselineInput();
         input.setSegments(new SegmentResponseDTO(List.of(
                 new SegmentResponseDTO.Segment("missing-sector", "tech", List.of("A"), 0.9, 0.7, 0.2),
@@ -118,16 +119,77 @@ class SegmentWeightedParameterServiceTest {
         when(sectorMappingRepository.findByIndustryName("mapped-sector"))
                 .thenReturn(new SectorMapping(2L, "yahoo-b", "mapped-sector", "Industry B"));
 
-        Double revenueBefore = input.getRevenueNextYear();
-        Double growthBefore = input.getCompoundAnnualGrowth2_5();
-        Double marginBefore = input.getTargetPreTaxOperatingMargin();
-
         service.applySegmentWeightedParameters(input, companyData("United States"), List.of(), 0.04);
 
-        assertEquals(revenueBefore, input.getRevenueNextYear());
-        assertEquals(growthBefore, input.getCompoundAnnualGrowth2_5());
-        assertEquals(marginBefore, input.getTargetPreTaxOperatingMargin());
-        assertNull(SegmentParameterContext.getParameters());
+        SegmentWeightedParameters context = SegmentParameterContext.getParameters();
+        assertNotNull(context);
+        assertTrue(context.hasSectorParameters());
+        assertNotNull(context.getSectorParameters("mapped-sector"));
+        assertNull(context.getSectorParameters("missing-sector"));
+
+        // With 70% missing-share redistributed to the only mapped segment,
+        // weighted revenue next-year should reflect full 100% mapped weight.
+        assertEquals(3.0, input.getRevenueNextYear(), 0.0001);
+    }
+
+    @Test
+    void applySegmentWeightedParameters_explicitTopLevelOverrides_remainAuthoritativeInSegmentMode() {
+        FinancialDataInput input = baselineInput();
+        input.setRevenueNextYear(12.5);
+        input.setCompoundAnnualGrowth2_5(12.5);
+        input.setOperatingMarginNextYear(36.0);
+        input.setTargetPreTaxOperatingMargin(36.0);
+        input.setSalesToCapitalYears1To5(360.0);
+        input.setSalesToCapitalYears6To10(360.0);
+        input.setInitialCostCapital(9.2);
+        input.setSegments(new SegmentResponseDTO(List.of(
+                new SegmentResponseDTO.Segment("sector-a", "tech", List.of("A"), 0.9, 0.6, 0.2),
+                new SegmentResponseDTO.Segment("sector-b", "tech", List.of("B"), 0.9, 0.4, 0.2)
+        )));
+
+        when(sectorMappingRepository.findByIndustryName("sector-a"))
+                .thenReturn(new SectorMapping(1L, "yahoo-a", "sector-a", "Industry A"));
+        when(sectorMappingRepository.findByIndustryName("sector-b"))
+                .thenReturn(new SectorMapping(2L, "yahoo-b", "sector-b", "Industry B"));
+
+        IndustryAveragesUS highIndustryAverages = new IndustryAveragesUS();
+        highIndustryAverages.setAnnualAverageRevenueGrowth(40.0);
+        highIndustryAverages.setPreTaxOperatingMargin(45.0);
+        highIndustryAverages.setSalesToCapital(6.0);
+        highIndustryAverages.setCostOfCapital(0.11);
+        when(industryAvgUSRepository.findByIndustryName(anyString())).thenReturn(highIndustryAverages);
+        when(inputStatRepository.findFirstByIndustryGroupOrderByIdAsc(anyString())).thenReturn(Optional.empty());
+
+        service.applySegmentWeightedParameters(
+                input,
+                companyData("United States"),
+                List.of(
+                        "revenueNextYear",
+                        "compoundAnnualGrowth2_5",
+                        "operatingMarginNextYear",
+                        "targetPreTaxOperatingMargin",
+                        "salesToCapitalYears1To5",
+                        "salesToCapitalYears6To10",
+                        "initialCostCapital"),
+                0.04);
+
+        SegmentWeightedParameters context = SegmentParameterContext.getParameters();
+        assertNotNull(context);
+        assertEquals(12.5, input.getRevenueNextYear(), 0.0001);
+        assertEquals(12.5, input.getCompoundAnnualGrowth2_5(), 0.0001);
+        assertEquals(36.0, input.getTargetPreTaxOperatingMargin(), 0.0001);
+        assertEquals(360.0, input.getSalesToCapitalYears1To5(), 0.0001);
+        assertEquals(360.0, input.getSalesToCapitalYears6To10(), 0.0001);
+        assertEquals(9.2, input.getInitialCostCapital(), 0.0001);
+
+        SegmentWeightedParameters.SectorParameters sectorA = context.getSectorParameters("sector-a");
+        SegmentWeightedParameters.SectorParameters sectorB = context.getSectorParameters("sector-b");
+        assertNotNull(sectorA);
+        assertNotNull(sectorB);
+        assertEquals(12.5, sectorA.getCompoundAnnualGrowth2_5(), 0.0001);
+        assertEquals(12.5, sectorB.getCompoundAnnualGrowth2_5(), 0.0001);
+        assertEquals(36.0, sectorA.getTargetPreTaxOperatingMargin(), 0.0001);
+        assertEquals(36.0, sectorB.getTargetPreTaxOperatingMargin(), 0.0001);
     }
 
     private static FinancialDataInput baselineInput() {

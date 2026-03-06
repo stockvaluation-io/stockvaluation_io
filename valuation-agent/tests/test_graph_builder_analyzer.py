@@ -58,6 +58,7 @@ def test_analyzer_wrapper_uses_llm_analyzer_agent():
     assert "merged_result" in result
     assert result["merged_result"]["dcf_analysis"]["dcf_adjustment_instructions"][0]["parameter"] == "revenue_cagr"
     assert result["merged_result"]["dcf_analysis"]["sector_adjustment_instructions"][0]["sector"] == "software-application"
+    assert "confidence_level" not in (result["merged_result"].get("recommendations") or {})
 
 
 def test_analyzer_wrapper_falls_back_when_llm_fails():

@@ -1,0 +1,362 @@
+[
+  {
+    "yahoo_industry": "Consumer Electronics",
+    "yahoo_sector": "Technology",
+    "damodaran_entity": "computersperipherals",
+    "region": "United States",
+    "confidence_tier": "HIGH",
+    "notes": "Curated seed from drift-regression basket (AAPL)",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Software - Infrastructure",
+    "yahoo_sector": "Technology",
+    "damodaran_entity": "softwaresystemapplication",
+    "region": "United States",
+    "confidence_tier": "HIGH",
+    "notes": "Curated seed from drift-regression basket (MSFT)",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Internet Content & Information",
+    "yahoo_sector": "Communication Services",
+    "damodaran_entity": "softwareinternet",
+    "region": "United States",
+    "confidence_tier": "HIGH",
+    "notes": "Curated seed from drift-regression basket (GOOG)",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Semiconductor Equipment & Materials",
+    "yahoo_sector": "Technology",
+    "damodaran_entity": "semiconductorequip",
+    "region": "Europe",
+    "confidence_tier": "HIGH",
+    "notes": "Curated seed from drift-regression basket (ASML)",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Information Technology Services",
+    "yahoo_sector": "Technology",
+    "damodaran_entity": "computerservices",
+    "region": "Emerging Markets",
+    "confidence_tier": "HIGH",
+    "notes": "Curated seed from drift-regression basket (INFY)",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Internet Retail",
+    "yahoo_sector": "Consumer Cyclical",
+    "damodaran_entity": "retailgeneral",
+    "region": "Emerging Markets",
+    "confidence_tier": "HIGH",
+    "notes": "Curated seed from drift-regression basket (BABA)",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Auto Manufacturers",
+    "yahoo_sector": "Consumer Cyclical",
+    "damodaran_entity": "autotruck",
+    "region": "United States",
+    "confidence_tier": "HIGH",
+    "notes": "Curated seed from drift-regression basket (RIVN)",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Software - Application",
+    "yahoo_sector": "Technology",
+    "damodaran_entity": "softwaresystemapplication",
+    "region": "United States",
+    "confidence_tier": "HIGH",
+    "notes": "Curated seed from drift-regression basket (UBER)",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Drug Manufacturers - General",
+    "yahoo_sector": "Healthcare",
+    "damodaran_entity": "drugspharmaceutical",
+    "region": "United States",
+    "confidence_tier": "HIGH",
+    "notes": "Curated seed from drift-regression basket (JNJ)",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Beverages - Non-Alcoholic",
+    "yahoo_sector": "Consumer Defensive",
+    "damodaran_entity": "beveragesoft",
+    "region": "United States",
+    "confidence_tier": "HIGH",
+    "notes": "Curated seed from drift-regression basket (KO)",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Household & Personal Products",
+    "yahoo_sector": "Consumer Defensive",
+    "damodaran_entity": "householdproducts",
+    "region": "United States",
+    "confidence_tier": "HIGH",
+    "notes": "Curated seed from drift-regression basket (PG)",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Semiconductors",
+    "yahoo_sector": "Technology",
+    "damodaran_entity": "semiconductor",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Banks - Regional",
+    "yahoo_sector": "Financial Services",
+    "damodaran_entity": "banksregional",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Insurance - Life",
+    "yahoo_sector": "Financial Services",
+    "damodaran_entity": "insurancelife",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Oil & Gas E&P",
+    "yahoo_sector": "Energy",
+    "damodaran_entity": "oilgasproductionandexploration",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Utilities - Regulated Electric",
+    "yahoo_sector": "Utilities",
+    "damodaran_entity": "power",
+    "region": "Global",
+    "confidence_tier": "MEDIUM",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "REIT - Diversified",
+    "yahoo_sector": "Real Estate",
+    "damodaran_entity": "reit",
+    "region": "Global",
+    "confidence_tier": "MEDIUM",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Aerospace & Defense",
+    "yahoo_sector": "Industrials",
+    "damodaran_entity": "aerospacedefense",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Restaurants",
+    "yahoo_sector": "Consumer Cyclical",
+    "damodaran_entity": "restaurantdining",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Biotechnology",
+    "yahoo_sector": "Healthcare",
+    "damodaran_entity": "drugsbiotechnology",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Medical Devices",
+    "yahoo_sector": "Healthcare",
+    "damodaran_entity": "healthcareproducts",
+    "region": "Global",
+    "confidence_tier": "MEDIUM",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Telecom Services",
+    "yahoo_sector": "Communication Services",
+    "damodaran_entity": "telecomservices",
+    "region": "Global",
+    "confidence_tier": "MEDIUM",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Auto Parts",
+    "yahoo_sector": "Consumer Cyclical",
+    "damodaran_entity": "autoparts",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Packaging & Containers",
+    "yahoo_sector": "Consumer Cyclical",
+    "damodaran_entity": "packagingcontainer",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Building Products & Equipment",
+    "yahoo_sector": "Industrials",
+    "damodaran_entity": "buildingmaterials",
+    "region": "Global",
+    "confidence_tier": "MEDIUM",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Specialty Chemicals",
+    "yahoo_sector": "Basic Materials",
+    "damodaran_entity": "chemicalspecialty",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Steel",
+    "yahoo_sector": "Basic Materials",
+    "damodaran_entity": "steel",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Gold",
+    "yahoo_sector": "Basic Materials",
+    "damodaran_entity": "preciousmetals",
+    "region": "Global",
+    "confidence_tier": "MEDIUM",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Entertainment",
+    "yahoo_sector": "Communication Services",
+    "damodaran_entity": "entertainment",
+    "region": "Global",
+    "confidence_tier": "MEDIUM",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Apparel Manufacturing",
+    "yahoo_sector": "Consumer Cyclical",
+    "damodaran_entity": "apparel",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Tobacco",
+    "yahoo_sector": "Consumer Defensive",
+    "damodaran_entity": "tobacco",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Hotels, Resorts & Cruise Lines",
+    "yahoo_sector": "Consumer Cyclical",
+    "damodaran_entity": "hotelgaming",
+    "region": "Global",
+    "confidence_tier": "MEDIUM",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Luxury Goods",
+    "yahoo_sector": "Consumer Cyclical",
+    "damodaran_entity": "apparel",
+    "region": "Global",
+    "confidence_tier": "LOW",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Gambling",
+    "yahoo_sector": "Consumer Cyclical",
+    "damodaran_entity": "hotelgaming",
+    "region": "Global",
+    "confidence_tier": "MEDIUM",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Education & Training Services",
+    "yahoo_sector": "Consumer Defensive",
+    "damodaran_entity": "education",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Trucking",
+    "yahoo_sector": "Industrials",
+    "damodaran_entity": "trucking",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Railroads",
+    "yahoo_sector": "Industrials",
+    "damodaran_entity": "transportationrailroads",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Marine Shipping",
+    "yahoo_sector": "Industrials",
+    "damodaran_entity": "shipbuildingmarine",
+    "region": "Global",
+    "confidence_tier": "MEDIUM",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Waste Management",
+    "yahoo_sector": "Industrials",
+    "damodaran_entity": "environmentalwasteservices",
+    "region": "Global",
+    "confidence_tier": "HIGH",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  },
+  {
+    "yahoo_industry": "Renewable Energy",
+    "yahoo_sector": "Utilities",
+    "damodaran_entity": "greenrenewableenergy",
+    "region": "Global",
+    "confidence_tier": "MEDIUM",
+    "notes": "Extended curated mapping",
+    "is_manual_override": true
+  }
+]

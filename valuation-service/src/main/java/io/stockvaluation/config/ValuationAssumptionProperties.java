@@ -19,4 +19,8 @@ public class ValuationAssumptionProperties {
     private String baselineRiskFreeCurrencyCode = "USD";
     private int simulationIterations = 10000;
     private int calibrationMaxIterations = 10000;
+    private int impliedExpectationGridSteps = 24;
+    private int impliedExpectationBisectionIterations = 28;
+    private double impliedExpectationTolerance = 0.25;
+    private boolean strictGrowthPolicy = false;
 }

@@ -36,6 +36,7 @@ def create_app():
     
     # Register blueprints
     from routes import register_routes
+    from routes.notebook import get_assumption_rationale as notebook_assumption_rationale
     register_routes(app)
 
     internal_api_key = os.getenv("INTERNAL_API_KEY", "").strip()
@@ -65,6 +66,11 @@ def create_app():
     @app.route('/health')
     def health():
         return {'status': 'healthy', 'service': 'bullbeargpt-api'}
+
+    # CHAT-1 alias endpoint from implementation plan.
+    @app.route('/api-s/valuation/<valuation_id>/assumption-rationale', methods=['GET'])
+    def assumption_rationale_alias(valuation_id: str):
+        return notebook_assumption_rationale(valuation_id)
     
     logger.info("BullBearGPT API initialized (SSE streaming, CORS origins=%s)", config.CORS_ORIGINS)
     

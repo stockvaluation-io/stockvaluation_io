@@ -346,6 +346,7 @@ class StockValuationApp:
                 baseline_result["preprocessed_financials"],
                 mapped_segments,
                 news_result["news"],
+                baseline_result.get("growth_skill_context") or {},
                 audit_run_id
             )
             
@@ -435,6 +436,8 @@ class StockValuationApp:
 
         raw_dcf = self._deep_snake_case(baseline_dcf)
         company_name = requested_name or raw_dcf.get("company_name") or ticker
+        if raw_dcf.get("company_name"):
+            company_name = raw_dcf.get("company_name")
         raw_financials = self._build_raw_financials_from_java_output(
             ticker=ticker,
             company_name=company_name,
@@ -450,6 +453,7 @@ class StockValuationApp:
             "preprocessed_dcf": preprocessed_dcf,
             "preprocessed_financials": preprocessed_financials,
             "financial_data_input_payload": baseline_overrides,
+            "growth_skill_context": raw_dcf.get("growth_skill_context") or {},
         }
 
     def _run_segment_mapping(self, ticker: str, company_name: str, preprocessed_financials: Dict[str, Any]) -> Dict[str, Any]:
@@ -517,7 +521,7 @@ class StockValuationApp:
             "news_hash": current_news_hash
         }
 
-    def _run_dcf_graph(self, ticker: str, company_name: str, preprocessed_dcf: Dict[str, Any], preprocessed_financials: Dict[str, Any], mapped_segments: List[Dict[str, Any]], news_result: Dict[str, Any], audit_run_id: str) -> Dict[str, Any]:
+    def _run_dcf_graph(self, ticker: str, company_name: str, preprocessed_dcf: Dict[str, Any], preprocessed_financials: Dict[str, Any], mapped_segments: List[Dict[str, Any]], news_result: Dict[str, Any], growth_skill_context: Dict[str, Any], audit_run_id: str) -> Dict[str, Any]:
         cache_key = f"valuate-{ticker}-{audit_run_id}"
 
         initial_state = GraphState(
@@ -528,6 +532,7 @@ class StockValuationApp:
             name=company_name,
             industry=preprocessed_financials.get("profile", {}).get("industry", ""),
             news=news_result,
+            growth_skill_context=growth_skill_context or {},
             merged_result={},
         )
 
@@ -636,6 +641,9 @@ class StockValuationApp:
             "skills": build_skill_bundle(
                 industry=str(preprocessed_financials.get("profile", {}).get("industry", "")).strip(),
                 segments_payload={"segments": mapped_segments or []},
+                yahoo_industry=str((preprocessed_financials.get("profile") or {}).get("industry") or (preprocessed_financials.get("profile") or {}).get("industry_us") or "").strip(),
+                region=str((preprocessed_financials.get("profile") or {}).get("country") or (preprocessed_financials.get("profile") or {}).get("country_of_incorporation") or "").strip(),
+                growth_skill_override=final_raw_dcf.get("growth_skill_context") or {},
             ),
         }
         llm_result = self.orchestrator.run_agent("analyst", analyst_inputs)
@@ -680,6 +688,13 @@ class StockValuationApp:
             java_overrides=recalc_result.get("java_overrides") or {},
             mapped_segments=mapped_segments,
         )
+        if isinstance(merged_result.get("dcf_analysis"), dict):
+            effective_assumptions = self._derive_effective_assumptions_from_dcf(dcf)
+            requested_assumptions = merged_result["dcf_analysis"].get("proposed_assumptions")
+            if isinstance(requested_assumptions, dict):
+                merged_result["dcf_analysis"]["requested_assumptions"] = requested_assumptions
+            merged_result["dcf_analysis"]["proposed_assumptions"] = effective_assumptions
+            merged_result["dcf_analysis"]["effective_assumptions"] = effective_assumptions
 
         company_dto = dcf.get("companyDTO") or {}
         fair_value = company_dto.get("estimatedValuePerShare")
@@ -725,20 +740,27 @@ class StockValuationApp:
             "ticker": ticker,
             "company_name": company_name,
             "valuation_id": valuation_id,
-            "user_valuation_id": None,
-            "audit_run_id": audit_run_id,
             "dcf": dcf,
             "agent_analysis": graph_result["agent_analysis_payload"],
             "news_sources": self._extract_news_sources(news_result["news"]),
             "segments": mapped_segments,
             "applied_overrides": recalc_result["java_overrides"],
-            "financial_data_input": {
-                "baseline": baseline_result.get("financial_data_input_payload") or {},
-                "recalculate": recalc_result.get("java_recalculate_payload") or {},
-            },
         }
 
         return jsonify(response_payload), 200
+
+    def _derive_effective_assumptions_from_dcf(self, dcf: Dict[str, Any]) -> Dict[str, Optional[float]]:
+        financial_dto = dcf.get("financialDTO") if isinstance(dcf, dict) else {}
+        if not isinstance(financial_dto, dict):
+            financial_dto = {}
+        revenue_values = financial_dto.get("revenueGrowthRate")
+        margin_values = financial_dto.get("ebitOperatingMargin")
+        stc_values = financial_dto.get("salesToCapitalRatio")
+        return {
+            "revenue_cagr": self._average_percent_window(revenue_values, 2, 5),
+            "operating_margin": self._average_percent_window(margin_values, 2, 5),
+            "sales_to_capital": self._average_multiple_window(stc_values, 1, 5),
+        }
 
     def _map_adjustments_to_java_overrides(
         self,
@@ -840,7 +862,7 @@ class StockValuationApp:
 
             unit = str(item.get("unit", "")).strip().lower()
             if parameter == "sales_to_capital":
-                normalized_value = round(self._normalize_sales_to_capital_value(value), 2)
+                normalized_value = round(self._normalize_sector_sales_to_capital_value(value), 2)
             elif unit in {"percent", "%"}:
                 normalized_value = round(self._normalize_percent_like_value(value), 2)
             else:
@@ -906,9 +928,21 @@ class StockValuationApp:
     def _normalize_sales_to_capital_value(value: float) -> float:
         """
         Java stores sales-to-capital in percentage-style units (e.g., 200 = 2.0x).
+        This applies to top-level FinancialDataInput fields.
         """
         if abs(value) <= 10.0:
             return value * 100.0
+        return value
+
+    @staticmethod
+    def _normalize_sector_sales_to_capital_value(value: float) -> float:
+        """
+        Sector overrides use plain x units in valuation-service.
+        Backward-compat: if legacy callers send percentage-style numbers (e.g. 320),
+        normalize back to 3.2x for sector-level override payloads.
+        """
+        if abs(value) > 50.0:
+            return value / 100.0
         return value
 
     def _extract_mapped_segments(self, segments_result: Any, expected_industry: str = "") -> List[Dict[str, Any]]:
@@ -1209,37 +1243,64 @@ class StockValuationApp:
         growth_values = financial_dto.get("revenueGrowthRate") if isinstance(financial_dto, dict) else []
         margin_values = financial_dto.get("ebitOperatingMargin") if isinstance(financial_dto, dict) else []
         sales_to_capital_values = financial_dto.get("salesToCapitalRatio") if isinstance(financial_dto, dict) else []
+        existing_transparency = dcf.get("assumptionTransparency") if isinstance(dcf.get("assumptionTransparency"), dict) else {}
+        existing_discount = existing_transparency.get("discountRate") if isinstance(existing_transparency.get("discountRate"), dict) else {}
+        existing_market_implied = (
+            existing_transparency.get("marketImpliedExpectations")
+            if isinstance(existing_transparency.get("marketImpliedExpectations"), dict)
+            else None
+        )
 
         initial_cost_of_capital = self._normalize_percent_output(self._first_numeric(cost_of_capital_values))
         terminal_cost_of_capital = self._normalize_percent_output(
             self._safe_number(terminal_dto.get("costOfCapital")) or self._last_numeric(cost_of_capital_values)
         )
-        risk_free_rate = self._normalize_percent_output(self._safe_number(terminal_dto.get("growthRate")))
+        risk_free_rate = self._normalize_percent_output(
+            self._safe_number(existing_discount.get("riskFreeRate"))
+            or self._safe_number(existing_discount.get("risk_free_rate"))
+            or self._safe_number(java_overrides.get("riskFreeRate"))
+        )
+        risk_free_rate_source = "Not available from valuation output."
+        if risk_free_rate is not None:
+            if self._safe_number(java_overrides.get("riskFreeRate")) is not None:
+                risk_free_rate_source = "Analyzer-adjusted override"
+            else:
+                risk_free_rate_source = "Final FCFF output"
         equity_risk_premium = None
         if risk_free_rate is not None and terminal_cost_of_capital is not None:
             equity_risk_premium = round(max(0.0, terminal_cost_of_capital - risk_free_rate), 2)
 
-        revenue_growth = self._normalize_percent_output(
+        requested_revenue_growth = self._normalize_percent_output(
             self._safe_number(java_overrides.get("compoundAnnualGrowth2_5"))
         )
-        if revenue_growth is None:
-            revenue_growth = self._average_percent_window(growth_values, 2, 5)
-
-        operating_margin = self._normalize_percent_output(
+        requested_operating_margin = self._normalize_percent_output(
             self._safe_number(java_overrides.get("targetPreTaxOperatingMargin"))
         )
-        if operating_margin is None:
-            operating_margin = self._average_percent_window(margin_values, 2, 5)
-
-        sales_to_capital_1_5 = self._normalize_sales_to_capital_output(
+        requested_sales_to_capital_1_5 = self._normalize_sales_to_capital_output(
             self._safe_number(java_overrides.get("salesToCapitalYears1To5"))
         )
+        requested_sales_to_capital_6_10 = self._normalize_sales_to_capital_output(
+            self._safe_number(java_overrides.get("salesToCapitalYears6To10"))
+        )
+
+        # Always anchor transparency to effective values from final FCFF outputs.
+        revenue_growth = self._average_percent_window(growth_values, 2, 5)
+        if revenue_growth is None:
+            revenue_growth = requested_revenue_growth
+
+        operating_margin = self._average_percent_window(margin_values, 2, 5)
+        if operating_margin is None:
+            operating_margin = requested_operating_margin
+
+        sales_to_capital_1_5 = self._average_multiple_window(sales_to_capital_values, 1, 5)
+        if sales_to_capital_1_5 is None:
+            sales_to_capital_1_5 = requested_sales_to_capital_1_5
         if sales_to_capital_1_5 is None:
             sales_to_capital_1_5 = self._normalize_sales_to_capital_output(self._projection_value(sales_to_capital_values, 1))
 
-        sales_to_capital_6_10 = self._normalize_sales_to_capital_output(
-            self._safe_number(java_overrides.get("salesToCapitalYears6To10"))
-        )
+        sales_to_capital_6_10 = self._average_multiple_window(sales_to_capital_values, 6, 10)
+        if sales_to_capital_6_10 is None:
+            sales_to_capital_6_10 = requested_sales_to_capital_6_10
         if sales_to_capital_6_10 is None:
             sales_to_capital_6_10 = self._normalize_sales_to_capital_output(self._last_projection_value(sales_to_capital_values))
 
@@ -1250,6 +1311,50 @@ class StockValuationApp:
             or java_overrides.get("salesToCapitalYears6To10") is not None
         )
         has_wacc_override = java_overrides.get("initialCostCapital") is not None
+        sector_overrides_count = len(java_overrides.get("sectorOverrides") or [])
+
+        growth_source = "Final FCFF output"
+        if has_growth_override:
+            growth_source = "Final FCFF output (analyzer override request applied)"
+            if requested_revenue_growth is not None and revenue_growth is not None and abs(requested_revenue_growth - revenue_growth) > 0.01:
+                growth_source += f"; requested {requested_revenue_growth:.2f}%"
+
+        margin_source = "Final FCFF output"
+        if has_margin_override:
+            margin_source = "Final FCFF output (analyzer override request applied)"
+            if requested_operating_margin is not None and operating_margin is not None and abs(requested_operating_margin - operating_margin) > 0.01:
+                margin_source += f"; requested {requested_operating_margin:.2f}%"
+        if sector_overrides_count > 0:
+            margin_source += f"; {sector_overrides_count} sector override(s) included"
+
+        sales_to_capital_source = "Final FCFF output"
+        if has_stc_override:
+            sales_to_capital_source = "Final FCFF output (analyzer override request applied)"
+            requested_parts: List[str] = []
+            if requested_sales_to_capital_1_5 is not None:
+                requested_parts.append(f"Years 1-5 requested {requested_sales_to_capital_1_5:.2f}x")
+            if requested_sales_to_capital_6_10 is not None:
+                requested_parts.append(f"Years 6-10 requested {requested_sales_to_capital_6_10:.2f}x")
+            if requested_parts:
+                sales_to_capital_source += f"; {', '.join(requested_parts)}"
+        if sector_overrides_count > 0:
+            sales_to_capital_source += f"; {sector_overrides_count} sector override(s) included"
+
+        adjustment_rationales = self._extract_adjustment_rationales(adjustments)
+        if not adjustment_rationales.get("costOfCapital"):
+            coc_parts: List[str] = []
+            if initial_cost_of_capital is not None:
+                coc_parts.append(f"Initial cost of capital is {initial_cost_of_capital:.2f}% from final FCFF output.")
+            if terminal_cost_of_capital is not None:
+                coc_parts.append(f"Terminal cost of capital is {terminal_cost_of_capital:.2f}%.")
+            if risk_free_rate is not None:
+                coc_parts.append(f"Risk-free anchor is {risk_free_rate:.2f}% ({risk_free_rate_source}).")
+            if equity_risk_premium is not None:
+                coc_parts.append(f"Implied equity risk premium is {equity_risk_premium:.2f}% (terminal WACC minus risk-free).")
+            if has_wacc_override:
+                coc_parts.append("Analyzer provided an initial cost of capital override.")
+            if coc_parts:
+                adjustment_rationales["costOfCapital"] = " ".join(coc_parts)
 
         return {
             "valuationModel": dcf.get("primaryModel") or "FCFF",
@@ -1264,23 +1369,25 @@ class StockValuationApp:
                 "initialCostOfCapital": initial_cost_of_capital,
                 "terminalCostOfCapital": terminal_cost_of_capital,
                 "costOfCapitalFormula": "Terminal WACC = risk-free rate + mature market premium; path values from FCFF model output.",
-                "riskFreeRateSource": "Final FCFF terminal growth anchor (bounded by risk-free assumption).",
+                "riskFreeRateSource": risk_free_rate_source,
                 "equityRiskPremiumSource": "Derived from terminal WACC minus risk-free anchor.",
-                "initialCostOfCapitalSource": "Analyzer-adjusted override" if has_wacc_override else "Final FCFF output",
+                "initialCostOfCapitalSource": "Final FCFF output (analyzer override request applied)" if has_wacc_override else "Final FCFF output",
             },
             "operatingAssumptions": {
                 "revenueGrowthRateYears2To5": revenue_growth,
                 "targetOperatingMargin": operating_margin,
                 "salesToCapitalYears1To5": sales_to_capital_1_5,
                 "salesToCapitalYears6To10": sales_to_capital_6_10,
-                "revenueGrowthSource": "Analyzer-adjusted override" if has_growth_override else "Final FCFF output",
-                "operatingMarginSource": "Analyzer-adjusted override" if has_margin_override else "Final FCFF output",
-                "salesToCapitalSource": "Analyzer-adjusted override" if has_stc_override else "Final FCFF output",
+                "revenueGrowthSource": growth_source,
+                "operatingMarginSource": margin_source,
+                "salesToCapitalSource": sales_to_capital_source,
                 "revenueGrowthRationale": "Derived from analyzer instruction rationale" if has_growth_override else "No analyzer override applied.",
                 "operatingMarginRationale": "Derived from analyzer instruction rationale" if has_margin_override else "No analyzer override applied.",
                 "salesToCapitalRationale": "Derived from analyzer instruction rationale" if has_stc_override else "No analyzer override applied.",
             },
-            "adjustmentRationales": self._extract_adjustment_rationales(adjustments),
+            "adjustmentRationales": adjustment_rationales,
+            "growthAnchor": self._build_growth_anchor(dcf),
+            "marketImpliedExpectations": existing_market_implied,
             "notes": [
                 "Rates are shown in percent.",
                 "Sales-to-capital is shown as x multiple.",
@@ -1314,6 +1421,68 @@ class StockValuationApp:
             elif parameter in {"wacc", "cost_of_capital"}:
                 rationales["costOfCapital"] = with_value
         return rationales
+
+    def _build_growth_anchor(self, dcf: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Build growthAnchor for the transparency panel from valuation output (fallback to ETL lookup)."""
+        try:
+            growth_ctx = dcf.get("growthSkillContext")
+            if isinstance(growth_ctx, dict) and growth_ctx:
+                return {
+                    "entity": growth_ctx.get("entity"),
+                    "entityDisplay": growth_ctx.get("entityDisplay") or growth_ctx.get("entity"),
+                    "region": growth_ctx.get("region"),
+                    "year": growth_ctx.get("year"),
+                    "numberOfFirms": growth_ctx.get("numberOfFirms"),
+                    "fundamentalGrowth": growth_ctx.get("fundamentalGrowth"),
+                    "historicalGrowthProxy": growth_ctx.get("historicalGrowthProxy"),
+                    "expectedGrowthProxy": growth_ctx.get("expectedGrowthProxy"),
+                    "confidenceScore": growth_ctx.get("confidenceScore"),
+                    "p25": growth_ctx.get("p25"),
+                    "p50": growth_ctx.get("p50"),
+                    "p75": growth_ctx.get("p75"),
+                    "source": "valuation-service growthSkillContext",
+                }
+
+            from domain.knowledge.skill_context import _lookup_growth_skill, _lookup_entity_for_yahoo_industry
+
+            industry_us = dcf.get("industryUs") or dcf.get("industry_us") or ""
+            industry_global = dcf.get("industryGlobal") or dcf.get("industry_global") or ""
+            country = dcf.get("countryOfIncorporation") or dcf.get("country_of_incorporation") or ""
+
+            yahoo_industry = industry_us or industry_global
+            if not yahoo_industry:
+                return None
+
+            entity = _lookup_entity_for_yahoo_industry(yahoo_industry)
+            if not entity:
+                return None
+
+            card = _lookup_growth_skill(entity, region=country)
+            if not card or not card.get("type"):
+                return None
+
+            # Build the DTO-shaped dict from local ETL fallback.
+            growth_proxy = card.get("historical_growth_proxy") or {}
+            expected_proxy = card.get("expected_growth_proxy") or {}
+
+            return {
+                "entity": card.get("entity"),
+                "entityDisplay": card.get("entity_display"),
+                "region": card.get("region"),
+                "year": card.get("year"),
+                "numberOfFirms": card.get("number_of_firms"),
+                "fundamentalGrowth": card.get("fundamental_growth"),
+                "historicalGrowthProxy": growth_proxy.get("p50") if isinstance(growth_proxy, dict) else None,
+                "expectedGrowthProxy": expected_proxy.get("p50") if isinstance(expected_proxy, dict) else None,
+                "confidenceScore": card.get("confidence_score"),
+                "p25": growth_proxy.get("p25") if isinstance(growth_proxy, dict) else None,
+                "p50": growth_proxy.get("p50") if isinstance(growth_proxy, dict) else None,
+                "p75": growth_proxy.get("p75") if isinstance(growth_proxy, dict) else None,
+                "source": "Damodaran Historical Growth Rate in Earnings",
+            }
+        except Exception as exc:
+            logger.warning("Failed to build growth anchor: %s", exc)
+            return None
 
     @staticmethod
     def _format_adjustment_value(value: float, unit: str) -> str:
@@ -1353,6 +1522,21 @@ class StockValuationApp:
                 continue
             parsed = self._safe_number(values[index])
             normalized = self._normalize_percent_output(parsed)
+            if normalized is not None:
+                collected.append(normalized)
+        if not collected:
+            return None
+        return round(sum(collected) / len(collected), 2)
+
+    def _average_multiple_window(self, values: Any, start_index: int, end_index: int) -> Optional[float]:
+        if not isinstance(values, list):
+            return None
+        collected: List[float] = []
+        for index in range(start_index, end_index + 1):
+            if index < 0 or index >= len(values):
+                continue
+            parsed = self._safe_number(values[index])
+            normalized = self._normalize_sales_to_capital_output(parsed)
             if normalized is not None:
                 collected.append(normalized)
         if not collected:
