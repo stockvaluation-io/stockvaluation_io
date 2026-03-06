@@ -139,8 +139,8 @@ class SegmentWeightedParameterServiceTest {
         input.setCompoundAnnualGrowth2_5(12.5);
         input.setOperatingMarginNextYear(36.0);
         input.setTargetPreTaxOperatingMargin(36.0);
-        input.setSalesToCapitalYears1To5(360.0);
-        input.setSalesToCapitalYears6To10(360.0);
+        input.setSalesToCapitalYears1To5(3.6);
+        input.setSalesToCapitalYears6To10(3.6);
         input.setInitialCostCapital(9.2);
         input.setSegments(new SegmentResponseDTO(List.of(
                 new SegmentResponseDTO.Segment("sector-a", "tech", List.of("A"), 0.9, 0.6, 0.2),
@@ -178,8 +178,8 @@ class SegmentWeightedParameterServiceTest {
         assertEquals(12.5, input.getRevenueNextYear(), 0.0001);
         assertEquals(12.5, input.getCompoundAnnualGrowth2_5(), 0.0001);
         assertEquals(36.0, input.getTargetPreTaxOperatingMargin(), 0.0001);
-        assertEquals(360.0, input.getSalesToCapitalYears1To5(), 0.0001);
-        assertEquals(360.0, input.getSalesToCapitalYears6To10(), 0.0001);
+        assertEquals(3.6, input.getSalesToCapitalYears1To5(), 0.0001);
+        assertEquals(3.6, input.getSalesToCapitalYears6To10(), 0.0001);
         assertEquals(9.2, input.getInitialCostCapital(), 0.0001);
 
         SegmentWeightedParameters.SectorParameters sectorA = context.getSectorParameters("sector-a");

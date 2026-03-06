@@ -927,11 +927,11 @@ class StockValuationApp:
     @staticmethod
     def _normalize_sales_to_capital_value(value: float) -> float:
         """
-        Java stores sales-to-capital in percentage-style units (e.g., 200 = 2.0x).
-        This applies to top-level FinancialDataInput fields.
+        Sales-to-capital is stored as plain x units (e.g., 2.0x).
+        Backward-compat: normalize legacy percentage-style values (e.g. 200) to 2.0x.
         """
-        if abs(value) <= 10.0:
-            return value * 100.0
+        if abs(value) > 50.0:
+            return value / 100.0
         return value
 
     @staticmethod

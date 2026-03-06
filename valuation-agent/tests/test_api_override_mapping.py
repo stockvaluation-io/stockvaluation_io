@@ -88,6 +88,25 @@ def test_map_adjustments_to_java_overrides_normalizes_legacy_sector_sales_to_cap
     assert overrides["sectorOverrides"][0]["value"] == 3.2
 
 
+def test_map_adjustments_to_java_overrides_keeps_top_level_sales_to_capital_in_x_units():
+    app = _app()
+    overrides, _meta = app._map_adjustments_to_java_overrides(
+        adjustments=[
+            {
+                "parameter": "sales_to_capital",
+                "new_value": 2.8,
+                "unit": "x",
+                "rationale": "test",
+            }
+        ],
+        sector_adjustments=[],
+        mapped_segments=[],
+    )
+
+    assert overrides["salesToCapitalYears1To5"] == 2.8
+    assert overrides["salesToCapitalYears6To10"] == 2.8
+
+
 def test_assumption_transparency_does_not_use_terminal_growth_as_risk_free():
     app = _app()
     transparency = app._build_assumption_transparency(
@@ -143,8 +162,8 @@ def test_assumption_transparency_uses_effective_final_values_when_segment_weight
         java_overrides={
             "compoundAnnualGrowth2_5": 12.5,
             "targetPreTaxOperatingMargin": 36.0,
-            "salesToCapitalYears1To5": 360.0,
-            "salesToCapitalYears6To10": 360.0,
+            "salesToCapitalYears1To5": 3.6,
+            "salesToCapitalYears6To10": 3.6,
             "sectorOverrides": [{"sectorName": "software-application", "parameterType": "operating_margin"}],
         },
         mapped_segments=[{"sector": "software-application"}, {"sector": "consumer-electronics"}],

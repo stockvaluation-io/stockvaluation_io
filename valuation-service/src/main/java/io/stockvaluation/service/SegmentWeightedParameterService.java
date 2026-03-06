@@ -361,10 +361,10 @@ public class SegmentWeightedParameterService {
                 asPercent(companyDataDTO.getCompanyDriveDataDTO().getCompoundAnnualGrowth2_5()));
         Double salesToCapitalYears1To5 = coalesce(
                 financialDataInput.getSalesToCapitalYears1To5(),
-                asSalesToCapitalPercent(companyDataDTO.getCompanyDriveDataDTO().getSalesToCapitalYears1To5()));
+                asSalesToCapitalRatio(companyDataDTO.getCompanyDriveDataDTO().getSalesToCapitalYears1To5()));
         Double salesToCapitalYears6To10 = coalesce(
                 financialDataInput.getSalesToCapitalYears6To10(),
-                asSalesToCapitalPercent(companyDataDTO.getCompanyDriveDataDTO().getSalesToCapitalYears6To10()));
+                asSalesToCapitalRatio(companyDataDTO.getCompanyDriveDataDTO().getSalesToCapitalYears6To10()));
 
         // Growth helper uses decimal form for next-year growth/margin (e.g., 0.10 not 10.0).
         Double revenueGrowthNext = revenueGrowthNextPct / 100.0;
@@ -455,22 +455,19 @@ public class SegmentWeightedParameterService {
 
                 if (inputStatDist.isPresent() && inputStatDist.get().getSalesToInvestedCapitalThirdQuartile() > 0) {
                     // Use third quartile from InputStatDistribution (first phase)
-                    segmentSalesToCapital1To5 = convertPercentage(
-                            reAdjustSalesToCapitalFirstPhases(
-                                    inputStatDist.get().getSalesToInvestedCapitalThirdQuartile(),
-                                    salesToCapitalYears1To5)); // Convert back to percentage for storage
+                    segmentSalesToCapital1To5 = reAdjustSalesToCapitalFirstPhases(
+                            inputStatDist.get().getSalesToInvestedCapitalThirdQuartile(),
+                            salesToCapitalYears1To5);
                     segmentSalesToCapital1To5 = Math.max(segmentSalesToCapital1To5, salesToCapitalYears1To5);
                 } else if (industryUS != null) {
-                    segmentSalesToCapital1To5 = convertPercentage(
-                            reAdjustSalesToCapitalFirstPhases(
-                                    null,
-                                    industryUS.getSalesToCapital())); // Convert back to percentage for storage
+                    segmentSalesToCapital1To5 = reAdjustSalesToCapitalFirstPhases(
+                            null,
+                            industryUS.getSalesToCapital());
                     segmentSalesToCapital1To5 = Math.max(segmentSalesToCapital1To5, salesToCapitalYears1To5);
                 } else if (industryGlobal != null) {
-                    segmentSalesToCapital1To5 = convertPercentage(
-                            reAdjustSalesToCapitalFirstPhases(
-                                    null,
-                                    industryGlobal.getSalesToCapital())); // Convert back to percentage for storage
+                    segmentSalesToCapital1To5 = reAdjustSalesToCapitalFirstPhases(
+                            null,
+                            industryGlobal.getSalesToCapital());
                     segmentSalesToCapital1To5 = Math.max(segmentSalesToCapital1To5, salesToCapitalYears1To5);
                 } else {
                     segmentSalesToCapital1To5 = salesToCapitalYears1To5;
@@ -479,24 +476,19 @@ public class SegmentWeightedParameterService {
                 // Second phase sales to capital (matching line 587)
                 if (inputStatDist.isPresent() && inputStatDist.get().getSalesToInvestedCapitalThirdQuartile() > 0) {
                     // Use third quartile from InputStatDistribution (first phase)
-                    segmentSalesToCapital6To10 = convertPercentage(
-                            reAdjustSalesToCapitalFirstPhases(
-                                    salesToCapitalYears1To5,
-                                    inputStatDist.get().getSalesToInvestedCapitalThirdQuartile())); // Convert back to
-                                                                                                    // percentage for
-                                                                                                    // storage
+                    segmentSalesToCapital6To10 = reAdjustSalesToCapitalFirstPhases(
+                            salesToCapitalYears1To5,
+                            inputStatDist.get().getSalesToInvestedCapitalThirdQuartile());
                 } else if (industryUS != null) {
-                    segmentSalesToCapital6To10 = convertPercentage(
-                            reAdjustSalesToCapitalFirstPhases(
-                                    segmentSalesToCapital1To5,
-                                    industryUS.getSalesToCapital()));
+                    segmentSalesToCapital6To10 = reAdjustSalesToCapitalFirstPhases(
+                            segmentSalesToCapital1To5,
+                            industryUS.getSalesToCapital());
                 } else if (industryGlobal != null) {
-                    segmentSalesToCapital6To10 = convertPercentage(
-                            reAdjustSalesToCapitalFirstPhases(
-                                    segmentSalesToCapital1To5,
-                                    industryGlobal.getSalesToCapital()));
+                    segmentSalesToCapital6To10 = reAdjustSalesToCapitalFirstPhases(
+                            segmentSalesToCapital1To5,
+                            industryGlobal.getSalesToCapital());
                 } else {
-                    segmentSalesToCapital6To10 = salesToCapitalYears6To10 / 100;
+                    segmentSalesToCapital6To10 = salesToCapitalYears6To10;
                 }
 
                 // Calculate cost of capital for this sector
@@ -516,18 +508,15 @@ public class SegmentWeightedParameterService {
                 weightedRevGrowth2_5 += segmentRevGrowth2_5 * revenueShare;
                 weightedTargetMargin += segmentTargetMargin * 100 * revenueShare; // Convert back to percentage for
                                                                                   // storage
-                weightedSalesToCapital1To5 += segmentSalesToCapital1To5 * 100 * revenueShare; // Convert back to
-                                                                                              // percentage for storage
-                weightedSalesToCapital6To10 += segmentSalesToCapital6To10 * 100 * revenueShare; // Convert back to
-                                                                                                // percentage for
-                                                                                                // storage
+                weightedSalesToCapital1To5 += segmentSalesToCapital1To5 * revenueShare;
+                weightedSalesToCapital6To10 += segmentSalesToCapital6To10 * revenueShare;
                 weightedCostOfCapital += segmentCostOfCapital * revenueShare;
 
                 log.error(
                         "Segment {}: industry={}, revGrowth2_5={} (calculated={}, company={}, using max), targetMargin={}, sales1-5={}, sales6-10={}, costOfCap={}, adjustedRevenueShare={}",
                         segment.getSector(), industryName, segmentRevGrowth2_5, segmentRevGrowth2_5Calculated,
                         companyRevGrowth2_5,
-                        segmentTargetMargin * 100, segmentSalesToCapital1To5 * 100, segmentSalesToCapital6To10 * 100,
+                        segmentTargetMargin * 100, segmentSalesToCapital1To5, segmentSalesToCapital6To10,
                         segmentCostOfCapital, revenueShare);
             }
 
@@ -663,22 +652,19 @@ public class SegmentWeightedParameterService {
 
                 if (inputStatDist.isPresent() && inputStatDist.get().getSalesToInvestedCapitalThirdQuartile() > 0) {
                     // Use third quartile from InputStatDistribution (first phase)
-                    segmentSalesToCapital1To5 = convertPercentage(
-                            reAdjustSalesToCapitalFirstPhases(
-                                    inputStatDist.get().getSalesToInvestedCapitalThirdQuartile(),
-                                    salesToCapitalYears1To5)); // Convert back to percentage for storage
+                    segmentSalesToCapital1To5 = reAdjustSalesToCapitalFirstPhases(
+                            inputStatDist.get().getSalesToInvestedCapitalThirdQuartile(),
+                            salesToCapitalYears1To5);
                     segmentSalesToCapital1To5 = Math.max(segmentSalesToCapital1To5, salesToCapitalYears1To5);
                 } else if (industryUS != null) {
-                    segmentSalesToCapital1To5 = convertPercentage(
-                            reAdjustSalesToCapitalFirstPhases(
-                                    null,
-                                    industryUS.getSalesToCapital())); // Convert back to percentage for storage
+                    segmentSalesToCapital1To5 = reAdjustSalesToCapitalFirstPhases(
+                            null,
+                            industryUS.getSalesToCapital());
                     segmentSalesToCapital1To5 = Math.max(segmentSalesToCapital1To5, salesToCapitalYears1To5);
                 } else if (industryGlobal != null) {
-                    segmentSalesToCapital1To5 = convertPercentage(
-                            reAdjustSalesToCapitalFirstPhases(
-                                    null,
-                                    industryGlobal.getSalesToCapital())); // Convert back to percentage for storage
+                    segmentSalesToCapital1To5 = reAdjustSalesToCapitalFirstPhases(
+                            null,
+                            industryGlobal.getSalesToCapital());
                     segmentSalesToCapital1To5 = Math.max(segmentSalesToCapital1To5, salesToCapitalYears1To5);
                 } else {
                     segmentSalesToCapital1To5 = salesToCapitalYears1To5;
@@ -687,30 +673,24 @@ public class SegmentWeightedParameterService {
                 // Second phase sales to capital
                 if (inputStatDist.isPresent() && inputStatDist.get().getSalesToInvestedCapitalThirdQuartile() > 0) {
                     // Use third quartile from InputStatDistribution (first phase)
-                    segmentSalesToCapital6To10 = convertPercentage(
-                            reAdjustSalesToCapitalFirstPhases(
-                                    salesToCapitalYears1To5,
-                                    inputStatDist.get().getSalesToInvestedCapitalThirdQuartile())); // Convert back to
-                                                                                                    // percentage for
-                                                                                                    // storage
+                    segmentSalesToCapital6To10 = reAdjustSalesToCapitalFirstPhases(
+                            salesToCapitalYears1To5,
+                            inputStatDist.get().getSalesToInvestedCapitalThirdQuartile());
                 } else if (industryUS != null) {
-                    segmentSalesToCapital6To10 = convertPercentage(
-                            reAdjustSalesToCapitalFirstPhases(
-                                    segmentSalesToCapital1To5,
-                                    industryUS.getSalesToCapital()));
+                    segmentSalesToCapital6To10 = reAdjustSalesToCapitalFirstPhases(
+                            segmentSalesToCapital1To5,
+                            industryUS.getSalesToCapital());
                 } else if (industryGlobal != null) {
-                    segmentSalesToCapital6To10 = convertPercentage(
-                            reAdjustSalesToCapitalFirstPhases(
-                                    segmentSalesToCapital1To5,
-                                    industryGlobal.getSalesToCapital()));
+                    segmentSalesToCapital6To10 = reAdjustSalesToCapitalFirstPhases(
+                            segmentSalesToCapital1To5,
+                            industryGlobal.getSalesToCapital());
                 } else {
-                    segmentSalesToCapital6To10 = salesToCapitalYears6To10 / 100;
+                    segmentSalesToCapital6To10 = salesToCapitalYears6To10;
                 }
 
                 // Set sector sales to capital parameters
-                sectorParams.setSalesToCapitalYears1To5(segmentSalesToCapital1To5 * 100); // Convert back to percentage
-                sectorParams.setSalesToCapitalYears6To10(segmentSalesToCapital6To10 * 100); // Convert back to
-                                                                                            // percentage
+                sectorParams.setSalesToCapitalYears1To5(segmentSalesToCapital1To5);
+                sectorParams.setSalesToCapitalYears6To10(segmentSalesToCapital6To10);
 
                 // Calculate cost of capital for this sector
                 Double segmentCostOfCapital;
@@ -774,11 +754,15 @@ public class SegmentWeightedParameterService {
         return Math.abs(value) <= 1.0 ? value * 100.0 : value;
     }
 
-    private static double asSalesToCapitalPercent(Double value) {
+    private static double asSalesToCapitalRatio(Double value) {
         if (value == null) {
             return 0.0;
         }
-        return value * 100.0;
+        // Backward compatibility for legacy callers that still send 200 == 2.0x
+        if (Math.abs(value) > 50.0) {
+            return value / 100.0;
+        }
+        return value;
     }
 
     private double reAdjustSalesToCapitalFirstPhases(Double salesToCapitalFirstPhase, Double salesToCapital) {
