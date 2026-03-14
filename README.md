@@ -4,7 +4,7 @@
 
 StockValuation.io is a local-first DCF valuation workspace that runs fully on your machine, with structured research and narrative output layered on top of core valuation calculations.
 
-> **Warning: This project is for educational use and is not financial advice.**
+> **Warning: This project is for educational use and is not financial advice. Its your valuation and you agree by using this project.**
 
 
 ## Fast Onboarding
