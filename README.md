@@ -2,7 +2,7 @@
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/stockvaluation-io/stockvaluation_io)
 
-StockValuation.io is a local-first DCF valuation workspace that runs fully on your machine, with structured research and narrative output layered on top of core valuation calculations.
+StockValuation.io is a local-first stock valuation workspace that runs fully on your machine, with structured research and narrative output layered on top of core valuation calculations. Build your own stock narratives. 
 
 > **Warning: This project is for educational use and is not financial advice. Its your valuation and you agree by using this project.**
 
@@ -49,7 +49,7 @@ Need these APIs?
 
 ## Common Failure Reasons
 
-- The system depends on Yahoo Finance data. If Yahoo Finance does not provide the required company data, valuation can fail.
+- The system depends on Yahoo Finance data. If Yahoo Finance does not provide the required company data, the valuation can fail.
 - Historical coverage is limited because Yahoo Finance typically provides only about 5 years of history.
 - Financial sector companies are not supported.
 
