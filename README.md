@@ -70,8 +70,20 @@ Need these APIs?
 - `docker/` local DB init/seed scripts
 - `local_data/` runtime data generated locally
 
+## Cite
+> Note: If this project is helpful to you, then please star. Otherwise, I would not know if I should keep this up-to-date. This project requires a consistent data update.
+```
+@misc{stockvaluation_io,
+  author = {Pradeep Singh},
+  title = {StockValuation.io: Local-first stock valuation workspace},
+  year = {2026},
+  publisher = {GitHub},
+  url = {https://github.com/stockvaluation-io/stockvaluation_io}
+}
+```
+
 ## Acknowledgments
 
-Core methodology and reference data are based on Aswath Damodaran resources:
+Core methodology and reference data are based on Aswath Damodaran's resources:
 
 - https://pages.stern.nyu.edu/~adamodar/New_Home_Page/data.html
