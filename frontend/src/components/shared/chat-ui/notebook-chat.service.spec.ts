@@ -16,8 +16,12 @@ describe('NotebookChatService', () => {
 
   it('emits tool plans and adds an approval message to chat', () => {
     let observedPlan: any;
+    let observedAssistantEvent: any;
     service.toolPlan$.subscribe(plan => {
       observedPlan = plan;
+    });
+    service.assistantEvent$.subscribe(event => {
+      observedAssistantEvent = event;
     });
 
     chatService.addTypingIndicator();
@@ -46,6 +50,9 @@ describe('NotebookChatService', () => {
     expect(observedPlan.tool_name).toBe('dcf_recalculator');
     expect(observedPlan.tool_input.wacc).toBe(10);
     expect(observedPlan.session_id).toBe('session-1');
+    expect(observedAssistantEvent.type).toBe('tool_plan');
+    expect(observedAssistantEvent.cellId).toBe('cell-1');
+    expect(observedAssistantEvent.toolName).toBe('dcf_recalculator');
   });
 
   it('emits tool results from SSE payloads', () => {
@@ -74,6 +81,11 @@ describe('NotebookChatService', () => {
   });
 
   it('syncs final cell content into chat on cell_complete even without stream chunks', () => {
+    let observedAssistantEvent: any;
+    service.assistantEvent$.subscribe(event => {
+      observedAssistantEvent = event;
+    });
+
     chatService.addTypingIndicator();
     chatService.isLoading.set(true);
 
@@ -102,5 +114,47 @@ describe('NotebookChatService', () => {
     expect(messages[0].metadata?.['rewritten_query']).toBe('Use current valuation context only.');
     expect(messages[0].metadata?.['tool_results'].length).toBe(1);
     expect(chatService.isLoading()).toBeFalse();
+    expect(observedAssistantEvent.type).toBe('assistant_complete');
+    expect(observedAssistantEvent.cellId).toBe('cell-42');
+    expect(observedAssistantEvent.text).toBe('Final tool-backed answer.');
+  });
+
+  it('emits assistant start, delta, done, and error events from provider-neutral SSE payloads', () => {
+    const observedEvents: any[] = [];
+    service.assistantEvent$.subscribe(event => {
+      observedEvents.push(event);
+    });
+
+    (service as any).handleSSEEvent({
+      type: 'cell_start',
+      cell_id: 'cell-stream-1',
+      sequence_number: 7,
+    });
+    (service as any).handleSSEEvent({
+      type: 'stream',
+      cell_id: 'cell-stream-1',
+      chunk: 'Hello',
+    });
+    (service as any).handleSSEEvent({
+      type: 'done',
+      status: 'complete',
+    });
+    (service as any).handleSSEEvent({
+      type: 'error',
+      cell_id: 'cell-error-1',
+      error: 'Provider failed',
+    });
+
+    expect(observedEvents.map(event => event.type)).toEqual([
+      'assistant_start',
+      'assistant_delta',
+      'done',
+      'error',
+    ]);
+    expect(observedEvents[0].cellId).toBe('cell-stream-1');
+    expect(observedEvents[0].sequenceNumber).toBe(7);
+    expect(observedEvents[1].text).toBe('Hello');
+    expect(observedEvents[2].status).toBe('complete');
+    expect(observedEvents[3].message).toBe('Provider failed');
   });
 });

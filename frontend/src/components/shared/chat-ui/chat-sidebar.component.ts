@@ -18,10 +18,10 @@ import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { ChatService } from './chat.service';
-import { NotebookChatService, ToolResult, HypothesisReady, HypothesisSavePrompt } from './notebook-chat.service';
+import { NotebookAssistantEvent, NotebookChatService, ToolResult, HypothesisReady, HypothesisSavePrompt } from './notebook-chat.service';
 import { ChatConfig } from './chat-message.interface';
 import { CellRendererComponent } from '../notebook/cells/cell-renderer.component';
-import { Cell, CellType } from '../notebook/cell.models';
+import { Cell } from '../notebook/cell.models';
 import { ChatSuggestionsComponent } from './chat-suggestions.component';
 import { ChatSuggestion } from './suggestion-chip.component';
 // ToolPlanDialogComponent removed - using chat-based approval instead
@@ -291,18 +291,11 @@ export class ChatSidebarComponent implements OnInit, OnDestroy, OnChanges, After
       }
     });
 
-    // Subscribe to message chunks for cell-based rendering
-    this.socketService.messageChunk$
+    // Render the provider-neutral assistant event contract into notebook cells.
+    this.socketService.assistantEvent$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((chunk: { content: string; isComplete: boolean; messageId: string }) => {
-        this.handleCellStreamChunk(chunk.content);
-      });
-
-    // Subscribe to completion events
-    this.socketService.completion$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.finalizeCellStream();
+      .subscribe((event: NotebookAssistantEvent) => {
+        this.handleAssistantEvent(event);
       });
 
     // Subscribe to opening message to create initial AI cell
@@ -561,8 +554,86 @@ export class ChatSidebarComponent implements OnInit, OnDestroy, OnChanges, After
   /**
    * Handle streaming chunk for cell
    */
-  private handleCellStreamChunk(chunk: string): void {
-    const cellId = this.streamingCellId();
+  private handleAssistantEvent(event: NotebookAssistantEvent): void {
+    switch (event.type) {
+      case 'assistant_start':
+        this.startAssistantCell(event.cellId, event.sequenceNumber);
+        break;
+      case 'assistant_delta':
+        this.handleCellStreamChunk(event.text, event.cellId);
+        break;
+      case 'assistant_complete':
+        this.handleAssistantComplete(event.cell, event.cellId, event.text);
+        break;
+      case 'tool_plan':
+        this.showToolPlanInCell(event);
+        break;
+      case 'error':
+        this.showErrorInCell(event.message, event.cellId);
+        break;
+      case 'tool_result':
+        // Tool result dialogs/banners are handled by toolResult$; the persisted
+        // assistant answer arrives through stream/cell_complete events.
+        break;
+      case 'done':
+        this.finalizeCellStream();
+        break;
+    }
+  }
+
+  private startAssistantCell(cellId: string, sequenceNumber?: number): void {
+    const activeCellId = this.streamingCellId();
+
+    this.cells.update((cells: Cell[]) => {
+      const existingBackendIndex = cells.findIndex(c => c.id === cellId);
+
+      if (existingBackendIndex >= 0) {
+        const updated = [...cells];
+        updated[existingBackendIndex] = {
+          ...updated[existingBackendIndex],
+          is_streaming: true,
+        };
+        return updated;
+      }
+
+      if (activeCellId) {
+        const activeIndex = cells.findIndex(c => c.id === activeCellId);
+        if (activeIndex >= 0) {
+          const updated = [...cells];
+          updated[activeIndex] = {
+            ...updated[activeIndex],
+            id: cellId,
+            session_id: this.socketService.getCurrentSessionId() || updated[activeIndex].session_id,
+            sequence_number: sequenceNumber || updated[activeIndex].sequence_number,
+            is_streaming: true,
+          };
+          return updated;
+        }
+      }
+
+      const placeholder: Cell = {
+        id: cellId,
+        session_id: this.socketService.getCurrentSessionId() || '',
+        sequence_number: sequenceNumber || this.nextSequenceNumber++,
+        cell_type: 'reasoning',
+        author_type: 'user',
+        ai_output: { message: '' },
+        created_at: new Date().toISOString(),
+        is_streaming: true,
+      };
+      return [...cells, placeholder];
+    });
+
+    this.streamingCellId.set(cellId);
+    this.scheduleScrollToBottom(false);
+  }
+
+  private handleCellStreamChunk(chunk: string, incomingCellId?: string): void {
+    if (incomingCellId && this.streamingCellId() !== incomingCellId) {
+      this.startAssistantCell(incomingCellId);
+    }
+
+    const cellId = incomingCellId || this.streamingCellId();
     if (!cellId) return;
 
     this.cells.update((cells: Cell[]) => {
@@ -585,11 +656,116 @@ export class ChatSidebarComponent implements OnInit, OnDestroy, OnChanges, After
     this.scheduleScrollToBottom(false);
   }
 
+  private handleAssistantComplete(incomingCell: Cell | undefined, incomingCellId: string | undefined, text: string): void {
+    const cellId = incomingCellId || incomingCell?.id || this.streamingCellId();
+
+    if (cellId && this.streamingCellId() !== cellId) {
+      this.startAssistantCell(cellId);
+    }
+
+    if (incomingCell) {
+      this.upsertCompletedCell(incomingCell, cellId);
+    } else if (cellId) {
+      this.replaceCellMessage(cellId, text);
+    }
+
+    this.finalizeCellStream(cellId || undefined);
+  }
+
+  private showToolPlanInCell(event: Extract<NotebookAssistantEvent, { type: 'tool_plan' }>): void {
+    const cellId = event.cellId || this.streamingCellId() || `cell_${Date.now()}_tool_plan`;
+
+    if (this.streamingCellId() !== cellId) {
+      this.startAssistantCell(cellId);
+    }
+
+    this.replaceCellMessage(cellId, event.plan || 'Tool approval required.', {
+      tool_results: [],
+      type: 'tool_plan',
+    });
+    this.finalizeCellStream(cellId);
+  }
+
+  private showErrorInCell(message: string, incomingCellId?: string): void {
+    const cellId = incomingCellId || this.streamingCellId() || `cell_${Date.now()}_error`;
+
+    if (this.streamingCellId() !== cellId) {
+      this.startAssistantCell(cellId);
+    }
+
+    this.replaceCellMessage(cellId, `Error: ${message}`);
+    this.finalizeCellStream(cellId);
+  }
+
+  private upsertCompletedCell(incomingCell: Cell, activeCellId?: string | null): void {
+    const completedCell = {
+      ...incomingCell,
+      is_streaming: false,
+    };
+
+    this.cells.update((cells: Cell[]) => {
+      const incomingIndex = cells.findIndex(c => c.id === completedCell.id);
+      const activeIndex = activeCellId ? cells.findIndex(c => c.id === activeCellId) : -1;
+      const targetIndex = incomingIndex >= 0 ? incomingIndex : activeIndex;
+
+      if (targetIndex >= 0) {
+        const updated = [...cells];
+        const existing = updated[targetIndex];
+        updated[targetIndex] = {
+          ...existing,
+          ...completedCell,
+          user_input: completedCell.user_input || existing.user_input,
+          ai_output: completedCell.ai_output || existing.ai_output,
+          content: completedCell.content || existing.content,
+        };
+        return updated;
+      }
+
+      return [...cells, completedCell];
+    });
+  }
+
+  private replaceCellMessage(cellId: string, message: string, extraOutput: Record<string, any> = {}): void {
+    this.cells.update((cells: Cell[]) => {
+      const updated = [...cells];
+      const cellIndex = updated.findIndex(c => c.id === cellId);
+
+      if (cellIndex >= 0) {
+        const cell = { ...updated[cellIndex] };
+        cell.ai_output = {
+          ...cell.ai_output,
+          ...extraOutput,
+          message,
+        };
+        cell.is_streaming = false;
+        updated[cellIndex] = cell;
+        return updated;
+      }
+
+      return [
+        ...cells,
+        {
+          id: cellId,
+          session_id: this.socketService.getCurrentSessionId() || '',
+          sequence_number: this.nextSequenceNumber++,
+          cell_type: 'reasoning',
+          author_type: 'ai',
+          ai_output: {
+            ...extraOutput,
+            message,
+          },
+          created_at: new Date().toISOString(),
+          is_streaming: false,
+        },
+      ];
+    });
+  }
+
   /**
    * Finalize cell stream when complete
    */
-  private finalizeCellStream(): void {
-    const cellId = this.streamingCellId();
+  private finalizeCellStream(completedCellId?: string): void {
+    const cellId = completedCellId || this.streamingCellId();
     if (!cellId) return;
 
     this.cells.update((cells: Cell[]) => {
@@ -605,7 +781,9 @@ export class ChatSidebarComponent implements OnInit, OnDestroy, OnChanges, After
       return updated;
     });
 
-    this.streamingCellId.set(null);
+    if (!completedCellId || this.streamingCellId() === completedCellId) {
+      this.streamingCellId.set(null);
+    }
     this.scheduleScrollToBottom(false);
   }
 

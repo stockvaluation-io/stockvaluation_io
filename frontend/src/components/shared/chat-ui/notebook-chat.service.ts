@@ -55,6 +55,23 @@ export interface ToolPlan {
     timestamp?: string;
 }
 
+export type NotebookAssistantEvent =
+    | { type: 'assistant_start'; cellId: string; sequenceNumber?: number }
+    | { type: 'assistant_delta'; cellId?: string; text: string }
+    | { type: 'assistant_complete'; cellId?: string; cell?: any; text: string }
+    | {
+        type: 'tool_plan';
+        cellId?: string;
+        toolId: string;
+        toolName: string;
+        toolInput: any;
+        plan: string;
+        awaitingResponse: boolean;
+    }
+    | { type: 'tool_result'; cellId?: string; toolName?: string; result: ToolResult }
+    | { type: 'error'; cellId?: string; message: string }
+    | { type: 'done'; status?: string };
+
 export interface Hypothesis {
     ticker: string;
     thesis_statement: string;
@@ -125,6 +142,7 @@ export class NotebookChatService {
     private suggestionsSubject = new Subject<any[]>();
     private openingMessageSubject = new Subject<string>();
     private existingCellsSubject = new Subject<any[]>(); // For session resumption
+    private assistantEventSubject = new Subject<NotebookAssistantEvent>();
 
     // Public observables
     public connectionStatus$ = this.connectionStatusSubject.asObservable();
@@ -139,6 +157,7 @@ export class NotebookChatService {
     public suggestions$ = this.suggestionsSubject.asObservable();
     public openingMessage$ = this.openingMessageSubject.asObservable();
     public existingCells$ = this.existingCellsSubject.asObservable(); // For session resumption
+    public assistantEvent$ = this.assistantEventSubject.asObservable();
 
     // Signals for reactive state
     public isConnected = signal(false);
@@ -426,6 +445,13 @@ export class NotebookChatService {
      */
     private handleSSEEvent(event: any): void {
         if (event.type === 'cell_start') {
+            if (event.cell_id) {
+                this.assistantEventSubject.next({
+                    type: 'assistant_start',
+                    cellId: event.cell_id,
+                    sequenceNumber: event.sequence_number,
+                });
+            }
             return;
         }
 
@@ -492,6 +518,11 @@ export class NotebookChatService {
                 isComplete: false,
                 messageId: this.currentStreamingMessageId || '',
             });
+            this.assistantEventSubject.next({
+                type: 'assistant_delta',
+                cellId: event.cell_id,
+                text: event.chunk,
+            });
 
         } else if (event.type === 'cell_complete' && event.cell) {
             const finalContent = this.extractCellContent(event.cell);
@@ -538,6 +569,12 @@ export class NotebookChatService {
             this.chatService.removeTypingIndicator();
             this.chatService.isLoading.set(false);
             this.completionSubject.next();
+            this.assistantEventSubject.next({
+                type: 'assistant_complete',
+                cellId: event.cell_id || event.cell.id,
+                cell: event.cell,
+                text: finalContent,
+            });
             const session = this.chatService.getCurrentSession();
             if (session) {
                 this.chatService.saveSession(session);
@@ -552,6 +589,10 @@ export class NotebookChatService {
             this.streamingBuffer = '';
             this.currentStreamingMessageId = null;
             this.completionSubject.next();
+            this.assistantEventSubject.next({
+                type: 'done',
+                status: event.status,
+            });
 
             const session = this.chatService.getCurrentSession();
             if (session) {
@@ -579,16 +620,32 @@ export class NotebookChatService {
                 plan: event.plan,
                 awaiting_response: event.awaiting_response,
             });
+            this.assistantEventSubject.next({
+                type: 'tool_plan',
+                cellId: event.cell_id,
+                toolId: event.tool_id,
+                toolName: event.tool_name,
+                toolInput: event.tool_input,
+                plan: event.plan || 'Tool approval required.',
+                awaitingResponse: !!event.awaiting_response,
+            });
 
             this.streamingBuffer = '';
             this.currentStreamingMessageId = aiMessage.id;
 
         } else if (event.type === 'tool_result') {
-            this.toolResultSubject.next({
+            const result: ToolResult = {
                 tool_name: event.tool_name,
                 result: event.data,
                 success: event.status === 'success',
                 error: event.error,
+            };
+            this.toolResultSubject.next(result);
+            this.assistantEventSubject.next({
+                type: 'tool_result',
+                cellId: event.cell_id,
+                toolName: event.tool_name,
+                result,
             });
 
         } else if (event.type === 'error') {
@@ -598,6 +655,11 @@ export class NotebookChatService {
             this.chatService.isLoading.set(false);
             this.errorSubject.next(event.error || 'Unknown error');
             this.chatService.addAiMessage(`Error: ${event.error}`, { error: true });
+            this.assistantEventSubject.next({
+                type: 'error',
+                cellId: event.cell_id,
+                message: event.error || 'Unknown error',
+            });
         }
     }
 
