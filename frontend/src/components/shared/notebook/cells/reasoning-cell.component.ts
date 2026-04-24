@@ -888,11 +888,17 @@ export class ReasoningCellComponent {
   notesValue = '';
 
   get userInput(): string {
-    return this.cell.user_input || this.cell.content?.message || '';
+    if (this.cell.user_input) {
+      return this.cell.user_input;
+    }
+    if (this.cell.author_type === 'user') {
+      return this.cell.content?.message || this.cell.content?.content || '';
+    }
+    return '';
   }
 
   get aiMessage(): string {
-    let aiOutput: any = this.cell.ai_output || (this.cell.author_type === 'ai' ? this.cell.content : null);
+    let aiOutput: any = this.cell.ai_output || (this.cell.author_type !== 'user' ? this.cell.content : null);
 
     // Handle stringified JSON (for legacy cells)
     if (typeof aiOutput === 'string') {
@@ -904,7 +910,8 @@ export class ReasoningCellComponent {
       }
     }
 
-    // Check 'message' first (matches CellContent interface), then 'content' (legacy)
+    // Check 'message' first (matches CellContent interface), then 'content' (legacy).
+    // System/opening cells also use this path so Markdown is rendered consistently.
     return aiOutput?.message || aiOutput?.content || '';
   }
 
@@ -996,10 +1003,11 @@ export class ReasoningCellComponent {
     // Split each • into a newline so the line-by-line processor picks it up.
     html = html.replace(/\s*•\s*/g, '\n• ');
 
-    // ── Pre-pass 3: **Bold:** section labels → their own line ────────────────
-    // Matches "**Label:**" at start of line or with leading space.
-    // Turns them into visible paragraph breaks.
-    html = html.replace(/(^|\s+)(\*\*[^*]+\*\*:)/g, '$1\n$2\n');
+    // ── Pre-pass 3: compact bold labels → readable line breaks ───────────────
+    // Handles both "**Label:**" and legacy "**Label**:" shapes.
+    html = html
+      .replace(/\s+(\*\*[^*]+:\*\*)/g, '\n$1 ')
+      .replace(/(^|\s+)(\*\*[^*]+\*\*:)/g, '$1\n$2 ');
 
     // ── Standard markdown rendering ──────────────────────────────────────────
     html = html

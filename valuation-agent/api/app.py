@@ -669,6 +669,9 @@ class StockValuationApp:
             raw_dcf=final_raw_dcf,
         )
         preprocessed_dcf = preprocess_dcf_json(final_raw_dcf)
+        priced_in_summary = self._compact_priced_in_expectations(final_raw_dcf)
+        if priced_in_summary:
+            preprocessed_dcf["priced_in_expectations"] = priced_in_summary
         preprocessed_financials = preprocess_financials_json(raw_financials)
 
         analyst_inputs = {
@@ -695,6 +698,58 @@ class StockValuationApp:
                 "news": news_result if isinstance(news_result, dict) else {},
             },
         )
+
+    def _compact_priced_in_expectations(self, raw_dcf: Dict[str, Any]) -> Dict[str, Any]:
+        transparency = raw_dcf.get("assumption_transparency") if isinstance(raw_dcf, dict) else {}
+        priced_in = transparency.get("priced_in_expectations") if isinstance(transparency, dict) else {}
+        if not isinstance(priced_in, dict):
+            return {}
+
+        scenarios = priced_in.get("scenarios")
+        if not isinstance(scenarios, list):
+            scenarios = []
+        base_scenario = next(
+            (
+                item for item in scenarios
+                if isinstance(item, dict) and item.get("key") == "base_risk__base_efficiency"
+            ),
+            scenarios[0] if scenarios and isinstance(scenarios[0], dict) else {},
+        )
+
+        frontier = base_scenario.get("frontier") if isinstance(base_scenario, dict) else None
+        if not isinstance(frontier, list):
+            frontier = priced_in.get("frontier") if isinstance(priced_in.get("frontier"), list) else []
+
+        compact_frontier = []
+        for point in frontier[:7]:
+            if not isinstance(point, dict):
+                continue
+            compact_frontier.append({
+                "operating_margin": point.get("operating_margin"),
+                "implied_revenue_growth": point.get("implied_revenue_growth"),
+                "solved": point.get("solved"),
+                "note": point.get("note"),
+            })
+
+        scenario_headlines = []
+        for scenario in scenarios[:9]:
+            if not isinstance(scenario, dict):
+                continue
+            scenario_headlines.append({
+                "key": scenario.get("key"),
+                "risk": scenario.get("risk_label"),
+                "capital_efficiency": scenario.get("capital_efficiency_label"),
+                "headline": scenario.get("headline"),
+            })
+
+        return {
+            "market_price": priced_in.get("market_price"),
+            "model_intrinsic_value": priced_in.get("model_intrinsic_value"),
+            "method": priced_in.get("method"),
+            "base_case": priced_in.get("base_case"),
+            "base_frontier": compact_frontier,
+            "scenario_headlines": scenario_headlines,
+        }
 
     def _finalize_and_persist(
         self,
@@ -1374,6 +1429,11 @@ class StockValuationApp:
             if isinstance(existing_transparency.get("marketImpliedExpectations"), dict)
             else None
         )
+        existing_priced_in = (
+            existing_transparency.get("pricedInExpectations")
+            if isinstance(existing_transparency.get("pricedInExpectations"), dict)
+            else None
+        )
         existing_notes = existing_transparency.get("notes") if isinstance(existing_transparency.get("notes"), list) else []
 
         initial_cost_of_capital = self._normalize_percent_output(self._first_numeric(cost_of_capital_values))
@@ -1543,6 +1603,7 @@ class StockValuationApp:
             "adjustmentRationales": adjustment_rationales,
             "growthAnchor": self._build_growth_anchor(dcf),
             "marketImpliedExpectations": existing_market_implied,
+            "pricedInExpectations": existing_priced_in,
             "notes": notes,
         }
 

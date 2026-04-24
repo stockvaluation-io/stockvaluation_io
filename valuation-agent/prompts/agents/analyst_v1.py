@@ -146,6 +146,13 @@ def get_prompt(inputs: Dict[str, Any]) -> str:
       - Combine story and numbers.
       - Keep assumptions realistic and sector-consistent.
       - Maintain numerical consistency between narrative and data.
+      - When DCF Data includes priced_in_expectations, use it as the central tension:
+        challenge whether the market-implied growth, margin, capital efficiency,
+        and risk combinations are believable.
+      - Growth should address whether the required revenue growth frontier is plausible.
+      - Margins should address whether required operating margins are structurally possible.
+      - Investment efficiency should address whether sales-to-capital assumptions make the story easier or harder.
+      - Risks should address whether the story only works under optimistic cost-of-capital assumptions.
       - Return only JSON.
 
       Context:

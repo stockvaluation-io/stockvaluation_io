@@ -504,15 +504,15 @@ class GraphBuilder:
         is_valid_llm_result = isinstance(llm_result, dict) and not llm_result.get("error")
 
         section_defaults = {
-            "growth": ("Growth", "Business as usual growth assumptions apply.", drivers.get("growth")),
-            "margins": ("Margins", "Business as usual margin assumptions apply.", drivers.get("operating_margins")),
+            "growth": ("Growth", "", drivers.get("growth")),
+            "margins": ("Margins", "", drivers.get("operating_margins")),
             "investment_efficiency": (
                 "Investment Efficiency",
-                "Business as usual investment efficiency assumptions apply.",
+                "",
                 drivers.get("capital_efficiency"),
             ),
-            "risks": ("Risks", "Standard market and operational risks apply.", drivers.get("risk")),
-            "key_takeaways": ("Key Takeaways", "No specific hypothesis generated.", news_data.get("summary_hypothesis")),
+            "risks": ("Risks", "", drivers.get("risk")),
+            "key_takeaways": ("Key Takeaways", "", news_data.get("summary_hypothesis")),
         }
 
         normalized: Dict[str, Any] = {}
@@ -598,23 +598,23 @@ class GraphBuilder:
             merged_result = {
                 "growth": existing_merged.get("growth") or {
                     "title": "Growth",
-                    "narrative": drivers.get("growth", "Business as usual growth assumptions apply."),
+                    "narrative": drivers.get("growth", ""),
                 },
                 "margins": existing_merged.get("margins") or {
                     "title": "Margins",
-                    "narrative": drivers.get("operating_margins", "Business as usual margin assumptions apply."),
+                    "narrative": drivers.get("operating_margins", ""),
                 },
                 "investment_efficiency": existing_merged.get("investment_efficiency") or {
                     "title": "Investment Efficiency",
-                    "narrative": drivers.get("capital_efficiency", "Business as usual investment efficiency assumptions apply."),
+                    "narrative": drivers.get("capital_efficiency", ""),
                 },
                 "risks": existing_merged.get("risks") or {
                     "title": "Risks",
-                    "narrative": drivers.get("risk", "Standard market and operational risks apply."),
+                    "narrative": drivers.get("risk", ""),
                 },
                 "key_takeaways": existing_merged.get("key_takeaways") or {
                     "title": "Key Takeaways",
-                    "narrative": news_data.get("summary_hypothesis", "No specific hypothesis generated."),
+                    "narrative": news_data.get("summary_hypothesis", ""),
                 },
                 "tone": news_data.get("tone", "neutral"),
             }

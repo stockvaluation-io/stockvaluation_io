@@ -250,6 +250,36 @@ class CompanyDataAssemblyServiceTest {
     }
 
     @Test
+    void testAssembleCompanyData_CurrencyConversionFailureStopsValuation() {
+        String ticker = "SOME_TICKER";
+
+        Map<String, Object> basicInfoMap = new HashMap<>();
+        basicInfoMap.put("currency", "EUR");
+        basicInfoMap.put("financialCurrency", "USD");
+        when(dataProvider.getCompanyInfo(ticker)).thenReturn(basicInfoMap);
+
+        BasicInfoDataDTO basicInfoDataDTO = new BasicInfoDataDTO();
+        basicInfoDataDTO.setCountryOfIncorporation("France");
+        basicInfoDataDTO.setCurrency("EUR");
+        when(companyDataMapper.mapBasicInfo(ticker, basicInfoMap)).thenReturn(basicInfoDataDTO);
+
+        FinancialDataDTO financialDataDTO = new FinancialDataDTO();
+        financialDataDTO.setStockPrice(150.0);
+        CompanyFinancialIngestionService.FinancialIngestionData ingestionData =
+                new CompanyFinancialIngestionService.FinancialIngestionData(
+                        financialDataDTO, new ArrayList<>(), new ArrayList<>(), null, null);
+        when(companyFinancialIngestionService.ingest(ticker, basicInfoMap)).thenReturn(ingestionData);
+
+        when(currencyRateService.convertCurrency("EUR", "USD", 150.0))
+                .thenThrow(new IllegalArgumentException("Currency not found: EUR or USD"));
+
+        IllegalStateException error = assertThrows(IllegalStateException.class,
+                () -> companyDataAssemblyService.assembleCompanyData(ticker));
+
+        assertTrue(error.getMessage().contains("Cannot safely value SOME_TICKER"));
+    }
+
+    @Test
     void testAssembleCompanyData_Global_Company() throws Exception {
         String ticker = "GLOBAL_CO";
 

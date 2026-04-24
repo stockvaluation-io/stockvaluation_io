@@ -41,6 +41,7 @@ import { DisclaimerBannerComponent } from './components';
 import { NarrativeSectionComponent } from './shared/components/narrative-section/narrative-section.component';
 import { DCFAssumptionsSheetComponent } from '../../components/dcf-assumptions-sheet';
 import { AssumptionsTransparencySectionComponent } from './sections/assumptions-transparency/assumptions-transparency.component';
+import { PricedInExpectationsComponent } from './sections/priced-in-expectations/priced-in-expectations.component';
 import { ChatSidebarComponent } from '../../../shared/chat-ui/chat-sidebar.component';
 
 export interface NavigationItem {
@@ -69,6 +70,7 @@ export interface NavigationItem {
     NarrativeSectionComponent,
     DCFAssumptionsSheetComponent,
     AssumptionsTransparencySectionComponent,
+    PricedInExpectationsComponent,
     ChatSidebarComponent
   ],
   template: `
@@ -177,8 +179,13 @@ export interface NavigationItem {
             
             <!-- Main Content Area -->
             <div class="main-content">
+
+            <!-- Section 1: Market Expectations -->
+            <div id="market-expectations" class="results-section">
+              <app-priced-in-expectations [results]="results"></app-priced-in-expectations>
+            </div>
             
-            <!-- Section 1: Analysis Narratives -->
+            <!-- Section 2: Analysis Narratives -->
             <app-narrative-section
               id="analysis-narratives"
               class="results-section"
@@ -281,7 +288,7 @@ export interface NavigationItem {
                 <i class="pi pi-link" aria-hidden="true"></i>
                 News Sources
               </h3>
-              <p class="section-description">External sources used for this generated narrative.</p>
+              <p class="section-description">External sources used for the generated narrative.</p>
             </div>
             <div class="news-sources-body" *ngIf="results?.newsSources?.length; else noNewsSources">
               <a
@@ -503,6 +510,13 @@ export class NewResultsPageComponent implements OnInit, AfterViewInit, OnDestroy
   };
 
   navigationItems: NavigationItem[] = [
+    {
+      id: 'market-expectations',
+      title: 'Market Expectations',
+      description: 'Growth, margin, risk, and capital efficiency combinations',
+      icon: 'compass',
+      anchor: '#market-expectations'
+    },
     {
       id: 'analysis-narratives',
       title: 'Narratives',

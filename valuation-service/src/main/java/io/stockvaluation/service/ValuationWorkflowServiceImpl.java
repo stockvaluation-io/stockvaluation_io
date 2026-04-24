@@ -387,13 +387,18 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                 List<String> notes = new ArrayList<>();
                 notes.add("Rates are shown in percent.");
                 notes.add("Sales-to-capital is shown as x multiple.");
-                notes.add("Market-implied values solve one variable at a time while others stay fixed.");
+                notes.add("Single-lever market expectation checks solve one variable at a time while others stay fixed.");
                 if (isForcedThreeStageReason(templateSelectionReason)) {
                         notes.add("Projection was upgraded to THREE_STAGE because market price and intrinsic value diverged materially in the first-pass baseline.");
                 }
                 dto.setNotes(notes);
 
                 dto.setMarketImpliedExpectations(buildMarketImpliedExpectations(
+                                ticker,
+                                financialDataInput,
+                                valuationOutputDTO,
+                                template));
+                dto.setPricedInExpectations(buildPricedInExpectations(
                                 ticker,
                                 financialDataInput,
                                 valuationOutputDTO,
@@ -409,7 +414,7 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                 CompanyDTO company = valuationOutputDTO.getCompanyDTO();
                 AssumptionTransparencyDTO.MarketImpliedExpectations expectations = new AssumptionTransparencyDTO.MarketImpliedExpectations();
                 expectations.setMethod(
-                                "Single-variable reverse DCF; each lever is solved independently to match the current market price.");
+                                "Single-variable market expectation checks; each lever is solved independently to match the current market price.");
 
                 if (company == null || company.getPrice() == null || company.getPrice() <= 0) {
                         expectations.setMetrics(new ArrayList<>());
@@ -419,6 +424,9 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                 double marketPrice = company.getPrice();
                 expectations.setMarketPrice(round2(marketPrice));
                 expectations.setModelIntrinsicValue(round2(company.getEstimatedValuePerShare()));
+                double baseGrowth = getEffectiveRevenueGrowth(baseInput);
+                double baseMargin = getEffectiveTargetOperatingMargin(baseInput);
+                double baseSalesToCapital = getEffectiveSalesToCapitalYears1To5(baseInput);
 
                 RDResult rdResult = commonService.calculateRDConverterValue(
                                 baseInput.getIndustry(),
@@ -449,7 +457,7 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                                 "revenue_cagr",
                                 "Revenue Growth (Years 2-5)",
                                 "percent",
-                                normalizePercent(baseInput.getCompoundAnnualGrowth2_5()),
+                                normalizePercent(baseGrowth),
                                 normalizePercent(impliedGrowth.value()),
                                 impliedGrowth.solved()));
 
@@ -468,7 +476,7 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                                 "operating_margin",
                                 "Operating Margin (Years 2-5)",
                                 "percent",
-                                normalizePercent(baseInput.getTargetPreTaxOperatingMargin()),
+                                normalizePercent(baseMargin),
                                 normalizePercent(impliedMargin.value()),
                                 impliedMargin.solved()));
 
@@ -493,12 +501,539 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                                 "sales_to_capital",
                                 "Sales/Capital (Years 2-5)",
                                 "multiple",
-                                normalizeMultiple(baseInput.getSalesToCapitalYears1To5()),
+                                normalizeMultiple(baseSalesToCapital),
                                 normalizeMultiple(impliedSalesToCapital.value()),
                                 impliedSalesToCapital.solved()));
 
                 expectations.setMetrics(metrics);
                 return expectations;
+        }
+
+        private AssumptionTransparencyDTO.PricedInExpectations buildPricedInExpectations(
+                        String ticker,
+                        FinancialDataInput baseInput,
+                        ValuationOutputDTO valuationOutputDTO,
+                        ValuationTemplate template) {
+                CompanyDTO company = valuationOutputDTO.getCompanyDTO();
+                AssumptionTransparencyDTO.PricedInExpectations expectations =
+                                new AssumptionTransparencyDTO.PricedInExpectations();
+                expectations.setMethod(
+                                "Deterministic market expectations grid; growth and margin vary together while risk and capital efficiency are scenario toggles.");
+
+                if (company == null || company.getPrice() == null || company.getPrice() <= 0) {
+                        expectations.setScenarios(new ArrayList<>());
+                        expectations.setGrid(new ArrayList<>());
+                        expectations.setFrontier(new ArrayList<>());
+                        return expectations;
+                }
+
+                double marketPrice = company.getPrice();
+                Double modelIntrinsicValue = company.getEstimatedValuePerShare();
+                expectations.setMarketPrice(round2(marketPrice));
+                expectations.setModelIntrinsicValue(round2(modelIntrinsicValue));
+
+                double baseGrowth = getEffectiveRevenueGrowth(baseInput);
+                double baseMargin = getEffectiveTargetOperatingMargin(baseInput);
+                double baseRiskRaw = getEffectiveInitialCostOfCapital(baseInput);
+                double baseRisk = firstNonNull(normalizePercent(baseRiskRaw), 0.0);
+                double baseSalesToCapital = getEffectiveSalesToCapitalYears1To5(baseInput);
+
+                expectations.setBaseCase(new AssumptionTransparencyDTO.BaseCase(
+                                round2(baseGrowth),
+                                round2(baseMargin),
+                                round2(baseRisk),
+                                round2(baseSalesToCapital),
+                                round2(modelIntrinsicValue),
+                                calculateGapToMarket(modelIntrinsicValue, marketPrice),
+                                calculateGapToMarketPct(modelIntrinsicValue, marketPrice)));
+
+                RDResult rdResult = commonService.calculateRDConverterValue(
+                                baseInput.getIndustry(),
+                                baseInput.getFinancialDataDTO().getMarginalTaxRate(),
+                                baseInput.getFinancialDataDTO().getResearchAndDevelopmentMap());
+                OptionValueResultDTO optionValue = optionValueService.calculateOptionValue(
+                                ticker,
+                                baseInput.getAverageStrikePrice(),
+                                baseInput.getAverageMaturity(),
+                                baseInput.getNumberOfOptions(),
+                                baseInput.getStockPriceStdDev());
+                LeaseResultDTO leaseResult = commonService.calculateOperatingLeaseConverter();
+
+                List<Double> growthAxis = buildAxis(baseGrowth, 10.0, -30.0, 50.0);
+                List<Double> marginAxis = buildAxis(baseMargin, 10.0, 0.5, 85.0);
+                List<PricedInScenarioDefinition> definitions = buildPricedInScenarioDefinitions(baseRisk,
+                                baseSalesToCapital);
+
+                List<AssumptionTransparencyDTO.PricedInScenario> scenarios = new ArrayList<>();
+                AssumptionTransparencyDTO.PricedInScenario baseScenario = null;
+                for (PricedInScenarioDefinition definition : definitions) {
+                        List<AssumptionTransparencyDTO.PricedInGridPoint> grid = buildPricedInGrid(
+                                        baseInput,
+                                        growthAxis,
+                                        marginAxis,
+                                        definition.initialCostOfCapital(),
+                                        baseRiskRaw,
+                                        definition.salesToCapital(),
+                                        marketPrice,
+                                        ticker,
+                                        rdResult,
+                                        optionValue,
+                                        leaseResult,
+                                        template);
+                        List<AssumptionTransparencyDTO.PricedInFrontierPoint> frontier =
+                                        buildPricedInFrontier(grid, marginAxis, marketPrice);
+                        AssumptionTransparencyDTO.PricedInScenario scenario =
+                                        new AssumptionTransparencyDTO.PricedInScenario(
+                                                        definition.key(),
+                                                        definition.label(),
+                                                        definition.riskKey(),
+                                                        definition.riskLabel(),
+                                                        definition.capitalEfficiencyKey(),
+                                                        definition.capitalEfficiencyLabel(),
+                                                        round2(definition.initialCostOfCapital()),
+                                                        round2(definition.salesToCapital()),
+                                                        buildPricedInHeadline(frontier, definition),
+                                                        grid,
+                                                        frontier);
+                        scenarios.add(scenario);
+                        if ("base_risk__base_efficiency".equals(definition.key())) {
+                                baseScenario = scenario;
+                        }
+                }
+
+                expectations.setScenarios(scenarios);
+                if (baseScenario != null) {
+                        expectations.setGrid(baseScenario.getGrid());
+                        expectations.setFrontier(baseScenario.getFrontier());
+                } else {
+                        expectations.setGrid(scenarios.isEmpty() ? new ArrayList<>() : scenarios.get(0).getGrid());
+                        expectations.setFrontier(scenarios.isEmpty() ? new ArrayList<>() : scenarios.get(0).getFrontier());
+                }
+                return expectations;
+        }
+
+        private List<AssumptionTransparencyDTO.PricedInGridPoint> buildPricedInGrid(
+                        FinancialDataInput baseInput,
+                        List<Double> growthAxis,
+                        List<Double> marginAxis,
+                        double initialCostOfCapital,
+                        double initialCostOfCapitalScaleReference,
+                        double salesToCapital,
+                        double marketPrice,
+                        String ticker,
+                        RDResult rdResult,
+                        OptionValueResultDTO optionValue,
+                        LeaseResultDTO leaseResult,
+                        ValuationTemplate template) {
+                List<AssumptionTransparencyDTO.PricedInGridPoint> grid = new ArrayList<>();
+                for (Double margin : marginAxis) {
+                        for (Double growth : growthAxis) {
+                                Double intrinsicValue = evaluatePricedInValue(
+                                                baseInput,
+                                                growth,
+                                                margin,
+                                                initialCostOfCapital,
+                                                initialCostOfCapitalScaleReference,
+                                                salesToCapital,
+                                                rdResult,
+                                                optionValue,
+                                                leaseResult,
+                                                ticker,
+                                                template);
+                                grid.add(new AssumptionTransparencyDTO.PricedInGridPoint(
+                                                round2(growth),
+                                                round2(margin),
+                                                round2(initialCostOfCapital),
+                                                round2(salesToCapital),
+                                                round2(intrinsicValue),
+                                                calculateGapToMarket(intrinsicValue, marketPrice),
+                                                calculateGapToMarketPct(intrinsicValue, marketPrice),
+                                                intrinsicValue != null && intrinsicValue >= marketPrice));
+                        }
+                }
+                return grid;
+        }
+
+        private Double evaluatePricedInValue(
+                        FinancialDataInput baseInput,
+                        double growth,
+                        double margin,
+                        double initialCostOfCapital,
+                        double initialCostOfCapitalScaleReference,
+                        double salesToCapital,
+                        RDResult rdResult,
+                        OptionValueResultDTO optionValue,
+                        LeaseResultDTO leaseResult,
+                        String ticker,
+                        ValuationTemplate template) {
+                try {
+                        FinancialDataInput scenario = new FinancialDataInput(baseInput);
+                        scenario.setCompoundAnnualGrowth2_5(growth);
+                        scenario.setTargetPreTaxOperatingMargin(margin);
+                        scenario.setInitialCostCapital(restorePercentScale(
+                                        initialCostOfCapitalScaleReference,
+                                        initialCostOfCapital));
+                        scenario.setSalesToCapitalYears1To5(salesToCapital);
+                        scenario.setSalesToCapitalYears6To10(salesToCapital);
+                        double estimate = getEstimatedValuePerShareWithScenarioContext(scenario, rdResult, optionValue,
+                                        leaseResult, ticker, template);
+                        if (!Double.isFinite(estimate)) {
+                                return null;
+                        }
+                        return estimate;
+                } catch (RuntimeException ex) {
+                        log.debug("Skipping priced-in grid point for {} due to evaluation error: {}", ticker,
+                                        ex.getMessage());
+                        return null;
+                }
+        }
+
+        private double getEffectiveRevenueGrowth(FinancialDataInput input) {
+                return firstNonNull(
+                                SegmentParameterContext.getParameterOrDefault(
+                                                SegmentWeightedParameters::getWeightedCompoundAnnualGrowth2_5,
+                                                input.getCompoundAnnualGrowth2_5()),
+                                0.0);
+        }
+
+        private double getEffectiveTargetOperatingMargin(FinancialDataInput input) {
+                return firstNonNull(
+                                SegmentParameterContext.getParameterOrDefault(
+                                                SegmentWeightedParameters::getWeightedTargetPreTaxOperatingMargin,
+                                                input.getTargetPreTaxOperatingMargin()),
+                                0.0);
+        }
+
+        private double getEffectiveInitialCostOfCapital(FinancialDataInput input) {
+                return firstNonNull(
+                                SegmentParameterContext.getParameterOrDefault(
+                                                SegmentWeightedParameters::getWeightedInitialCostCapital,
+                                                input.getInitialCostCapital()),
+                                0.0);
+        }
+
+        private double getEffectiveSalesToCapitalYears1To5(FinancialDataInput input) {
+                return firstNonNull(
+                                SegmentParameterContext.getParameterOrDefault(
+                                                SegmentWeightedParameters::getWeightedSalesToCapitalYears1To5,
+                                                input.getSalesToCapitalYears1To5()),
+                                2.0);
+        }
+
+        private double getEstimatedValuePerShareWithScenarioContext(
+                        FinancialDataInput scenario,
+                        RDResult rdResult,
+                        OptionValueResultDTO optionValue,
+                        LeaseResultDTO leaseResult,
+                        String ticker,
+                        ValuationTemplate template) {
+                SegmentWeightedParameters originalSegmentParameters = SegmentParameterContext.getParameters();
+                boolean shouldOverrideSegmentContext = originalSegmentParameters != null
+                                && originalSegmentParameters.hasValidParameters();
+
+                if (shouldOverrideSegmentContext) {
+                        SegmentParameterContext.setParameters(
+                                        buildScenarioSegmentParameters(originalSegmentParameters, scenario));
+                }
+
+                try {
+                        return getEstimatedValuePerShare(scenario, rdResult, optionValue, leaseResult, ticker,
+                                        template);
+                } finally {
+                        if (originalSegmentParameters != null) {
+                                SegmentParameterContext.setParameters(originalSegmentParameters);
+                        } else {
+                                SegmentParameterContext.clear();
+                        }
+                }
+        }
+
+        private SegmentWeightedParameters buildScenarioSegmentParameters(
+                        SegmentWeightedParameters original,
+                        FinancialDataInput scenario) {
+                SegmentWeightedParameters adjusted = original.copy();
+
+                Double targetGrowth = firstNonNull(
+                                scenario.getCompoundAnnualGrowth2_5(),
+                                original.getWeightedCompoundAnnualGrowth2_5());
+                Double targetMargin = firstNonNull(
+                                scenario.getTargetPreTaxOperatingMargin(),
+                                original.getWeightedTargetPreTaxOperatingMargin());
+                Double targetInitialCost = firstNonNull(
+                                scenario.getInitialCostCapital(),
+                                original.getWeightedInitialCostCapital());
+                Double targetSalesToCapital1To5 = firstNonNull(
+                                scenario.getSalesToCapitalYears1To5(),
+                                original.getWeightedSalesToCapitalYears1To5());
+                Double targetSalesToCapital6To10 = firstNonNull(
+                                scenario.getSalesToCapitalYears6To10(),
+                                original.getWeightedSalesToCapitalYears6To10());
+
+                adjusted.setWeightedCompoundAnnualGrowth2_5(targetGrowth);
+                adjusted.setWeightedTargetPreTaxOperatingMargin(targetMargin);
+                adjusted.setWeightedInitialCostCapital(targetInitialCost);
+                adjusted.setWeightedSalesToCapitalYears1To5(targetSalesToCapital1To5);
+                adjusted.setWeightedSalesToCapitalYears6To10(targetSalesToCapital6To10);
+
+                for (SegmentWeightedParameters.SectorParameters sector : adjusted.getSectorParameters().values()) {
+                        if (sector == null) {
+                                continue;
+                        }
+                        sector.setCompoundAnnualGrowth2_5(shiftByWeightedDelta(
+                                        sector.getCompoundAnnualGrowth2_5(),
+                                        targetGrowth,
+                                        original.getWeightedCompoundAnnualGrowth2_5()));
+                        sector.setTargetPreTaxOperatingMargin(clamp(
+                                        shiftByWeightedDelta(
+                                                        sector.getTargetPreTaxOperatingMargin(),
+                                                        targetMargin,
+                                                        original.getWeightedTargetPreTaxOperatingMargin()),
+                                        -100.0,
+                                        100.0));
+                        sector.setInitialCostCapital(Math.max(0.1,
+                                        shiftByWeightedDelta(
+                                                        sector.getInitialCostCapital(),
+                                                        targetInitialCost,
+                                                        original.getWeightedInitialCostCapital())));
+                        sector.setSalesToCapitalYears1To5(scaleByWeightedRatio(
+                                        sector.getSalesToCapitalYears1To5(),
+                                        targetSalesToCapital1To5,
+                                        original.getWeightedSalesToCapitalYears1To5()));
+                        sector.setSalesToCapitalYears6To10(scaleByWeightedRatio(
+                                        sector.getSalesToCapitalYears6To10(),
+                                        targetSalesToCapital6To10,
+                                        original.getWeightedSalesToCapitalYears6To10()));
+                }
+
+                return adjusted;
+        }
+
+        private Double shiftByWeightedDelta(Double sectorValue, Double targetWeightedValue, Double originalWeightedValue) {
+                if (targetWeightedValue == null) {
+                        return sectorValue;
+                }
+                if (sectorValue == null || originalWeightedValue == null) {
+                        return targetWeightedValue;
+                }
+                return sectorValue + (targetWeightedValue - originalWeightedValue);
+        }
+
+        private Double scaleByWeightedRatio(Double sectorValue, Double targetWeightedValue, Double originalWeightedValue) {
+                if (targetWeightedValue == null) {
+                        return sectorValue;
+                }
+                if (sectorValue == null || originalWeightedValue == null || Math.abs(originalWeightedValue) < 0.000001) {
+                        return Math.max(0.0001, targetWeightedValue);
+                }
+                return Math.max(0.0001, sectorValue * (targetWeightedValue / originalWeightedValue));
+        }
+
+        private Double clamp(Double value, double lower, double upper) {
+                if (value == null) {
+                        return null;
+                }
+                return Math.max(lower, Math.min(upper, value));
+        }
+
+        private List<AssumptionTransparencyDTO.PricedInFrontierPoint> buildPricedInFrontier(
+                        List<AssumptionTransparencyDTO.PricedInGridPoint> grid,
+                        List<Double> marginAxis,
+                        double marketPrice) {
+                List<AssumptionTransparencyDTO.PricedInFrontierPoint> frontier = new ArrayList<>();
+                for (Double margin : marginAxis) {
+                        List<AssumptionTransparencyDTO.PricedInGridPoint> row = grid.stream()
+                                        .filter(point -> point.getOperatingMargin() != null
+                                                        && Math.abs(point.getOperatingMargin() - round2(margin)) < 0.001)
+                                        .sorted(Comparator.comparing(AssumptionTransparencyDTO.PricedInGridPoint::getRevenueGrowth,
+                                                        Comparator.nullsLast(Double::compareTo)))
+                                        .collect(Collectors.toList());
+                        frontier.add(interpolateFrontierPoint(row, margin, marketPrice));
+                }
+                return frontier;
+        }
+
+        private AssumptionTransparencyDTO.PricedInFrontierPoint interpolateFrontierPoint(
+                        List<AssumptionTransparencyDTO.PricedInGridPoint> row,
+                        Double margin,
+                        double marketPrice) {
+                AssumptionTransparencyDTO.PricedInGridPoint nearest = null;
+                Double nearestAbsGap = null;
+
+                for (int i = 0; i < row.size(); i++) {
+                        AssumptionTransparencyDTO.PricedInGridPoint current = row.get(i);
+                        if (current.getIntrinsicValue() == null || current.getRevenueGrowth() == null) {
+                                continue;
+                        }
+                        double currentGap = current.getIntrinsicValue() - marketPrice;
+                        double currentAbsGap = Math.abs(currentGap);
+                        if (nearestAbsGap == null || currentAbsGap < nearestAbsGap) {
+                                nearest = current;
+                                nearestAbsGap = currentAbsGap;
+                        }
+                        if (Math.abs(currentGap) <= Math.max(0.01,
+                                        valuationAssumptionProperties.getImpliedExpectationTolerance())) {
+                                return new AssumptionTransparencyDTO.PricedInFrontierPoint(
+                                                round2(margin),
+                                                round2(current.getRevenueGrowth()),
+                                                round2(current.getIntrinsicValue()),
+                                                calculateGapToMarket(current.getIntrinsicValue(), marketPrice),
+                                                calculateGapToMarketPct(current.getIntrinsicValue(), marketPrice),
+                                                true,
+                                                "Grid point is within tolerance of current market price.");
+                        }
+                        if (i == 0) {
+                                continue;
+                        }
+                        AssumptionTransparencyDTO.PricedInGridPoint previous = row.get(i - 1);
+                        if (previous.getIntrinsicValue() == null || previous.getRevenueGrowth() == null) {
+                                continue;
+                        }
+                        double previousGap = previous.getIntrinsicValue() - marketPrice;
+                        if ((previousGap <= 0 && currentGap >= 0) || (previousGap >= 0 && currentGap <= 0)) {
+                                double denominator = current.getIntrinsicValue() - previous.getIntrinsicValue();
+                                double t = Math.abs(denominator) < 0.000001
+                                                ? 0.0
+                                                : (marketPrice - previous.getIntrinsicValue()) / denominator;
+                                double impliedGrowth = previous.getRevenueGrowth()
+                                                + t * (current.getRevenueGrowth() - previous.getRevenueGrowth());
+                                return new AssumptionTransparencyDTO.PricedInFrontierPoint(
+                                                round2(margin),
+                                                round2(impliedGrowth),
+                                                round2(marketPrice),
+                                                0.0,
+                                                0.0,
+                                                true,
+                                                "Interpolated between adjacent grid points.");
+                        }
+                }
+
+                if (nearest == null) {
+                        return new AssumptionTransparencyDTO.PricedInFrontierPoint(
+                                        round2(margin),
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        false,
+                                        "No valid grid point was available for this margin.");
+                }
+
+                return new AssumptionTransparencyDTO.PricedInFrontierPoint(
+                                round2(margin),
+                                round2(nearest.getRevenueGrowth()),
+                                round2(nearest.getIntrinsicValue()),
+                                calculateGapToMarket(nearest.getIntrinsicValue(), marketPrice),
+                                calculateGapToMarketPct(nearest.getIntrinsicValue(), marketPrice),
+                                false,
+                                "Market price is outside the sampled growth range; nearest bounded point shown.");
+        }
+
+        private String buildPricedInHeadline(
+                        List<AssumptionTransparencyDTO.PricedInFrontierPoint> frontier,
+                        PricedInScenarioDefinition definition) {
+                Optional<AssumptionTransparencyDTO.PricedInFrontierPoint> solved = frontier.stream()
+                                .filter(point -> Boolean.TRUE.equals(point.getSolved())
+                                                && point.getImpliedRevenueGrowth() != null
+                                                && point.getOperatingMargin() != null)
+                                .min(Comparator.comparing(point -> Math.abs(point.getImpliedRevenueGrowth())));
+                if (solved.isPresent()) {
+                        AssumptionTransparencyDTO.PricedInFrontierPoint point = solved.get();
+                        return String.format(
+                                        "At %.2f%% margin, today's market price needs about %.2f%% revenue growth under %s and %s.",
+                                        point.getOperatingMargin(),
+                                        point.getImpliedRevenueGrowth(),
+                                        definition.riskLabel().toLowerCase(Locale.ROOT),
+                                        definition.capitalEfficiencyLabel().toLowerCase(Locale.ROOT));
+                }
+                return "Current market price is outside the sampled market expectations range for this scenario.";
+        }
+
+        private List<Double> buildAxis(double center, double spread, double lower, double upper) {
+                double[] offsets = new double[] { -spread, -spread / 2.0, 0.0, spread / 2.0, spread };
+                List<Double> values = new ArrayList<>();
+                for (double offset : offsets) {
+                        double candidate = Math.max(lower, Math.min(upper, center + offset));
+                        double rounded = round2(candidate);
+                        if (values.stream().noneMatch(value -> Math.abs(value - rounded) < 0.001)) {
+                                values.add(rounded);
+                        }
+                }
+                Collections.sort(values);
+                return values;
+        }
+
+        private List<PricedInScenarioDefinition> buildPricedInScenarioDefinitions(
+                        double baseRisk,
+                        double baseSalesToCapital) {
+                List<PricedInScenarioDefinition> definitions = new ArrayList<>();
+                Map<String, Double> riskValues = new LinkedHashMap<>();
+                riskValues.put("low_risk", Math.max(1.0, baseRisk - 1.5));
+                riskValues.put("base_risk", Math.max(1.0, baseRisk));
+                riskValues.put("high_risk", Math.max(1.0, baseRisk + 1.5));
+
+                double stcLower = baseSalesToCapital > 20.0 ? 25.0 : 0.25;
+                double stcUpper = baseSalesToCapital > 20.0 ? 2000.0 : 20.0;
+                Map<String, Double> efficiencyValues = new LinkedHashMap<>();
+                efficiencyValues.put("efficient", Math.max(stcLower, Math.min(stcUpper, baseSalesToCapital * 1.25)));
+                efficiencyValues.put("base_efficiency", Math.max(stcLower, Math.min(stcUpper, baseSalesToCapital)));
+                efficiencyValues.put("inefficient", Math.max(stcLower, Math.min(stcUpper, baseSalesToCapital * 0.75)));
+
+                for (Map.Entry<String, Double> risk : riskValues.entrySet()) {
+                        for (Map.Entry<String, Double> efficiency : efficiencyValues.entrySet()) {
+                                definitions.add(new PricedInScenarioDefinition(
+                                                risk.getKey() + "__" + efficiency.getKey(),
+                                                labelForRisk(risk.getKey()) + " / "
+                                                                + labelForEfficiency(efficiency.getKey()),
+                                                risk.getKey(),
+                                                labelForRisk(risk.getKey()),
+                                                efficiency.getKey(),
+                                                labelForEfficiency(efficiency.getKey()),
+                                                risk.getValue(),
+                                                efficiency.getValue()));
+                        }
+                }
+                return definitions;
+        }
+
+        private String labelForRisk(String key) {
+                return switch (key) {
+                        case "low_risk" -> "Low Risk";
+                        case "high_risk" -> "High Risk";
+                        default -> "Base Risk";
+                };
+        }
+
+        private String labelForEfficiency(String key) {
+                return switch (key) {
+                        case "efficient" -> "Efficient Capital";
+                        case "inefficient" -> "Inefficient Capital";
+                        default -> "Base Efficiency";
+                };
+        }
+
+        private Double calculateGapToMarket(Double intrinsicValue, double marketPrice) {
+                if (intrinsicValue == null || !Double.isFinite(intrinsicValue)) {
+                        return null;
+                }
+                return round2(intrinsicValue - marketPrice);
+        }
+
+        private Double calculateGapToMarketPct(Double intrinsicValue, double marketPrice) {
+                if (intrinsicValue == null || !Double.isFinite(intrinsicValue) || marketPrice == 0.0) {
+                        return null;
+                }
+                return round2(((intrinsicValue - marketPrice) / marketPrice) * 100.0);
+        }
+
+        private record PricedInScenarioDefinition(
+                        String key,
+                        String label,
+                        String riskKey,
+                        String riskLabel,
+                        String capitalEfficiencyKey,
+                        String capitalEfficiencyLabel,
+                        double initialCostOfCapital,
+                        double salesToCapital) {
         }
 
         private AssumptionTransparencyDTO.ImpliedMetric toImpliedMetric(
@@ -628,8 +1163,8 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                 try {
                         FinancialDataInput scenario = new FinancialDataInput(baseInput);
                         mutator.apply(scenario, value);
-                        return getEstimatedValuePerShare(scenario, rdResult, optionValue, leaseResult, ticker,
-                                        template);
+                        return getEstimatedValuePerShareWithScenarioContext(scenario, rdResult, optionValue,
+                                        leaseResult, ticker, template);
                 } catch (RuntimeException ex) {
                         log.debug("Skipping implied valuation point for {} due to evaluation error: {}", ticker,
                                         ex.getMessage());
@@ -672,6 +1207,16 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                         return null;
                 }
                 return round2(rawValue);
+        }
+
+        private double restorePercentScale(Double referenceValue, double normalizedPercentValue) {
+                if (referenceValue != null && Math.abs(referenceValue) > 100.0) {
+                        return normalizedPercentValue * 100.0;
+                }
+                if (referenceValue != null && Math.abs(referenceValue) <= 1.0) {
+                        return normalizedPercentValue / 100.0;
+                }
+                return normalizedPercentValue;
         }
 
         private Double firstFinite(Double[] values) {

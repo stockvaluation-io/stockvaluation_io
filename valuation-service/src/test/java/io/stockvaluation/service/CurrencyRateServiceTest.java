@@ -28,8 +28,32 @@ class CurrencyRateServiceTest {
     private CurrencyApiProperties currencyApiProperties;
 
     @Test
-    void fetchExchangeRatesSkipsWhenApiKeyIsMissing() {
+    void fetchExchangeRatesFallsBackToEcbWhenApiKeyIsMissing() {
         when(currencyApiProperties.getKey()).thenReturn(" ");
+        when(restTemplate.getForObject(anyString(), eq(String.class))).thenReturn("""
+                <?xml version="1.0" encoding="UTF-8"?>
+                <gesmes:Envelope xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01"
+                    xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref">
+                  <Cube><Cube time="2026-04-23">
+                    <Cube currency="USD" rate="1.20"/>
+                    <Cube currency="INR" rate="100.00"/>
+                    <Cube currency="SEK" rate="11.00"/>
+                  </Cube></Cube>
+                </gesmes:Envelope>
+                """);
+
+        CurrencyRateService service = new CurrencyRateService(restTemplate, currencyApiProperties);
+        service.fetchExchangeRates();
+
+        assertTrue(service.isReady());
+        assertEquals(12.0, service.convertCurrency("INR", "USD", 1000.0), 1e-9);
+        assertEquals(109.0909090909, service.convertCurrency("SEK", "USD", 1000.0), 1e-6);
+    }
+
+    @Test
+    void fetchExchangeRatesLeavesRatesEmptyWhenConfiguredAndFallbackFail() {
+        when(currencyApiProperties.getKey()).thenReturn(" ");
+        when(restTemplate.getForObject(anyString(), eq(String.class))).thenThrow(new RuntimeException("down"));
 
         CurrencyRateService service = new CurrencyRateService(restTemplate, currencyApiProperties);
         service.fetchExchangeRates();
