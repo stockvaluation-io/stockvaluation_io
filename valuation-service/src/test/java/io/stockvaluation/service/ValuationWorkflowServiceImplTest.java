@@ -92,6 +92,8 @@ class ValuationWorkflowServiceImplTest {
                 assertNotNull(result.getAssumptionTransparency());
                 assertNotNull(result.getAssumptionTransparency().getMarketImpliedExpectations());
                 assertEquals(3, result.getAssumptionTransparency().getMarketImpliedExpectations().getMetrics().size());
+                assertNotNull(result.getAssumptionTransparency().getPricedInExpectations());
+                assertEquals(9, result.getAssumptionTransparency().getPricedInExpectations().getScenarios().size());
 
                 verify(commonService, times(1)).applySegmentWeightedParameters(any(FinancialDataInput.class),
                                 eq(companyData), anyList());
@@ -234,6 +236,155 @@ class ValuationWorkflowServiceImplTest {
         }
 
         @Test
+        void getValuation_pricedInExpectations_buildsScenarioGridAndFrontier() {
+                ValuationWorkflowServiceImpl workflow = workflow();
+                CompanyDataDTO companyData = companyData();
+                ValuationTemplate template = fcffTemplate();
+
+                ValuationOutputDTO initial = valuationOutput(88.8, 88.8);
+                ValuationOutputDTO refined = valuationOutput(88.8, 88.8);
+                stubMonotonicImpliedPath(companyData, template, initial, refined);
+
+                ValuationOutputDTO result = workflow.getValuation("AAPL", new FinancialDataInput(), false);
+
+                AssumptionTransparencyDTO.PricedInExpectations pricedIn = result.getAssumptionTransparency()
+                                .getPricedInExpectations();
+                assertNotNull(pricedIn);
+                assertEquals(88.8, pricedIn.getMarketPrice(), 0.001);
+                assertNotNull(pricedIn.getBaseCase());
+                assertEquals(9, pricedIn.getScenarios().size());
+                assertEquals(25, pricedIn.getGrid().size());
+                assertEquals(5, pricedIn.getFrontier().size());
+
+                AssumptionTransparencyDTO.PricedInScenario baseScenario = pricedIn.getScenarios().stream()
+                                .filter(scenario -> "base_risk__base_efficiency".equals(scenario.getKey()))
+                                .findFirst()
+                                .orElseThrow();
+                assertEquals(25, baseScenario.getGrid().size());
+                assertEquals(5, baseScenario.getFrontier().size());
+                assertTrue(baseScenario.getHeadline().contains("market price needs"));
+        }
+
+        @Test
+        void getValuation_pricedInFrontierInterpolatesSolvedPointsNearMarketPrice() {
+                ValuationWorkflowServiceImpl workflow = workflow();
+                CompanyDataDTO companyData = companyData();
+                ValuationTemplate template = fcffTemplate();
+
+                ValuationOutputDTO initial = valuationOutput(88.8, 88.8);
+                ValuationOutputDTO refined = valuationOutput(88.8, 88.8);
+                stubMonotonicImpliedPath(companyData, template, initial, refined);
+
+                ValuationOutputDTO result = workflow.getValuation("AAPL", new FinancialDataInput(), false);
+
+                List<AssumptionTransparencyDTO.PricedInFrontierPoint> solved = result.getAssumptionTransparency()
+                                .getPricedInExpectations()
+                                .getFrontier()
+                                .stream()
+                                .filter(point -> Boolean.TRUE.equals(point.getSolved()))
+                                .collect(Collectors.toList());
+
+                assertFalse(solved.isEmpty());
+                assertTrue(solved.stream().allMatch(point -> Math.abs(point.getGapToMarketPct()) < 0.001));
+        }
+
+        @Test
+        void getValuation_segmentAwareMarketExpectationsUseScenarioSegmentContext() {
+                ValuationWorkflowServiceImpl workflow = workflow();
+                CompanyDataDTO companyData = companyData();
+                ValuationTemplate template = fcffTemplate();
+
+                FinancialDataInput overrides = new FinancialDataInput();
+                overrides.setSegments(new SegmentResponseDTO(List.of(
+                                new SegmentResponseDTO.Segment("software", "technology", List.of("Cloud"), 0.6, 0.7,
+                                                0.3),
+                                new SegmentResponseDTO.Segment("hardware", "technology", List.of("Devices"), 0.4, 0.3,
+                                                0.2))));
+
+                when(commonService.getCompanyDataFromProvider("AAPL")).thenReturn(companyData);
+                when(valuationTemplateService.determineTemplate(eq(overrides), eq(companyData))).thenReturn(template);
+                lenient().when(valuationTemplateService.withGrowthPattern(any(ValuationTemplate.class),
+                                any(GrowthPattern.class), anyString()))
+                                .thenReturn(template);
+                when(growthAnchorService.getAnchorByYahooIndustry(anyString(), anyString()))
+                                .thenReturn(Optional.empty());
+                when(valuationOutputService.calculateCurrentSalesToCapitalRatio(any(FinancialDataInput.class),
+                                any(RDResult.class), any()))
+                                .thenReturn(1.0);
+                when(valuationOutputService.getValuationOutput(eq("AAPL"), any(FinancialDataInput.class), eq(false),
+                                eq(template)))
+                                .thenReturn(valuationOutput(100.0, 80.08), valuationOutput(100.0, 80.08));
+                when(commonService.calculateRDConverterValue(anyString(), anyDouble(), anyMap()))
+                                .thenReturn(new RDResult(0.0, 0.0, 0.0, 0.0));
+                when(commonService.calculateOperatingLeaseConverter())
+                                .thenReturn(new LeaseResultDTO(0.0, 0.0, 0.0, 0.0));
+                when(optionValueService.calculateOptionValue(anyString(), anyDouble(), anyDouble(), anyDouble(),
+                                anyDouble()))
+                                .thenReturn(new OptionValueResultDTO(0.0, 0.0));
+                when(valuationOutputService.calculateFinancialData(any(FinancialDataInput.class),
+                                any(RDResult.class), any(), anyString(), any()))
+                                .thenReturn(new FinancialDTO());
+                when(valuationOutputService.calculateCompanyData(any(FinancialDTO.class), any(FinancialDataInput.class),
+                                any(OptionValueResultDTO.class), any()))
+                                .thenAnswer(invocation -> {
+                                        FinancialDataInput input = invocation.getArgument(1);
+                                        SegmentWeightedParameters params = SegmentParameterContext.getParameters();
+                                        double cagr = params != null
+                                                        && params.getWeightedCompoundAnnualGrowth2_5() != null
+                                                                        ? params.getWeightedCompoundAnnualGrowth2_5()
+                                                                        : nonNull(input.getCompoundAnnualGrowth2_5());
+                                        double margin = params != null
+                                                        && params.getWeightedTargetPreTaxOperatingMargin() != null
+                                                                        ? params.getWeightedTargetPreTaxOperatingMargin()
+                                                                        : nonNull(input.getTargetPreTaxOperatingMargin());
+                                        double salesToCapital = params != null
+                                                        && params.getWeightedSalesToCapitalYears1To5() != null
+                                                                        ? params.getWeightedSalesToCapitalYears1To5()
+                                                                        : nonNull(input.getSalesToCapitalYears1To5());
+                                        double wacc = params != null && params.getWeightedInitialCostCapital() != null
+                                                        ? params.getWeightedInitialCostCapital()
+                                                        : nonNull(input.getInitialCostCapital());
+                                        CompanyDTO company = new CompanyDTO();
+                                        company.setEstimatedValuePerShare(
+                                                        50.0 + (2.0 * cagr) + (1.5 * margin)
+                                                                        + (0.04 * salesToCapital) - (2.0 * wacc));
+                                        return company;
+                                });
+                doAnswer(invocation -> {
+                        FinancialDataInput input = invocation.getArgument(0);
+                        SegmentWeightedParameters params = segmentParameters();
+                        SegmentParameterContext.setParameters(params);
+                        input.setCompoundAnnualGrowth2_5(params.getWeightedCompoundAnnualGrowth2_5());
+                        input.setTargetPreTaxOperatingMargin(params.getWeightedTargetPreTaxOperatingMargin());
+                        input.setSalesToCapitalYears1To5(params.getWeightedSalesToCapitalYears1To5());
+                        input.setSalesToCapitalYears6To10(params.getWeightedSalesToCapitalYears6To10());
+                        input.setInitialCostCapital(params.getWeightedInitialCostCapital());
+                        return null;
+                }).when(commonService).applySegmentWeightedParameters(any(FinancialDataInput.class),
+                                eq(companyData), anyList());
+
+                ValuationOutputDTO result = workflow.getValuation("AAPL", overrides, false);
+
+                AssumptionTransparencyDTO.MarketImpliedExpectations market = result.getAssumptionTransparency()
+                                .getMarketImpliedExpectations();
+                Map<String, AssumptionTransparencyDTO.ImpliedMetric> metricsByKey = market.getMetrics().stream()
+                                .collect(Collectors.toMap(AssumptionTransparencyDTO.ImpliedMetric::getKey,
+                                                metric -> metric));
+                assertEquals(8.0, metricsByKey.get("revenue_cagr").getModelValue(), 0.001);
+                assertEquals(20.0, metricsByKey.get("operating_margin").getModelValue(), 0.001);
+                assertEquals(2.0, metricsByKey.get("sales_to_capital").getModelValue(), 0.001);
+                assertTrue(metricsByKey.get("revenue_cagr").getSolved());
+
+                List<AssumptionTransparencyDTO.PricedInFrontierPoint> solvedFrontier = result.getAssumptionTransparency()
+                                .getPricedInExpectations()
+                                .getFrontier()
+                                .stream()
+                                .filter(point -> Boolean.TRUE.equals(point.getSolved()))
+                                .collect(Collectors.toList());
+                assertFalse(solvedFrontier.isEmpty());
+        }
+
+        @Test
         void getValuation_marketImpliedMetrics_marksBoundedWhenTargetUnreachable() {
                 ValuationWorkflowServiceImpl workflow = workflow();
                 CompanyDataDTO companyData = companyData();
@@ -253,6 +404,15 @@ class ValuationWorkflowServiceImplTest {
                                 .collect(Collectors.toList());
                 assertEquals(3, solvedFlags.size());
                 assertTrue(solvedFlags.stream().noneMatch(Boolean::booleanValue));
+
+                List<Boolean> frontierSolvedFlags = result.getAssumptionTransparency()
+                                .getPricedInExpectations()
+                                .getFrontier()
+                                .stream()
+                                .map(point -> Boolean.TRUE.equals(point.getSolved()))
+                                .collect(Collectors.toList());
+                assertEquals(5, frontierSolvedFlags.size());
+                assertTrue(frontierSolvedFlags.stream().noneMatch(Boolean::booleanValue));
         }
 
         @Test
@@ -749,6 +909,53 @@ class ValuationWorkflowServiceImplTest {
 
         private static double nonNull(Double value) {
                 return value == null ? 0.0 : value;
+        }
+
+        private static SegmentWeightedParameters segmentParameters() {
+                SegmentWeightedParameters params = new SegmentWeightedParameters();
+                params.setWeightedRevenueNextYear(10.0);
+                params.setWeightedCompoundAnnualGrowth2_5(8.0);
+                params.setWeightedOperatingMarginNextYear(18.0);
+                params.setWeightedTargetPreTaxOperatingMargin(20.0);
+                params.setConvergenceYearMargin(5.0);
+                params.setWeightedSalesToCapitalYears1To5(2.0);
+                params.setWeightedSalesToCapitalYears6To10(2.0);
+                params.setWeightedInitialCostCapital(8.0);
+                params.setRiskFreeRate(4.0);
+                params.setSegmentWeighted(true);
+                params.setSegmentCount(2);
+
+                SegmentWeightedParameters.SectorParameters software =
+                                new SegmentWeightedParameters.SectorParameters();
+                software.setSectorName("software");
+                software.setRevenueShare(0.6);
+                software.setRevenueNextYear(10.0);
+                software.setCompoundAnnualGrowth2_5(10.0);
+                software.setOperatingMarginNextYear(20.0);
+                software.setTargetPreTaxOperatingMargin(24.0);
+                software.setConvergenceYearMargin(5.0);
+                software.setSalesToCapitalYears1To5(2.5);
+                software.setSalesToCapitalYears6To10(2.5);
+                software.setInitialCostCapital(7.0);
+                software.setTerminalGrowthRate(0.04);
+
+                SegmentWeightedParameters.SectorParameters hardware =
+                                new SegmentWeightedParameters.SectorParameters();
+                hardware.setSectorName("hardware");
+                hardware.setRevenueShare(0.4);
+                hardware.setRevenueNextYear(10.0);
+                hardware.setCompoundAnnualGrowth2_5(5.0);
+                hardware.setOperatingMarginNextYear(15.0);
+                hardware.setTargetPreTaxOperatingMargin(14.0);
+                hardware.setConvergenceYearMargin(5.0);
+                hardware.setSalesToCapitalYears1To5(1.25);
+                hardware.setSalesToCapitalYears6To10(1.25);
+                hardware.setInitialCostCapital(9.5);
+                hardware.setTerminalGrowthRate(0.04);
+
+                params.setSectorParameters("software", software);
+                params.setSectorParameters("hardware", hardware);
+                return params;
         }
 
         private static CompanyDataDTO companyData() {

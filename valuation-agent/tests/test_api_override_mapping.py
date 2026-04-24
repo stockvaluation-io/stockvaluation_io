@@ -156,6 +156,11 @@ def test_assumption_transparency_preserves_market_implied_expectations_from_java
                     "marketPrice": 100.0,
                     "modelIntrinsicValue": 90.0,
                     "metrics": [{"key": "revenue_cagr", "solved": True}],
+                },
+                "pricedInExpectations": {
+                    "marketPrice": 100.0,
+                    "modelIntrinsicValue": 90.0,
+                    "scenarios": [{"key": "base_risk__base_efficiency"}],
                 }
             },
             "financialDTO": {"costOfCapital": [8.0, 8.1, 8.2]},
@@ -168,6 +173,8 @@ def test_assumption_transparency_preserves_market_implied_expectations_from_java
 
     assert transparency["marketImpliedExpectations"]["marketPrice"] == 100.0
     assert transparency["marketImpliedExpectations"]["metrics"][0]["key"] == "revenue_cagr"
+    assert transparency["pricedInExpectations"]["marketPrice"] == 100.0
+    assert transparency["pricedInExpectations"]["scenarios"][0]["key"] == "base_risk__base_efficiency"
 
 
 def test_assumption_transparency_preserves_template_metadata_from_java():

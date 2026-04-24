@@ -26,6 +26,7 @@ def test_normalize_analyzer_uses_growth_skill_context_for_clamp():
         "growth_skill_context": {
             "entity": "softwareinternet",
             "region": "United States",
+            "year": 2026,
             "confidenceScore": 0.91,
             "p10": 0.05,
             "p25": 0.08,
@@ -81,6 +82,7 @@ def test_normalize_analyzer_does_not_clamp_when_units_are_mixed_but_value_is_in_
         "growth_skill_context": {
             "entity": "softwareinternet",
             "region": "United States",
+            "year": 2026,
             "confidenceScore": 0.91,
             "p10": 0.05,
             "p25": 0.08,
@@ -110,3 +112,13 @@ def test_normalize_analyzer_does_not_clamp_when_units_are_mixed_but_value_is_in_
     proposed = normalized["dcf_analysis"]["proposed_assumptions"]
     assert proposed["revenue_cagr"] == 13.5
     assert "growth_skill_override_reason" not in normalized["analyzer_metadata"]
+
+
+def test_normalize_analyst_result_does_not_emit_default_boilerplate():
+    builder = GraphBuilder(_DummyOrchestrator())
+
+    normalized = builder._normalize_analyst_result({}, {"news": {}})
+
+    assert normalized["investment_efficiency"]["narrative"] == ""
+    assert normalized["risks"]["narrative"] == ""
+    assert normalized["key_takeaways"]["narrative"] == ""

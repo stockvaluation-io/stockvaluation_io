@@ -83,7 +83,13 @@ public class CompanyDataAssemblyService {
                 financialDataDTO.setStockPrice(convertedPrice);
                 basicInfoDataDTO.setStockCurrency(basicInfoMap.get("financialCurrency").toString());
             } catch (Exception e) {
-                log.error("Skip currency fixes: {}", e.getMessage());
+                throw new IllegalStateException(
+                        "Cannot safely value " + ticker + " because market price currency "
+                                + basicInfoMap.get("currency")
+                                + " differs from financial statement currency "
+                                + basicInfoMap.get("financialCurrency")
+                                + " and conversion failed.",
+                        e);
             }
         }
 

@@ -2,12 +2,31 @@
 @use '../../../../../../styles/_design-system-v2' as ds;
 
 .transparency-section {
-  margin-top: var(--space-6);
-  margin-bottom: var(--space-8);
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+
+  .section-header {
+    margin-bottom: var(--space-3);
+  }
+
+  .section-title {
+    gap: var(--space-2);
+    margin-bottom: var(--space-1);
+    font-size: var(--font-size-xl);
+    line-height: 1.25;
+  }
+
+  .section-description {
+    font-size: var(--font-size-sm);
+  }
 
   @include ds.mobile {
-    margin-top: var(--space-4);
-    margin-bottom: var(--space-6);
+    margin-top: 0;
+    margin-bottom: 0;
   }
 }
 
@@ -15,26 +34,30 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-3);
 }
 
 .meta-chip {
-  padding: var(--space-1) var(--space-3);
+  padding: 2px var(--space-2);
   border-radius: var(--radius-full);
   border: 1px solid var(--color-border-secondary);
   background: var(--color-bg-primary);
   color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
 }
 
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4);
-  margin-bottom: var(--space-4);
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
 
   @include ds.tablet {
+    grid-template-columns: 1fr;
+  }
+
+  @include ds.mobile {
     grid-template-columns: 1fr;
   }
 }
@@ -42,28 +65,28 @@
 .assumption-card {
   border: 1px solid var(--color-border-primary);
   background: var(--color-bg-primary);
-  border-radius: var(--radius-xl);
-  padding: var(--space-4);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  box-shadow: none;
 }
 
 .card-title {
-  margin: 0 0 var(--space-3) 0;
+  margin: 0 0 var(--space-2) 0;
   color: var(--color-text-primary);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
 }
 
 .metrics-grid {
-  margin: 0 0 var(--space-3) 0;
+  margin: 0 0 var(--space-2) 0;
 }
 
 .metric-row {
   display: flex;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2);
   align-items: baseline;
-  padding: var(--space-2) 0 var(--space-2) var(--space-1);
+  padding: var(--space-1) 0 var(--space-1) var(--space-1);
   border-bottom: 1px dashed var(--color-border-secondary);
 }
 
@@ -84,10 +107,10 @@
 
 .formula,
 .source {
-  margin: var(--space-2) 0;
+  margin: var(--space-1) 0;
   color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  line-height: 1.6;
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
 
   strong {
     color: var(--color-text-primary);
@@ -96,13 +119,13 @@
 }
 
 .rationale-card {
-  border-left: 4px solid var(--color-status-info);
-  margin-bottom: var(--space-4);
+  border-left: 3px solid var(--color-status-info);
+  margin-bottom: var(--space-3);
 }
 
 // Each "Why These Inputs" entry
 .rationale-item {
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
 
   &:last-child {
     margin-bottom: 0;
@@ -160,8 +183,8 @@
 
 // Growth Anchor Card
 .growth-anchor-card {
-  border-left: 4px solid var(--color-status-success, #22c55e);
-  margin-bottom: var(--space-4);
+  border-left: 3px solid var(--color-status-success, #22c55e);
+  margin-bottom: var(--space-3);
 
   .card-title {
     display: flex;
@@ -185,7 +208,7 @@
   margin: var(--space-3) 0;
   padding: var(--space-3);
   background: color-mix(in srgb, var(--color-bg-primary) 94%, var(--color-status-success, #22c55e) 6%);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
 
   .band-title {
     margin: 0 0 var(--space-2) 0;
@@ -219,65 +242,4 @@
     font-weight: var(--font-weight-semibold);
     font-variant-numeric: tabular-nums;
   }
-}
-
-.market-implied-card {
-  border-left: 4px solid var(--color-status-warning, #f59e0b);
-  margin-bottom: var(--space-4);
-
-  .card-title {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-  }
-}
-
-.market-meta {
-  margin-bottom: var(--space-3);
-}
-
-.table-wrap {
-  overflow-x: auto;
-}
-
-.implied-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--font-size-sm);
-
-  th,
-  td {
-    text-align: left;
-    padding: var(--space-2);
-    border-bottom: 1px solid var(--color-border-secondary);
-    white-space: nowrap;
-  }
-
-  th {
-    color: var(--color-text-secondary);
-    font-weight: var(--font-weight-semibold);
-  }
-
-  td {
-    color: var(--color-text-primary);
-    font-variant-numeric: tabular-nums;
-  }
-}
-
-.status-chip {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-}
-
-.status-ok {
-  color: var(--color-status-success, #22c55e);
-  background: color-mix(in srgb, var(--color-bg-primary) 82%, var(--color-status-success, #22c55e) 18%);
-}
-
-.status-warn {
-  color: var(--color-status-warning, #f59e0b);
-  background: color-mix(in srgb, var(--color-bg-primary) 82%, var(--color-status-warning, #f59e0b) 18%);
 }

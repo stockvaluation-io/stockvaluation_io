@@ -384,7 +384,63 @@ export interface AssumptionTransparency {
       note?: string;
     }>;
   };
+  pricedInExpectations?: PricedInExpectations;
   notes?: string[];
+}
+
+export interface PricedInExpectations {
+  marketPrice?: number | null;
+  modelIntrinsicValue?: number | null;
+  method?: string;
+  baseCase?: PricedInBaseCase;
+  scenarios?: PricedInScenario[];
+  grid?: PricedInGridPoint[];
+  frontier?: PricedInFrontierPoint[];
+}
+
+export interface PricedInBaseCase {
+  revenueGrowth?: number | null;
+  operatingMargin?: number | null;
+  initialCostOfCapital?: number | null;
+  salesToCapital?: number | null;
+  intrinsicValue?: number | null;
+  gapToMarket?: number | null;
+  gapToMarketPct?: number | null;
+}
+
+export interface PricedInScenario {
+  key?: string;
+  label?: string;
+  riskKey?: string;
+  riskLabel?: string;
+  capitalEfficiencyKey?: string;
+  capitalEfficiencyLabel?: string;
+  initialCostOfCapital?: number | null;
+  salesToCapital?: number | null;
+  headline?: string;
+  grid?: PricedInGridPoint[];
+  frontier?: PricedInFrontierPoint[];
+}
+
+export interface PricedInGridPoint {
+  revenueGrowth?: number | null;
+  operatingMargin?: number | null;
+  initialCostOfCapital?: number | null;
+  salesToCapital?: number | null;
+  intrinsicValue?: number | null;
+  gapToMarket?: number | null;
+  gapToMarketPct?: number | null;
+  supportsMarketPrice?: boolean | null;
+}
+
+export interface PricedInFrontierPoint {
+  operatingMargin?: number | null;
+  impliedRevenueGrowth?: number | null;
+  intrinsicValue?: number | null;
+  gapToMarket?: number | null;
+  gapToMarketPct?: number | null;
+  solved?: boolean | null;
+  note?: string;
 }
 
 export interface DCFValuationResponse {

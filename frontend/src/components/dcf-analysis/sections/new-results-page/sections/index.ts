@@ -14,3 +14,4 @@ export * from './performance-comparison/performance-comparison.component';
 export * from './company-overview/company-overview.component';
 export * from './monte-carlo-section/monte-carlo-section.component';
 export * from './valuation-animation-section/valuation-animation-section.component';
+export * from './priced-in-expectations/priced-in-expectations.component';

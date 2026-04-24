@@ -8,7 +8,7 @@ import { ValuationResults } from '../../../../models';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <section class="full-width-section-container transparency-section" *ngIf="results?.assumptionTransparency as data">
+    <section class="transparency-section" *ngIf="results?.assumptionTransparency as data">
       <header class="section-header">
         <h3 class="section-title">
           <i class="pi pi-eye" aria-hidden="true"></i>
@@ -158,48 +158,6 @@ import { ValuationResults } from '../../../../models';
         </p>
       </article>
 
-      <article class="assumption-card market-implied-card" *ngIf="hasMarketImplied(data)">
-        <h3 class="card-title">
-          <i class="pi pi-table" aria-hidden="true"></i>
-          Market-Implied Expectations
-        </h3>
-        <p class="source" *ngIf="data.marketImpliedExpectations?.method">
-          <strong>Method:</strong> {{ data.marketImpliedExpectations?.method }}
-        </p>
-        <div class="meta-row market-meta">
-          <span class="meta-chip" *ngIf="data.marketImpliedExpectations?.marketPrice != null">
-            Market Price: {{ data.marketImpliedExpectations?.marketPrice | number:'1.2-2' }}
-          </span>
-        </div>
-
-        <div class="table-wrap">
-          <table class="implied-table">
-            <thead>
-              <tr>
-                <th>Lever</th>
-                <th>Current Assumption</th>
-                <th>Market-Implied</th>
-                <th>Delta</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let metric of data.marketImpliedExpectations?.metrics">
-                <td>{{ metric.label || metric.key || 'N/A' }}</td>
-                <td>{{ formatMetricValue(metric.modelValue, metric.unit) }}</td>
-                <td>{{ formatMetricValue(metric.impliedValue, metric.unit) }}</td>
-                <td>{{ formatGap(metric.gap, metric.unit) }}</td>
-                <td>
-                  <span class="status-chip" [class.status-ok]="metric.solved" [class.status-warn]="!metric.solved">
-                    {{ metric.solved ? 'Solved' : 'Bounded' }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </article>
-
       <article class="assumption-card notes-card" *ngIf="data.notes?.length">
         <h3 class="card-title">Notes</h3>
         <ul class="notes-list">
@@ -218,7 +176,7 @@ export class AssumptionsTransparencySectionComponent {
     if (value === null || value === undefined || Number.isNaN(value)) {
       return 'N/A';
     }
-    return `${this.normalizePercent(value).toFixed(2)}%`;
+    return `${value.toFixed(2)}%`;
   }
 
   formatMultiple(value: number | null | undefined): string {
@@ -235,33 +193,6 @@ export class AssumptionsTransparencySectionComponent {
       data.adjustmentRationales?.salesToCapital ||
       data.adjustmentRationales?.costOfCapital
     );
-  }
-
-  hasMarketImplied(data: NonNullable<ValuationResults['assumptionTransparency']>): boolean {
-    return Boolean(data.marketImpliedExpectations?.metrics && data.marketImpliedExpectations.metrics.length > 0);
-  }
-
-  formatMetricValue(value: number | null | undefined, unit: string | null | undefined): string {
-    if (value === null || value === undefined || Number.isNaN(value)) {
-      return 'N/A';
-    }
-    const unitKey = String(unit || '').trim().toLowerCase();
-    if (unitKey === 'multiple' || unitKey === 'x') {
-      return this.formatMultiple(value);
-    }
-    return this.formatPercent(value);
-  }
-
-  formatGap(value: number | null | undefined, unit: string | null | undefined): string {
-    if (value === null || value === undefined || Number.isNaN(value)) {
-      return 'N/A';
-    }
-    const unitKey = String(unit || '').trim().toLowerCase();
-    const prefix = value > 0 ? '+' : '';
-    if (unitKey === 'multiple' || unitKey === 'x') {
-      return `${prefix}${value.toFixed(2)}x`;
-    }
-    return `${prefix}${this.normalizePercent(value).toFixed(2)}%`;
   }
 
   displayGrowthAnchorSource(source: string | null | undefined): string {
@@ -341,13 +272,4 @@ export class AssumptionsTransparencySectionComponent {
     return paragraphs.map(p => `<p>${p.trim()}</p>`).join('');
   }
 
-  private normalizePercent(value: number): number {
-    let normalized = value;
-    if (Math.abs(normalized) <= 1) {
-      normalized = normalized * 100;
-    } else if (Math.abs(normalized) > 100) {
-      normalized = normalized / 100;
-    }
-    return normalized;
-  }
 }

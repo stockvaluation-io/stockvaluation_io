@@ -28,6 +28,7 @@ public class AssumptionTransparencyDTO {
     private List<String> notes = new ArrayList<>();
     private GrowthAnchor growthAnchor;
     private MarketImpliedExpectations marketImpliedExpectations;
+    private PricedInExpectations pricedInExpectations;
 
     @NoArgsConstructor
     @AllArgsConstructor
@@ -116,6 +117,81 @@ public class AssumptionTransparencyDTO {
         private Double modelValue;
         private Double impliedValue;
         private Double gap;
+        private Boolean solved;
+        private String note;
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class PricedInExpectations {
+        private Double marketPrice;
+        private Double modelIntrinsicValue;
+        private String method;
+        private BaseCase baseCase;
+        private List<PricedInScenario> scenarios = new ArrayList<>();
+        private List<PricedInGridPoint> grid = new ArrayList<>();
+        private List<PricedInFrontierPoint> frontier = new ArrayList<>();
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class BaseCase {
+        private Double revenueGrowth;
+        private Double operatingMargin;
+        private Double initialCostOfCapital;
+        private Double salesToCapital;
+        private Double intrinsicValue;
+        private Double gapToMarket;
+        private Double gapToMarketPct;
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class PricedInScenario {
+        private String key;
+        private String label;
+        private String riskKey;
+        private String riskLabel;
+        private String capitalEfficiencyKey;
+        private String capitalEfficiencyLabel;
+        private Double initialCostOfCapital;
+        private Double salesToCapital;
+        private String headline;
+        private List<PricedInGridPoint> grid = new ArrayList<>();
+        private List<PricedInFrontierPoint> frontier = new ArrayList<>();
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class PricedInGridPoint {
+        private Double revenueGrowth;
+        private Double operatingMargin;
+        private Double initialCostOfCapital;
+        private Double salesToCapital;
+        private Double intrinsicValue;
+        private Double gapToMarket;
+        private Double gapToMarketPct;
+        private Boolean supportsMarketPrice;
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class PricedInFrontierPoint {
+        private Double operatingMargin;
+        private Double impliedRevenueGrowth;
+        private Double intrinsicValue;
+        private Double gapToMarket;
+        private Double gapToMarketPct;
         private Boolean solved;
         private String note;
     }
