@@ -13,40 +13,44 @@ import { formatPercentage, formatLargeNumber } from '../../../../utils/formattin
         <i class="pi pi-infinity section-icon"></i>
         Terminal Value Analysis
       </h3>
-      
-      <!-- Compact Terminal Value Container -->
+
       <div class="compact-terminal-container">
-        
-        <!-- Terminal Value Primary Parameters -->
-        <div class="terminal-metrics-strip">
-          <div class="metric-item">
-            <div class="metric-label">Growth Rate</div>
-            <div class="metric-value">{{ formatPercentage(results.terminalGrowthRate || 0) }}</div>
+        <div class="terminal-summary-card">
+          <div class="terminal-summary-main">
+            <span class="summary-eyebrow">Terminal value share</span>
+            <strong>{{ getTerminalValuePercentage() }}%</strong>
+            <p>Long-term value contribution based on steady-state growth and discount assumptions.</p>
           </div>
-          
-          <div class="metric-item">
-            <div class="metric-label">Cost of Capital</div>
-            <div class="metric-value">{{ formatPercentage(results.terminalCostOfCapital || 0) }}</div>
-          </div>
-          
-          <div class="metric-item">
-            <div class="metric-label">Return on Capital</div>
-            <div class="metric-value">{{ formatPercentage(results.terminalReturnOnCapital || 0) }}</div>
-          </div>
-          
-          <div class="metric-item">
-            <div class="metric-label">Reinvestment Rate</div>
-            <div class="metric-value">{{ formatPercentage(results.terminalReinvestmentRate || 0) }}</div>
+          <div class="terminal-key-facts">
+            <span>Growth {{ formatPercentage(results.terminalGrowthRate || 0) }}</span>
+            <span>Cost of capital {{ formatPercentage(results.terminalCostOfCapital || 0) }}</span>
           </div>
         </div>
-        
-        <!-- Terminal Value Summary -->
-        <div class="terminal-summary">
-          <span class="summary-text">Terminal value represents {{ getTerminalValuePercentage() }}% of total enterprise value, based on {{ formatPercentage(results.terminalGrowthRate || 0) }} perpetual growth and {{ formatPercentage(results.terminalCostOfCapital || 0) }} discount rate.</span>
-        </div>
 
-        
+        <details class="terminal-details">
+          <summary>Terminal assumptions</summary>
+          <div class="terminal-metrics-strip">
+            <div class="metric-item">
+              <div class="metric-label">Growth Rate</div>
+              <div class="metric-value">{{ formatPercentage(results.terminalGrowthRate || 0) }}</div>
+            </div>
 
+            <div class="metric-item">
+              <div class="metric-label">Cost of Capital</div>
+              <div class="metric-value">{{ formatPercentage(results.terminalCostOfCapital || 0) }}</div>
+            </div>
+
+            <div class="metric-item">
+              <div class="metric-label">Return on Capital</div>
+              <div class="metric-value">{{ formatPercentage(results.terminalReturnOnCapital || 0) }}</div>
+            </div>
+
+            <div class="metric-item">
+              <div class="metric-label">Reinvestment Rate</div>
+              <div class="metric-value">{{ formatPercentage(results.terminalReinvestmentRate || 0) }}</div>
+            </div>
+          </div>
+        </details>
       </div>
     </div>
   `,

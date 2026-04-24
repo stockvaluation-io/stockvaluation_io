@@ -12,63 +12,78 @@ import { CompanyData, ValuationResults } from '../../../../models';
         <i class="pi pi-chart-bar section-icon"></i>
         Performance vs Industry
       </h3>
-      
+
       <div class="compact-comparison-container">
-        <!-- Key Metrics Row -->
-        <div class="comparison-row">
-          <div class="metric-comparison">
-            <div class="metric-header">
-              <div class="metric-name">
-                <i class="pi pi-chart-line"></i>
-                Revenue Growth
-              </div>
-              <div class="difference-indicator" [class]="getDifferenceClass('growth')">
-                {{ getPercentDifference('growth') }}
-              </div>
-            </div>
-            <div class="values-row">
-              <div class="company-value">
-                <span class="value">{{ formatPercentage((results.revenueGrowthCompany || 0)) }}</span>
-                <span class="label">Company</span>
-              </div>
-              <div class="vs-separator">vs</div>
-              <div class="industry-value">
-                <span class="value">{{ formatPercentage((results.revenueGrowthIndustry || 0)) }}</span>
-                <span class="label">Industry</span>
-              </div>
-            </div>
-            <div class="performance-indicator" [class]="getPerformanceClass('growth')">{{ getPerformanceText('growth') }}</div>
+        <div class="comparison-summary-row">
+          <div class="comparison-summary-copy">
+            <span class="summary-eyebrow">Industry context</span>
+            <p class="summary-text">{{ getIndustryContextSummary() }}</p>
           </div>
-          
-          <div class="metric-comparison">
-            <div class="metric-header">
-              <div class="metric-name">
-                <i class="pi pi-chart-pie"></i>
-                Operating Margin
-              </div>
-              <div class="difference-indicator" [class]="getDifferenceClass('margin')">
-                {{ getPercentDifference('margin') }}
-              </div>
-            </div>
-            <div class="values-row">
-              <div class="company-value">
-                <span class="value">{{ formatPercentage((results.operatingMarginCompany || 0)) }}</span>
-                <span class="label">Company</span>
-              </div>
-              <div class="vs-separator">vs</div>
-              <div class="industry-value">
-                <span class="value">{{ formatPercentage((results.operatingMarginIndustry || 0)) }}</span>
-                <span class="label">Industry</span>
-              </div>
-            </div>
-            <div class="performance-indicator" [class]="getPerformanceClass('margin')">{{ getPerformanceText('margin') }}</div>
+
+          <div class="summary-badges">
+            <span class="metric-chip" [class]="getPerformanceClass('growth')">
+              <span>Growth</span>
+              <strong>{{ getPercentDifference('growth') }}</strong>
+            </span>
+            <span class="metric-chip" [class]="getPerformanceClass('margin')">
+              <span>Margin</span>
+              <strong>{{ getPercentDifference('margin') }}</strong>
+            </span>
           </div>
         </div>
-        
-        <!-- Summary Badge -->
-        <div class="overall-performance">
-          <span class="summary-text">{{ getIndustryContextSummary() }}</span>
-        </div>
+
+        <details class="comparison-details">
+          <summary>Peer metric details</summary>
+          <div class="comparison-row">
+            <div class="metric-comparison">
+              <div class="metric-header">
+                <div class="metric-name">
+                  <i class="pi pi-chart-line"></i>
+                  Revenue Growth
+                </div>
+                <div class="difference-indicator" [class]="getDifferenceClass('growth')">
+                  {{ getPercentDifference('growth') }}
+                </div>
+              </div>
+              <div class="values-row">
+                <div class="company-value">
+                  <span class="value">{{ formatPercentage((results.revenueGrowthCompany || 0)) }}</span>
+                  <span class="label">Company</span>
+                </div>
+                <div class="vs-separator">vs</div>
+                <div class="industry-value">
+                  <span class="value">{{ formatPercentage((results.revenueGrowthIndustry || 0)) }}</span>
+                  <span class="label">Industry</span>
+                </div>
+              </div>
+              <div class="performance-indicator" [class]="getPerformanceClass('growth')">{{ getPerformanceText('growth') }}</div>
+            </div>
+
+            <div class="metric-comparison">
+              <div class="metric-header">
+                <div class="metric-name">
+                  <i class="pi pi-chart-pie"></i>
+                  Operating Margin
+                </div>
+                <div class="difference-indicator" [class]="getDifferenceClass('margin')">
+                  {{ getPercentDifference('margin') }}
+                </div>
+              </div>
+              <div class="values-row">
+                <div class="company-value">
+                  <span class="value">{{ formatPercentage((results.operatingMarginCompany || 0)) }}</span>
+                  <span class="label">Company</span>
+                </div>
+                <div class="vs-separator">vs</div>
+                <div class="industry-value">
+                  <span class="value">{{ formatPercentage((results.operatingMarginIndustry || 0)) }}</span>
+                  <span class="label">Industry</span>
+                </div>
+              </div>
+              <div class="performance-indicator" [class]="getPerformanceClass('margin')">{{ getPerformanceText('margin') }}</div>
+            </div>
+          </div>
+        </details>
       </div>
     </div>
   `,

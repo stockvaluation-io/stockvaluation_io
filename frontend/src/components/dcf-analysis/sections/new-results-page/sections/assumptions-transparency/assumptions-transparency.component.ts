@@ -26,144 +26,164 @@ import { ValuationResults } from '../../../../models';
         <span class="meta-chip" *ngIf="data.industryGlobal">Industry: {{ data.industryGlobal }}</span>
         <span class="meta-chip" *ngIf="data.segmentCount !== undefined">Segments: {{ data.segmentCount }}</span>
       </div>
-      <p class="source" *ngIf="data.templateSelectionReason">
-        <strong>Template Selection:</strong> {{ data.templateSelectionReason }}
-      </p>
 
-      <div class="cards-grid">
-        <article class="assumption-card">
-          <h3 class="card-title">Cost of Capital</h3>
-          <dl class="metrics-grid">
-            <div class="metric-row">
-              <dt>Risk-Free Rate</dt>
-              <dd>{{ formatPercent(data.discountRate?.riskFreeRate) }}</dd>
-            </div>
-            <div class="metric-row">
-              <dt>Equity Risk Premium</dt>
-              <dd>{{ formatPercent(data.discountRate?.equityRiskPremium) }}</dd>
-            </div>
-            <div class="metric-row">
-              <dt>Initial Cost of Capital</dt>
-              <dd>{{ formatPercent(data.discountRate?.initialCostOfCapital) }}</dd>
-            </div>
-            <div class="metric-row">
-              <dt>Terminal Cost of Capital</dt>
-              <dd>{{ formatPercent(data.discountRate?.terminalCostOfCapital) }}</dd>
-            </div>
-          </dl>
-          <p class="formula">{{ data.discountRate?.costOfCapitalFormula || 'N/A' }}</p>
-          <p class="source"><strong>Risk-Free Source:</strong> {{ data.discountRate?.riskFreeRateSource || 'N/A' }}</p>
-          <p class="source"><strong>Risk Premium Source:</strong> {{ data.discountRate?.equityRiskPremiumSource || 'N/A' }}</p>
-          <p class="source"><strong>Initial CoC Source:</strong> {{ data.discountRate?.initialCostOfCapitalSource || 'N/A' }}</p>
-        </article>
-
-        <article class="assumption-card">
-          <h3 class="card-title">Operating Drivers</h3>
-          <dl class="metrics-grid">
-            <div class="metric-row">
-              <dt>Revenue Growth (Years 2-5)</dt>
-              <dd>{{ formatPercent(data.operatingAssumptions?.revenueGrowthRateYears2To5) }}</dd>
-            </div>
-            <div class="metric-row">
-              <dt>Next-Year Operating Margin</dt>
-              <dd>{{ formatPercent(data.operatingAssumptions?.operatingMarginNextYear) }}</dd>
-            </div>
-            <div class="metric-row">
-              <dt>Target Operating Margin</dt>
-              <dd>{{ formatPercent(data.operatingAssumptions?.targetOperatingMargin) }}</dd>
-            </div>
-            <div class="metric-row">
-              <dt>Margin Converges By</dt>
-              <dd>{{ formatConvergenceYear(data.operatingAssumptions?.convergenceYearMargin) }}</dd>
-            </div>
-            <div class="metric-row">
-              <dt>Sales to Capital (Years 1-5)</dt>
-              <dd>{{ formatMultiple(data.operatingAssumptions?.salesToCapitalYears1To5) }}</dd>
-            </div>
-            <div class="metric-row">
-              <dt>Sales to Capital (Years 6-10)</dt>
-              <dd>{{ formatMultiple(data.operatingAssumptions?.salesToCapitalYears6To10) }}</dd>
-            </div>
-          </dl>
-          <p class="source"><strong>Growth Source:</strong> {{ data.operatingAssumptions?.revenueGrowthSource || 'N/A' }}</p>
-          <p class="source"><strong>Margin Source:</strong> {{ data.operatingAssumptions?.operatingMarginSource || 'N/A' }}</p>
-          <p class="source"><strong>Sales/Capital Source:</strong> {{ data.operatingAssumptions?.salesToCapitalSource || 'N/A' }}</p>
-        </article>
+      <div class="assumption-summary-strip">
+        <div class="summary-metric">
+          <span class="summary-label">Initial cost of capital</span>
+          <strong>{{ formatPercent(data.discountRate?.initialCostOfCapital) }}</strong>
+        </div>
+        <div class="summary-metric">
+          <span class="summary-label">Revenue growth</span>
+          <strong>{{ formatPercent(data.operatingAssumptions?.revenueGrowthRateYears2To5) }}</strong>
+        </div>
+        <div class="summary-metric">
+          <span class="summary-label">Target margin</span>
+          <strong>{{ formatPercent(data.operatingAssumptions?.targetOperatingMargin) }}</strong>
+        </div>
       </div>
 
-      <article class="assumption-card rationale-card" *ngIf="hasAnyRationale(data)">
-        <h3 class="card-title">Why These Inputs</h3>
-        <div class="rationale-item" *ngIf="data.adjustmentRationales?.revenueGrowth">
-          <span class="rationale-label">Revenue Growth</span>
-          <div class="rationale-body" [innerHTML]="formatRationale(data.adjustmentRationales!.revenueGrowth!)"></div>
-        </div>
-        <div class="rationale-item" *ngIf="data.adjustmentRationales?.operatingMargin">
-          <span class="rationale-label">Operating Margin</span>
-          <div class="rationale-body" [innerHTML]="formatRationale(data.adjustmentRationales!.operatingMargin!)"></div>
-        </div>
-        <div class="rationale-item" *ngIf="data.adjustmentRationales?.salesToCapital">
-          <span class="rationale-label">Sales to Capital</span>
-          <div class="rationale-body" [innerHTML]="formatRationale(data.adjustmentRationales!.salesToCapital!)"></div>
-        </div>
-        <div class="rationale-item" *ngIf="data.adjustmentRationales?.costOfCapital">
-          <span class="rationale-label">Cost of Capital</span>
-          <div class="rationale-body" [innerHTML]="formatRationale(data.adjustmentRationales!.costOfCapital!)"></div>
-        </div>
-      </article>
+      <details class="assumption-audit-details">
+        <summary>Full assumption audit</summary>
 
-      <article class="assumption-card growth-anchor-card" *ngIf="data.growthAnchor as anchor">
-        <h3 class="card-title">
-          <i class="pi pi-chart-line" aria-hidden="true"></i>
-          Historical Growth Anchor
-        </h3>
-        <p class="anchor-meta">
-          <span class="meta-chip" *ngIf="anchor.entityDisplay">{{ anchor.entityDisplay }}</span>
-          <span class="meta-chip" *ngIf="anchor.region">{{ anchor.region }}</span>
-          <span class="meta-chip" *ngIf="anchor.year">{{ anchor.year }}</span>
+        <p class="source" *ngIf="data.templateSelectionReason">
+          <strong>Template Selection:</strong> {{ data.templateSelectionReason }}
         </p>
-        <dl class="metrics-grid">
-          <div class="metric-row" *ngIf="anchor.fundamentalGrowth != null">
-            <dt>Fundamental Growth (ROE x Reinvestment)</dt>
-            <dd>{{ formatPercent(anchor.fundamentalGrowth) }}</dd>
-          </div>
-          <div class="metric-row" *ngIf="anchor.historicalGrowthProxy != null">
-            <dt>Historical Growth Proxy</dt>
-            <dd>{{ formatPercent(anchor.historicalGrowthProxy) }}</dd>
-          </div>
-          <div class="metric-row" *ngIf="anchor.expectedGrowthProxy != null">
-            <dt>Expected Growth Proxy</dt>
-            <dd>{{ formatPercent(anchor.expectedGrowthProxy) }}</dd>
-          </div>
-        </dl>
-        <div class="growth-band" *ngIf="anchor.p25 != null || anchor.p50 != null || anchor.p75 != null">
-          <h4 class="band-title">Growth Dispersion Band</h4>
-          <div class="band-row">
-            <span class="band-label">P25 (Conservative)</span>
-            <span class="band-value">{{ formatPercent(anchor.p25) }}</span>
-          </div>
-          <div class="band-row highlight">
-            <span class="band-label">P50 (Median)</span>
-            <span class="band-value">{{ formatPercent(anchor.p50) }}</span>
-          </div>
-          <div class="band-row">
-            <span class="band-label">P75 (Optimistic)</span>
-            <span class="band-value">{{ formatPercent(anchor.p75) }}</span>
-          </div>
-        </div>
-        <p class="source" *ngIf="anchor.numberOfFirms != null">
-          <strong>Based on:</strong> {{ anchor.numberOfFirms | number:'1.0-0' }} firms in industry
-        </p>
-        <p class="source">
-          <strong>Source:</strong> {{ displayGrowthAnchorSource(anchor.source) }}
-        </p>
-      </article>
 
-      <article class="assumption-card notes-card" *ngIf="data.notes?.length">
-        <h3 class="card-title">Notes</h3>
-        <ul class="notes-list">
-          <li *ngFor="let note of data.notes">{{ note }}</li>
-        </ul>
-      </article>
+        <div class="cards-grid">
+          <article class="assumption-card">
+            <h3 class="card-title">Cost of Capital</h3>
+            <dl class="metrics-grid">
+              <div class="metric-row">
+                <dt>Risk-Free Rate</dt>
+                <dd>{{ formatPercent(data.discountRate?.riskFreeRate) }}</dd>
+              </div>
+              <div class="metric-row">
+                <dt>Equity Risk Premium</dt>
+                <dd>{{ formatPercent(data.discountRate?.equityRiskPremium) }}</dd>
+              </div>
+              <div class="metric-row">
+                <dt>Initial Cost of Capital</dt>
+                <dd>{{ formatPercent(data.discountRate?.initialCostOfCapital) }}</dd>
+              </div>
+              <div class="metric-row">
+                <dt>Terminal Cost of Capital</dt>
+                <dd>{{ formatPercent(data.discountRate?.terminalCostOfCapital) }}</dd>
+              </div>
+            </dl>
+            <p class="formula">{{ data.discountRate?.costOfCapitalFormula || 'N/A' }}</p>
+            <p class="source"><strong>Risk-Free Source:</strong> {{ data.discountRate?.riskFreeRateSource || 'N/A' }}</p>
+            <p class="source"><strong>Risk Premium Source:</strong> {{ data.discountRate?.equityRiskPremiumSource || 'N/A' }}</p>
+            <p class="source"><strong>Initial CoC Source:</strong> {{ data.discountRate?.initialCostOfCapitalSource || 'N/A' }}</p>
+          </article>
+
+          <article class="assumption-card">
+            <h3 class="card-title">Operating Drivers</h3>
+            <dl class="metrics-grid">
+              <div class="metric-row">
+                <dt>Revenue Growth (Years 2-5)</dt>
+                <dd>{{ formatPercent(data.operatingAssumptions?.revenueGrowthRateYears2To5) }}</dd>
+              </div>
+              <div class="metric-row">
+                <dt>Next-Year Operating Margin</dt>
+                <dd>{{ formatPercent(data.operatingAssumptions?.operatingMarginNextYear) }}</dd>
+              </div>
+              <div class="metric-row">
+                <dt>Target Operating Margin</dt>
+                <dd>{{ formatPercent(data.operatingAssumptions?.targetOperatingMargin) }}</dd>
+              </div>
+              <div class="metric-row">
+                <dt>Margin Converges By</dt>
+                <dd>{{ formatConvergenceYear(data.operatingAssumptions?.convergenceYearMargin) }}</dd>
+              </div>
+              <div class="metric-row">
+                <dt>Sales to Capital (Years 1-5)</dt>
+                <dd>{{ formatMultiple(data.operatingAssumptions?.salesToCapitalYears1To5) }}</dd>
+              </div>
+              <div class="metric-row">
+                <dt>Sales to Capital (Years 6-10)</dt>
+                <dd>{{ formatMultiple(data.operatingAssumptions?.salesToCapitalYears6To10) }}</dd>
+              </div>
+            </dl>
+            <p class="source"><strong>Growth Source:</strong> {{ data.operatingAssumptions?.revenueGrowthSource || 'N/A' }}</p>
+            <p class="source"><strong>Margin Source:</strong> {{ data.operatingAssumptions?.operatingMarginSource || 'N/A' }}</p>
+            <p class="source"><strong>Sales/Capital Source:</strong> {{ data.operatingAssumptions?.salesToCapitalSource || 'N/A' }}</p>
+          </article>
+        </div>
+
+        <article class="assumption-card rationale-card" *ngIf="hasAnyRationale(data)">
+          <h3 class="card-title">Why These Inputs</h3>
+          <div class="rationale-item" *ngIf="data.adjustmentRationales?.revenueGrowth">
+            <span class="rationale-label">Revenue Growth</span>
+            <div class="rationale-body" [innerHTML]="formatRationale(data.adjustmentRationales!.revenueGrowth!)"></div>
+          </div>
+          <div class="rationale-item" *ngIf="data.adjustmentRationales?.operatingMargin">
+            <span class="rationale-label">Operating Margin</span>
+            <div class="rationale-body" [innerHTML]="formatRationale(data.adjustmentRationales!.operatingMargin!)"></div>
+          </div>
+          <div class="rationale-item" *ngIf="data.adjustmentRationales?.salesToCapital">
+            <span class="rationale-label">Sales to Capital</span>
+            <div class="rationale-body" [innerHTML]="formatRationale(data.adjustmentRationales!.salesToCapital!)"></div>
+          </div>
+          <div class="rationale-item" *ngIf="data.adjustmentRationales?.costOfCapital">
+            <span class="rationale-label">Cost of Capital</span>
+            <div class="rationale-body" [innerHTML]="formatRationale(data.adjustmentRationales!.costOfCapital!)"></div>
+          </div>
+        </article>
+
+        <article class="assumption-card growth-anchor-card" *ngIf="data.growthAnchor as anchor">
+          <h3 class="card-title">
+            <i class="pi pi-chart-line" aria-hidden="true"></i>
+            Historical Growth Anchor
+          </h3>
+          <p class="anchor-meta">
+            <span class="meta-chip" *ngIf="anchor.entityDisplay">{{ anchor.entityDisplay }}</span>
+            <span class="meta-chip" *ngIf="anchor.region">{{ anchor.region }}</span>
+            <span class="meta-chip" *ngIf="anchor.year">{{ anchor.year }}</span>
+          </p>
+          <dl class="metrics-grid">
+            <div class="metric-row" *ngIf="anchor.fundamentalGrowth != null">
+              <dt>Fundamental Growth (ROE x Reinvestment)</dt>
+              <dd>{{ formatPercent(anchor.fundamentalGrowth) }}</dd>
+            </div>
+            <div class="metric-row" *ngIf="anchor.historicalGrowthProxy != null">
+              <dt>Historical Growth Proxy</dt>
+              <dd>{{ formatPercent(anchor.historicalGrowthProxy) }}</dd>
+            </div>
+            <div class="metric-row" *ngIf="anchor.expectedGrowthProxy != null">
+              <dt>Expected Growth Proxy</dt>
+              <dd>{{ formatPercent(anchor.expectedGrowthProxy) }}</dd>
+            </div>
+          </dl>
+          <div class="growth-band" *ngIf="anchor.p25 != null || anchor.p50 != null || anchor.p75 != null">
+            <h4 class="band-title">Growth Dispersion Band</h4>
+            <div class="band-row">
+              <span class="band-label">P25 (Conservative)</span>
+              <span class="band-value">{{ formatPercent(anchor.p25) }}</span>
+            </div>
+            <div class="band-row highlight">
+              <span class="band-label">P50 (Median)</span>
+              <span class="band-value">{{ formatPercent(anchor.p50) }}</span>
+            </div>
+            <div class="band-row">
+              <span class="band-label">P75 (Optimistic)</span>
+              <span class="band-value">{{ formatPercent(anchor.p75) }}</span>
+            </div>
+          </div>
+          <p class="source" *ngIf="anchor.numberOfFirms != null">
+            <strong>Based on:</strong> {{ anchor.numberOfFirms | number:'1.0-0' }} firms in industry
+          </p>
+          <p class="source">
+            <strong>Source:</strong> {{ displayGrowthAnchorSource(anchor.source) }}
+          </p>
+        </article>
+
+        <article class="assumption-card notes-card" *ngIf="data.notes?.length">
+          <h3 class="card-title">Notes</h3>
+          <ul class="notes-list">
+            <li *ngFor="let note of data.notes">{{ note }}</li>
+          </ul>
+        </article>
+      </details>
     </section>
   `,
   styleUrls: ['./assumptions-transparency.component.scss'],

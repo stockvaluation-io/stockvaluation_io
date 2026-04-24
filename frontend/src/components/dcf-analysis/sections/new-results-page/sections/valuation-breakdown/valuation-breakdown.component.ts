@@ -13,22 +13,45 @@ import { EquityWaterfallComponent } from '../../shared/components/equity-waterfa
         <i class="pi pi-chart-line section-icon"></i>
         Equity Value Breakdown
       </h3>
-      
-      <!-- Equity Waterfall Table -->
-      <app-equity-waterfall
-        [pvTerminalValue]="results.pvTerminalValue || 0"
-        [pvProjectedCashFlows]="results.fcfValue || 0"
-        [valueOfOperatingAssets]="results.valueOfOperatingAssets || 0"
-        [debt]="results.debt || 0"
-        [minorityInterests]="results.minorityInterests || 0"
-        [cash]="results.cash || 0"
-        [valueOfEquity]="results.equityValue || 0"
-        [numberOfShares]="results.numberOfShares || 0"
-        [estimatedValuePerShare]="results.dcfValuePerShare || 0"
-        [currentPrice]="results.currentPrice || 0"
-        [currency]="results.currency"
-        [stockCurrency]="results.stockCurrency">
-      </app-equity-waterfall>
+
+      <div class="valuation-summary-card">
+        <div class="valuation-summary-main">
+          <span class="summary-eyebrow">Fair value per share</span>
+          <strong>{{ getStockCurrencySymbol() }}{{ formatPrice(results.dcfValuePerShare || 0) }}</strong>
+          <span class="upside-chip" [class]="getUpsideClass()" *ngIf="canShowValuationStatus()">
+            {{ formatSignedPercentage(results.upside || 0) }} {{ (results.upside || 0) >= 0 ? 'upside' : 'downside' }}
+          </span>
+        </div>
+
+        <div class="valuation-key-facts">
+          <div>
+            <span class="fact-label">Current price</span>
+            <strong>{{ getStockCurrencySymbol() }}{{ formatPrice(results.currentPrice || 0) }}</strong>
+          </div>
+          <div>
+            <span class="fact-label">Equity value</span>
+            <strong>{{ getCurrencySymbol() }}{{ formatLargeNumber(results.equityValue || 0) }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <details class="breakdown-details">
+        <summary>Full valuation waterfall</summary>
+        <app-equity-waterfall
+          [pvTerminalValue]="results.pvTerminalValue || 0"
+          [pvProjectedCashFlows]="results.fcfValue || 0"
+          [valueOfOperatingAssets]="results.valueOfOperatingAssets || 0"
+          [debt]="results.debt || 0"
+          [minorityInterests]="results.minorityInterests || 0"
+          [cash]="results.cash || 0"
+          [valueOfEquity]="results.equityValue || 0"
+          [numberOfShares]="results.numberOfShares || 0"
+          [estimatedValuePerShare]="results.dcfValuePerShare || 0"
+          [currentPrice]="results.currentPrice || 0"
+          [currency]="results.currency"
+          [stockCurrency]="results.stockCurrency">
+        </app-equity-waterfall>
+      </details>
     </div>
   `,
     styleUrls: ['./valuation-breakdown.component.scss'],
@@ -125,6 +148,11 @@ export class ValuationBreakdownSection {
 
   formatPercentage(value: number): string {
     return value.toFixed(1) + '%';
+  }
+
+  formatSignedPercentage(value: number): string {
+    const sign = value >= 0 ? '+' : '';
+    return `${sign}${value.toFixed(1)}%`;
   }
 
   formatShares(value: number): string {

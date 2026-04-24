@@ -131,7 +131,7 @@ export interface NarrativeSection {
 @Component({
   selector: 'app-narrative-section',
   standalone: true,
-  imports: [CommonModule, FormsModule, ChartWrapperComponent],
+  imports: [CommonModule, FormsModule, ChartWrapperComponent, SensitivityHeatmapComponent],
   templateUrl: './narrative-section.component.html',
   styleUrls: ['./narrative-section.component.scss']
 })
@@ -503,6 +503,30 @@ export class NarrativeSectionComponent implements OnInit {
 
   trackByTitle(index: number, section: NarrativeSection): string {
     return section.title ?? '';
+  }
+
+  getSectionKind(section: NarrativeSection): string {
+    if (section.type === 'bull-bear-debate') return 'Debate';
+    if (section.type === 'sensitivity-analysis') return 'Sensitivity';
+    return 'Driver';
+  }
+
+  getSectionPreview(section: NarrativeSection): string {
+    if (section.type === 'bull-bear-debate' && section.debateRounds?.length) {
+      return `${section.debateRounds.length} rounds comparing the bull case and bear case.`;
+    }
+
+    const plainText = (section.content || '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!plainText) return 'Open for details.';
+
+    const maxLength = 190;
+    return plainText.length > maxLength
+      ? `${plainText.slice(0, maxLength - 3).trimEnd()}...`
+      : plainText;
   }
 
   shouldShowAdForSection(section: NarrativeSection): boolean {

@@ -47,16 +47,105 @@
 .compact-comparison-container {
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-secondary);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: var(--space-4);
+}
+
+.comparison-summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  align-items: flex-start;
+
+  @include ds.mobile {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+}
+
+.comparison-summary-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.summary-eyebrow {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.summary-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+
+  @include ds.mobile {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+.metric-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  border: 1px solid var(--color-border-secondary);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+
+  strong {
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+  }
+
+  &.performance-good {
+    border-color: var(--color-success);
+    background: var(--color-bg-success-alpha);
+    color: var(--color-success);
+  }
+
+  &.performance-poor {
+    border-color: var(--color-error);
+    background: var(--color-bg-error-alpha);
+    color: var(--color-error);
+  }
+
+  &.performance-neutral {
+    border-color: var(--color-warning);
+    background: var(--color-bg-warning-alpha);
+    color: var(--color-warning);
+  }
+}
+
+.comparison-details {
+  margin-top: var(--space-3);
+  border-top: 1px solid var(--color-border-tertiary);
+  padding-top: var(--space-3);
+}
+
+.comparison-details summary {
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
 }
 
 .comparison-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-4);
-  margin-bottom: var(--space-4);
-  
+  margin-top: var(--space-3);
+
   @include ds.mobile {
     grid-template-columns: 1fr;
     gap: var(--space-3);
@@ -210,7 +299,8 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   line-height: var(--leading-relaxed);
-  font-style: italic;
+  font-style: normal;
+  margin: 0;
 }
 
 
