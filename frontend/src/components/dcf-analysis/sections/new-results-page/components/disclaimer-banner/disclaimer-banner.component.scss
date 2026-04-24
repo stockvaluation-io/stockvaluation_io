@@ -3,8 +3,8 @@
 .disclaimer-banner {
   background: rgba(32, 223, 127, 0.05);
   border: 1px solid rgba(32, 223, 127, 0.2);
-  border-radius: 8px;
-  padding: var(--space-3) var(--space-4);
+  border-radius: 6px;
+  padding: var(--space-2) var(--space-3);
   position: relative;
   overflow: hidden;
   animation: slideDown 0.3s ease-out;
@@ -16,8 +16,8 @@
 
 .disclaimer-content {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
+  align-items: center;
+  gap: var(--space-2);
   
   @include ds.mobile {
     gap: var(--space-2);
@@ -26,9 +26,8 @@
 
 .disclaimer-icon {
   color: var(--color-primary);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   flex-shrink: 0;
-  margin-top: 2px;
   
   @include ds.mobile {
     font-size: var(--font-size-base);
@@ -37,9 +36,9 @@
 
 .disclaimer-text {
   font-family: var(--font-primary);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
-  line-height: 1.5;
+  line-height: 1.4;
   flex: 1;
   
   @include ds.mobile {

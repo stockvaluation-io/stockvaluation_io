@@ -94,7 +94,7 @@ export interface NavigationItem {
         [userId]="currentUserId || 'local'"
         [contextData]="{ company: company, results: results }"
         [showToggleButton]="false"
-        [initiallyOpen]="true"
+        [initiallyOpen]="false"
         [isOpenExternal]="showChatSidebar"
         [backendUrl]="chatBackendUrl"
         (opened)="showChatSidebar = true"
@@ -453,7 +453,7 @@ export class NewResultsPageComponent implements OnInit, AfterViewInit, OnDestroy
   @Output() assumptionsRequestCancelled = new EventEmitter<void>();
 
   private destroy$ = new Subject<void>();
-  activeSection = 'analysis-narratives';
+  activeSection = 'market-expectations';
   private observer?: IntersectionObserver | null;
   currentYear = new Date().getFullYear();
   private observerDisabled = false;
@@ -462,7 +462,7 @@ export class NewResultsPageComponent implements OnInit, AfterViewInit, OnDestroy
   showSavedAnalysisBrowser = false;
   showSignupModal = false;
   showAssumptionsSheet = false;
-  showChatSidebar = true; // Track chat sidebar state - open by default
+  showChatSidebar = false;
   chatBackendUrl = environment.chatBackendUrl;
   Date = Date; // Make Date available in template
 

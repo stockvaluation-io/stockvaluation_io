@@ -24,6 +24,8 @@ describe('PricedInExpectationsComponent', () => {
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Market Expectations');
     expect(text).toContain('At 20.00% margin');
+    expect(text).toContain('What the price implies');
+    expect(text).toContain('Show DCF value matrix');
     expect(text).toContain('DCF Value Matrix');
     expect(text).toContain("Combinations That Justify Today's Price");
     expect(text).toContain('Closest tested case');
@@ -77,19 +79,19 @@ describe('PricedInExpectationsComponent', () => {
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Market Price Outside Tested Range');
     expect(text).toContain('Closest tested case');
-    expect(text).toContain("does not clear today's price");
+    expect(text).toContain("does not reach today's price");
     expect(text).not.toContain('Nearest Frontier Bounds');
     expect(text).not.toContain('Bounded');
     expect(text).not.toContain("No Tested Combination Reaches Today's Price");
   });
 
-  it('places the closest tested case below the DCF value matrix', () => {
+  it('keeps the closest tested case in the summary before the advanced matrix', () => {
     component.results = buildResults();
 
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
-    expect(text.indexOf('DCF Value Matrix')).toBeLessThan(text.indexOf('Closest tested case'));
+    expect(text.indexOf('Closest tested case')).toBeLessThan(text.indexOf('DCF Value Matrix'));
   });
 });
 

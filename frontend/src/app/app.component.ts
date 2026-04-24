@@ -61,6 +61,14 @@ export class AppComponent implements AfterViewInit {
 
     setTimeout(() => {
       CookieConsent.run({
+        guiOptions: {
+          consentModal: {
+            layout: 'bar inline',
+            position: 'bottom center',
+            equalWeightButtons: true,
+          },
+        },
+
         onFirstConsent: ({ cookie }) => {
         },
 

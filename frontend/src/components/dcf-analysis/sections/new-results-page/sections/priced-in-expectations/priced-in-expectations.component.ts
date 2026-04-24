@@ -25,14 +25,15 @@ interface ToggleOption {
           Market Expectations
         </h3>
         <p class="section-description">
-          What combinations of growth, margins, risk, and capital efficiency justify today's stock price.
+          Reverse DCF view of what today's stock price is already assuming.
         </p>
       </header>
 
-      <div class="summary-band">
-        <div>
-          <p class="eyebrow">Market Expectations</p>
+      <div class="expectations-summary">
+        <div class="takeaway-card">
+          <p class="eyebrow">What the price implies</p>
           <h4>{{ selectedScenario?.headline || fallbackHeadline }}</h4>
+          <p class="takeaway-copy">{{ simpleTakeaway }}</p>
         </div>
         <dl class="price-metrics">
           <div>
@@ -52,38 +53,9 @@ interface ToggleOption {
         </dl>
       </div>
 
-      <div class="control-row">
-        <div class="segmented-group" *ngIf="riskOptions.length > 1">
-          <span class="control-label" id="risk-scenario-label">Risk Scenario</span>
-          <div class="segmented-options" role="group" aria-labelledby="risk-scenario-label">
-            <button
-              type="button"
-              *ngFor="let option of riskOptions; trackBy: trackByKey"
-              [class.active]="selectedRiskKey === option.key"
-              [attr.aria-pressed]="selectedRiskKey === option.key"
-              (click)="selectedRiskKey = option.key">
-              {{ option.label }}
-            </button>
-          </div>
-        </div>
-        <div class="segmented-group" *ngIf="efficiencyOptions.length > 1">
-          <span class="control-label" id="capital-scenario-label">Capital Scenario</span>
-          <div class="segmented-options" role="group" aria-labelledby="capital-scenario-label">
-            <button
-              type="button"
-              *ngFor="let option of efficiencyOptions; trackBy: trackByKey"
-              [class.active]="selectedEfficiencyKey === option.key"
-              [attr.aria-pressed]="selectedEfficiencyKey === option.key"
-              (click)="selectedEfficiencyKey = option.key">
-              {{ option.label }}
-            </button>
-          </div>
-        </div>
-      </div>
-
       <div class="scenario-strip">
         <div class="scenario-fact">
-          <span class="fact-label">Selected Scenario</span>
+          <span class="fact-label">Scenario</span>
           <strong>{{ selectedScenario?.riskLabel || 'Base Risk' }} / {{ selectedScenario?.capitalEfficiencyLabel || 'Base Efficiency' }}</strong>
         </div>
         <div class="scenario-fact">
@@ -96,20 +68,70 @@ interface ToggleOption {
         </div>
       </div>
 
-      <div class="content-grid">
-        <article class="frontier-panel" [class.empty-state]="!hasSolvedFrontier">
+      <details class="scenario-picker" *ngIf="riskOptions.length > 1 || efficiencyOptions.length > 1">
+        <summary>
+          <span>Change scenario</span>
+          <small>Risk and capital efficiency assumptions</small>
+        </summary>
+        <div class="control-row">
+          <div class="segmented-group" *ngIf="riskOptions.length > 1">
+            <span class="control-label" id="risk-scenario-label">Risk Scenario</span>
+            <div class="segmented-options" role="group" aria-labelledby="risk-scenario-label">
+              <button
+                type="button"
+                *ngFor="let option of riskOptions; trackBy: trackByKey"
+                [class.active]="selectedRiskKey === option.key"
+                [attr.aria-pressed]="selectedRiskKey === option.key"
+                (click)="selectedRiskKey = option.key">
+                {{ option.label }}
+              </button>
+            </div>
+          </div>
+          <div class="segmented-group" *ngIf="efficiencyOptions.length > 1">
+            <span class="control-label" id="capital-scenario-label">Capital Scenario</span>
+            <div class="segmented-options" role="group" aria-labelledby="capital-scenario-label">
+              <button
+                type="button"
+                *ngFor="let option of efficiencyOptions; trackBy: trackByKey"
+                [class.active]="selectedEfficiencyKey === option.key"
+                [attr.aria-pressed]="selectedEfficiencyKey === option.key"
+                (click)="selectedEfficiencyKey = option.key">
+                {{ option.label }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <article class="frontier-panel simplified-panel" [class.empty-state]="!hasSolvedFrontier">
+        <div>
           <h4>{{ frontierTitle }}</h4>
           <p class="panel-copy">
             {{ frontierCopy }}
           </p>
-          <div class="frontier-list" *ngIf="hasSolvedFrontier">
-            <div class="frontier-row" *ngFor="let point of solvedFrontier; trackBy: trackByMargin">
-              <span class="margin">{{ formatPercent(point.operatingMargin) }} margin</span>
-              <span class="requires">{{ formatFrontierGrowth(point) }}</span>
-            </div>
+        </div>
+        <div class="frontier-list" *ngIf="hasSolvedFrontier">
+          <div class="frontier-row" *ngFor="let point of solvedFrontier | slice:0:3; trackBy: trackByMargin">
+            <span class="margin">{{ formatPercent(point.operatingMargin) }} margin</span>
+            <span class="requires">{{ formatFrontierGrowth(point) }}</span>
           </div>
-        </article>
+        </div>
+        <div class="closest-case" *ngIf="closestGridPoint as closest">
+          <span class="fact-label">Closest tested case</span>
+          <strong>
+            {{ formatPercent(closest.revenueGrowth) }} growth / {{ formatPercent(closest.operatingMargin) }} margin
+          </strong>
+          <span>
+            {{ formatMoney(closest.intrinsicValue) }} value, {{ formatSignedPercent(closest.gapToMarketPct) }} vs market
+          </span>
+        </div>
+      </article>
 
+      <details class="advanced-matrix">
+        <summary>
+          <span>Show DCF value matrix</span>
+          <small>Growth and margin sensitivity for the selected scenario</small>
+        </summary>
         <article class="heatmap-panel">
           <div class="panel-heading-row">
             <div>
@@ -147,17 +169,8 @@ interface ToggleOption {
               </tbody>
             </table>
           </div>
-          <div class="closest-case" *ngIf="closestGridPoint as closest">
-            <span class="fact-label">Closest tested case</span>
-            <strong>
-              {{ formatPercent(closest.revenueGrowth) }} growth / {{ formatPercent(closest.operatingMargin) }} margin
-            </strong>
-            <span>
-              {{ formatMoney(closest.intrinsicValue) }} value, {{ formatSignedPercent(closest.gapToMarketPct) }} vs market
-            </span>
-          </div>
         </article>
-      </div>
+      </details>
 
       <p class="method-note" *ngIf="data?.method">{{ data?.method }}</p>
     </section>
@@ -233,9 +246,16 @@ export class PricedInExpectationsComponent {
 
   get frontierCopy(): string {
     if (this.hasSolvedFrontier) {
-      return 'Revenue growth required at each target operating margin for the selected scenario.';
+      return 'Plain-English hurdle rates from the selected scenario.';
     }
-    return "This risk and capital scenario does not clear today's price in the sampled grid. Use the matrix and closest case below to see the shortfall.";
+    return "This scenario does not reach today's price in the sampled grid. The closest tested case shows the shortfall.";
+  }
+
+  get simpleTakeaway(): string {
+    if (this.hasSolvedFrontier) {
+      return "If you believe the company can clear these hurdle rates, today's price may be defensible. If not, the market is asking for too much.";
+    }
+    return "The market price is higher than every tested combination for this scenario. Treat the current price as demanding assumptions outside this grid.";
   }
 
   get growthAxis(): number[] {

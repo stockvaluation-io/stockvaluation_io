@@ -14,8 +14,7 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
       <div class="disclaimer-content">
         <i class="pi pi-info-circle disclaimer-icon"></i>
         <span class="disclaimer-text">
-          This valuation is based solely on publicly available data, Professor Aswath Damodaran's methodology and is intended for educational purposes. 
-          It should not be considered as financial advice. Please conduct your own research and consult with a qualified financial advisor.
+          Educational valuation based on public data and Damodaran-style assumptions. Not financial advice.
         </span>
       </div>
     </div>
