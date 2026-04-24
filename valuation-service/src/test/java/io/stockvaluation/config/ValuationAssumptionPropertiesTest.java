@@ -17,9 +17,11 @@ class ValuationAssumptionPropertiesTest {
 
         assertEquals(0.05, props.getPreTaxCostOfDebt(), 0.0001);
         assertEquals(0.05, props.getConvergenceYearMargin(), 0.0001);
-        assertEquals(4.23, props.getMatureMarketPremium(), 0.0001);
+        assertEquals(4.77, props.getMatureMarketPremium(), 0.0001);
+        assertEquals(4.77, props.getDamodaran().getMatureMarketErp(), 0.0001);
+        assertEquals("2026-04-01", props.getDamodaran().getDataDate());
+        assertEquals("ctrypremApr26.xlsx", props.getDamodaran().getCountryRiskSource());
         assertEquals(4.58, props.getBaselineRiskFreeRate(), 0.0001);
-        assertEquals("United States", props.getMatureMarketCountry());
         assertEquals("USD", props.getBaselineRiskFreeCurrencyCode());
         assertEquals(10_000, props.getSimulationIterations());
         assertEquals(10_000, props.getCalibrationMaxIterations());
@@ -35,9 +37,10 @@ class ValuationAssumptionPropertiesTest {
 
         props.setPreTaxCostOfDebt(0.06);
         props.setConvergenceYearMargin(0.10);
-        props.setMatureMarketPremium(5.0);
+        props.getDamodaran().setMatureMarketErp(5.0);
+        props.getDamodaran().setDataDate("2026-01-01");
+        props.getDamodaran().setCountryRiskSource("ctryprem.xlsx");
         props.setBaselineRiskFreeRate(3.5);
-        props.setMatureMarketCountry("Germany");
         props.setBaselineRiskFreeCurrencyCode("EUR");
         props.setSimulationIterations(500);
         props.setCalibrationMaxIterations(200);
@@ -49,8 +52,10 @@ class ValuationAssumptionPropertiesTest {
         assertEquals(0.06, props.getPreTaxCostOfDebt(), 0.0001);
         assertEquals(0.10, props.getConvergenceYearMargin(), 0.0001);
         assertEquals(5.0, props.getMatureMarketPremium(), 0.0001);
+        assertEquals(5.0, props.getDamodaran().getMatureMarketErp(), 0.0001);
+        assertEquals("2026-01-01", props.getDamodaran().getDataDate());
+        assertEquals("ctryprem.xlsx", props.getDamodaran().getCountryRiskSource());
         assertEquals(3.5, props.getBaselineRiskFreeRate(), 0.0001);
-        assertEquals("Germany", props.getMatureMarketCountry());
         assertEquals("EUR", props.getBaselineRiskFreeCurrencyCode());
         assertEquals(500, props.getSimulationIterations());
         assertEquals(200, props.getCalibrationMaxIterations());

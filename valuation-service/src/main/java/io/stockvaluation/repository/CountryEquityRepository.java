@@ -14,7 +14,7 @@ public interface CountryEquityRepository extends JpaRepository<CountryEquity, Lo
     @Query(value = "select * from country_equity where country =:country", nativeQuery = true)
     CountryEquity findDefaultSpread(String country);
 
-    @Query("SELECT (c.equityRiskPremium - c.countryRiskPremium) FROM CountryEquity c WHERE c.country = :country")
-    Optional<Double> findMatureMarketPremiumByCountry(String country);
+    @Query("SELECT c.countryRiskPremium FROM CountryEquity c WHERE c.country = :country")
+    Optional<Double> findCountryRiskPremiumByCountry(String country);
 
 }

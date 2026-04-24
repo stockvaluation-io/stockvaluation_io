@@ -3,7 +3,6 @@ package io.stockvaluation.service;
 import io.stockvaluation.config.ValuationAssumptionProperties;
 import io.stockvaluation.constant.RDResult;
 import io.stockvaluation.constant.YearlyCalculation;
-import io.stockvaluation.domain.CountryEquity;
 import io.stockvaluation.domain.RDConverter;
 import io.stockvaluation.domain.RiskFreeRate;
 import io.stockvaluation.domain.SectorMapping;
@@ -121,25 +120,44 @@ class CommonServiceTest {
     }
 
     @Test
-    void resolveMatureMarketPremium_CountryNull() {
-        when(valuationAssumptionProperties.getMatureMarketCountry()).thenReturn(null);
-        when(valuationAssumptionProperties.getMatureMarketPremium()).thenReturn(0.05);
+    void resolveMatureMarketPremium_usesConfiguredValueOnly() {
+        when(valuationAssumptionProperties.getMatureMarketPremium()).thenReturn(4.77);
 
         double premium = commonService.resolveMatureMarketPremium();
 
-        assertEquals(0.05, premium);
+        assertEquals(4.77, premium);
+        verifyNoInteractions(countryEquityRepository);
     }
 
     @Test
-    void resolveMatureMarketPremium_CountryExistsInRepo() {
-        when(valuationAssumptionProperties.getMatureMarketCountry()).thenReturn("US");
-        CountryEquity ce = new CountryEquity();
-        ce.setEquityRiskPremium(0.055);
-        when(countryEquityRepository.findMatureMarketPremiumByCountry("US")).thenReturn(Optional.of(0.055));
+    void resolveEquityRiskPremiumForCountry_addsCountryRiskPremiumToConfiguredMatureErp() {
+        when(valuationAssumptionProperties.getMatureMarketPremium()).thenReturn(4.77);
+        when(countryEquityRepository.findCountryRiskPremiumByCountry("India")).thenReturn(Optional.of(3.20914358987782));
 
-        double premium = commonService.resolveMatureMarketPremium();
+        double premium = commonService.resolveEquityRiskPremiumForCountry("India");
 
-        assertEquals(0.055, premium);
+        assertEquals(7.97914358987782, premium, 0.000001);
+    }
+
+    @Test
+    void resolveEquityRiskPremiumForCountry_usIncludesAa1CountryRiskPremium() {
+        when(valuationAssumptionProperties.getMatureMarketPremium()).thenReturn(4.77);
+        when(countryEquityRepository.findCountryRiskPremiumByCountry("United States"))
+                .thenReturn(Optional.of(0.26131717269259455));
+
+        double premium = commonService.resolveEquityRiskPremiumForCountry("United States");
+
+        assertEquals(5.031317172692595, premium, 0.000001);
+    }
+
+    @Test
+    void resolveEquityRiskPremiumForCountry_missingCountryUsesMatureErpOnly() {
+        when(valuationAssumptionProperties.getMatureMarketPremium()).thenReturn(4.77);
+
+        double premium = commonService.resolveEquityRiskPremiumForCountry("   ");
+
+        assertEquals(4.77, premium);
+        verifyNoInteractions(countryEquityRepository);
     }
 
     @Test

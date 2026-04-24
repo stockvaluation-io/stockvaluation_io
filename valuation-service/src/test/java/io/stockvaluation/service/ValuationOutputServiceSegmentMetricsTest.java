@@ -1,6 +1,7 @@
 package io.stockvaluation.service;
 
 import io.stockvaluation.constant.RDResult;
+import io.stockvaluation.dto.BasicInfoDataDTO;
 import io.stockvaluation.dto.FinancialDataDTO;
 import io.stockvaluation.dto.OverrideAssumption;
 import io.stockvaluation.dto.SegmentResponseDTO;
@@ -48,7 +49,7 @@ class ValuationOutputServiceSegmentMetricsTest {
     @Test
     void calculateFinancialData_withSegmentContext_populatesSectorMapsAndAggregates() {
         ValuationOutputService service = service();
-        when(commonService.resolveMatureMarketPremium()).thenReturn(4.0);
+        when(commonService.resolveEquityRiskPremiumForCountry("United States")).thenReturn(4.0);
 
         FinancialDataInput input = baseInput();
         input.setSegments(new SegmentResponseDTO(List.of(
@@ -96,6 +97,7 @@ class ValuationOutputServiceSegmentMetricsTest {
         assertEquals(2, financial.getRoicBySector().size());
         assertEquals(2, financial.getCostOfCapitalBySector().size());
         assertEquals(2, financial.getPvFcffBySector().size());
+        assertEquals(8.0, financial.getCostOfCapital()[financial.getTerminalYearIndex()], 0.0001);
 
         assertEquals(9.0, financial.getRevenueGrowthRateBySector().get("software")[1], 0.0001);
         assertEquals(6.0, financial.getRevenueGrowthRateBySector().get("hardware")[1], 0.0001);
@@ -121,7 +123,7 @@ class ValuationOutputServiceSegmentMetricsTest {
     @Test
     void calculateFinancialData_withSegmentsWithoutContext_usesCompanyGrowthFallbackPerSector() {
         ValuationOutputService service = service();
-        when(commonService.resolveMatureMarketPremium()).thenReturn(4.0);
+        when(commonService.resolveEquityRiskPremiumForCountry("United States")).thenReturn(4.0);
 
         FinancialDataInput input = baseInput();
         input.setSegments(new SegmentResponseDTO(List.of(
@@ -149,7 +151,7 @@ class ValuationOutputServiceSegmentMetricsTest {
     @Test
     void calculateFinancialData_honorsLowerSectorSalesToCapitalOverride() {
         ValuationOutputService service = service();
-        when(commonService.resolveMatureMarketPremium()).thenReturn(4.0);
+        when(commonService.resolveEquityRiskPremiumForCountry("United States")).thenReturn(4.0);
 
         FinancialDataInput input = baseInput();
         input.setSalesToCapitalYears1To5(4.0);
@@ -230,6 +232,9 @@ class ValuationOutputServiceSegmentMetricsTest {
 
     private static FinancialDataInput baseInput() {
         FinancialDataInput input = new FinancialDataInput();
+        BasicInfoDataDTO basicInfo = new BasicInfoDataDTO();
+        basicInfo.setCountryOfIncorporation("United States");
+        input.setBasicInfoDataDTO(basicInfo);
         input.setFinancialDataDTO(baseFinancialData());
         input.setRevenueNextYear(0.08);
         input.setOperatingMarginNextYear(0.25);

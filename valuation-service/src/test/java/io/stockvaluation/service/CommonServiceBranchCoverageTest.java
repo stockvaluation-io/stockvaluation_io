@@ -214,28 +214,37 @@ class CommonServiceBranchCoverageTest {
     }
 
     // =========================================================
-    // resolveMatureMarketPremium — blank country fallback
+    // ERP helpers — config mature ERP plus country risk premium
     // =========================================================
 
     @Test
-    void resolveMatureMarketPremium_blankCountry_fallsBackToProperty() {
-        when(valuationAssumptionProperties.getMatureMarketCountry()).thenReturn("   ");
-        when(valuationAssumptionProperties.getMatureMarketPremium()).thenReturn(4.23);
+    void resolveMatureMarketPremium_ignoresCountryTable() {
+        when(valuationAssumptionProperties.getMatureMarketPremium()).thenReturn(4.77);
 
         double premium = commonService.resolveMatureMarketPremium();
 
-        assertEquals(4.23, premium);
+        assertEquals(4.77, premium);
+        verifyNoInteractions(countryEquityRepository);
     }
 
     @Test
-    void resolveMatureMarketPremium_countryNotFound_fallsBackToProperty() {
-        when(valuationAssumptionProperties.getMatureMarketCountry()).thenReturn("Unknown");
-        when(countryEquityRepository.findMatureMarketPremiumByCountry("Unknown")).thenReturn(Optional.empty());
-        when(valuationAssumptionProperties.getMatureMarketPremium()).thenReturn(4.23);
+    void resolveEquityRiskPremiumForCountry_countryNotFound_usesMatureErpOnly() {
+        when(countryEquityRepository.findCountryRiskPremiumByCountry("Unknown")).thenReturn(Optional.empty());
+        when(valuationAssumptionProperties.getMatureMarketPremium()).thenReturn(4.77);
 
-        double premium = commonService.resolveMatureMarketPremium();
+        double premium = commonService.resolveEquityRiskPremiumForCountry("Unknown");
 
-        assertEquals(4.23, premium);
+        assertEquals(4.77, premium);
+    }
+
+    @Test
+    void resolveEquityRiskPremiumForCountry_swedenUsesZeroCountryRiskPremium() {
+        when(countryEquityRepository.findCountryRiskPremiumByCountry("Sweden")).thenReturn(Optional.of(0.0));
+        when(valuationAssumptionProperties.getMatureMarketPremium()).thenReturn(4.77);
+
+        double premium = commonService.resolveEquityRiskPremiumForCountry("Sweden");
+
+        assertEquals(4.77, premium);
     }
 
     // =========================================================

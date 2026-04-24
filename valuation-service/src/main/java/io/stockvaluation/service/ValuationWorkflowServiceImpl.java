@@ -345,9 +345,16 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                                 equityRiskPremium,
                                 initialCostOfCapital,
                                 terminalCostOfCapital,
-                                "Terminal WACC = risk-free rate + mature market premium; path values from FCFF model output.",
+                                "Terminal WACC = risk-free rate + country equity risk premium; country ERP is configured Damodaran mature market ERP plus country risk premium.",
                                 riskFreeRate != null ? "Valuation input baseline/override" : "Not available",
-                                equityRiskPremium != null ? "Derived from terminal WACC minus risk-free anchor."
+                                equityRiskPremium != null
+                                                ? "Configured Damodaran mature-market ERP plus country risk premium from "
+                                                                + valuationAssumptionProperties.getDamodaran()
+                                                                                .getCountryRiskSource()
+                                                                + " ("
+                                                                + valuationAssumptionProperties.getDamodaran()
+                                                                                .getDataDate()
+                                                                + ")."
                                                 : "Not available",
                                 "Final FCFF output"));
 

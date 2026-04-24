@@ -13,9 +13,8 @@ public class ValuationAssumptionProperties {
 
     private double preTaxCostOfDebt = 0.05;
     private double convergenceYearMargin = 0.05;
-    private double matureMarketPremium = 4.23;
+    private DamodaranAssumptions damodaran = new DamodaranAssumptions();
     private double baselineRiskFreeRate = 4.58;
-    private String matureMarketCountry = "United States";
     private String baselineRiskFreeCurrencyCode = "USD";
     private int simulationIterations = 10000;
     private int calibrationMaxIterations = 10000;
@@ -23,4 +22,20 @@ public class ValuationAssumptionProperties {
     private int impliedExpectationBisectionIterations = 28;
     private double impliedExpectationTolerance = 0.25;
     private boolean strictGrowthPolicy = false;
+
+    /**
+     * Compatibility getter for existing valuation code. Configuration writes go
+     * through valuation.assumptions.damodaran.mature-market-erp only.
+     */
+    public double getMatureMarketPremium() {
+        return damodaran.getMatureMarketErp();
+    }
+
+    @Getter
+    @Setter
+    public static class DamodaranAssumptions {
+        private double matureMarketErp = 4.77;
+        private String dataDate = "2026-04-01";
+        private String countryRiskSource = "ctrypremApr26.xlsx";
+    }
 }

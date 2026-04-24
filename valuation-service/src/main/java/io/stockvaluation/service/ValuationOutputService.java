@@ -4,6 +4,7 @@ import io.stockvaluation.constant.RDResult;
 import io.stockvaluation.domain.IndustryAveragesGlobal;
 import io.stockvaluation.domain.InputStatDistribution;
 import io.stockvaluation.domain.SectorMapping;
+import io.stockvaluation.dto.BasicInfoDataDTO;
 import io.stockvaluation.dto.FinancialDataDTO;
 import io.stockvaluation.dto.GrowthDto;
 import io.stockvaluation.dto.LeaseResultDTO;
@@ -526,16 +527,19 @@ public class ValuationOutputService {
                 SegmentWeightedParameters::getRiskFreeRate,
                 riskFreeRateAdjusted);
 
-        // Calculate terminal cost: riskFreeRate + mature market premium
-        // = 8.54%
-        Double terminalCostOfCapital = riskFreeRate + commonService.resolveMatureMarketPremium();
+        String countryOfIncorporation = resolveCountryOfIncorporation(financialDataInput);
+        Double equityRiskPremium = commonService.resolveEquityRiskPremiumForCountry(countryOfIncorporation);
+
+        // Calculate terminal cost: riskFreeRate + country ERP, where country ERP
+        // is configured mature-market ERP plus country risk premium.
+        Double terminalCostOfCapital = riskFreeRate + equityRiskPremium;
 
         if (financialDataInput.getOverrideAssumptionCostCapital().getIsOverride()) {
             terminalCostOfCapital = financialDataInput.getOverrideAssumptionCostCapital().getOverrideCost();
         } else {
             if (financialDataInput.getOverrideAssumptionRiskFreeRate().getIsOverride()) {
                 terminalCostOfCapital = financialDataInput.getOverrideAssumptionRiskFreeRate().getOverrideCost()
-                        + commonService.resolveMatureMarketPremium();
+                        + equityRiskPremium;
             }
         }
 
@@ -551,6 +555,14 @@ public class ValuationOutputService {
         }
         costOfCapital[terminalIndex] = terminalCostOfCapital;
         return costOfCapital;
+    }
+
+    private String resolveCountryOfIncorporation(FinancialDataInput financialDataInput) {
+        if (financialDataInput == null) {
+            return null;
+        }
+        BasicInfoDataDTO basicInfoDataDTO = financialDataInput.getBasicInfoDataDTO();
+        return basicInfoDataDTO != null ? basicInfoDataDTO.getCountryOfIncorporation() : null;
     }
 
     // calculate nol

@@ -144,12 +144,19 @@ public class CommonService {
     }
 
     public double resolveMatureMarketPremium() {
-        String matureMarketCountry = valuationAssumptionProperties.getMatureMarketCountry();
-        if (matureMarketCountry == null || matureMarketCountry.isBlank()) {
-            return valuationAssumptionProperties.getMatureMarketPremium();
+        return valuationAssumptionProperties.getMatureMarketPremium();
+    }
+
+    public double resolveCountryRiskPremium(String country) {
+        if (country == null || country.isBlank()) {
+            return 0.0;
         }
-        return countryEquityRepository.findMatureMarketPremiumByCountry(matureMarketCountry)
-                .orElse(valuationAssumptionProperties.getMatureMarketPremium());
+        return countryEquityRepository.findCountryRiskPremiumByCountry(country)
+                .orElse(0.0);
+    }
+
+    public double resolveEquityRiskPremiumForCountry(String country) {
+        return resolveMatureMarketPremium() + resolveCountryRiskPremium(country);
     }
 
     public double resolveRiskFreeRateForCurrency(String currencyCode) {
