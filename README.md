@@ -2,52 +2,58 @@
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/stockvaluation-io/stockvaluation_io)
 
-StockValuation.io is a local-first stock valuation workspace that runs fully on your machine, with structured research and narrative output layered on top of core valuation calculations. Build your own stock narratives. 
+Open-source DCF valuation app that turns a stock ticker into transparent Damodaran-style assumptions, valuation output, bull/bear thesis, and a chat workspace for building your own narrative.
 
 > **Warning: This project is for educational use and is not financial advice. Its your valuation and you agree by using this project.**
 
+StockValuation.io helps investors understand the story behind a valuation, not just the final number. Search a company, generate a DCF valuation, inspect the assumptions, challenge the bull and bear cases, then use chat to build and refine your own narrative as your view changes.
 
-## Fast Onboarding
+## What It Does
 
-### One-line startup
+- Turns a stock ticker into a structured DCF valuation.
+- Shows the assumptions behind the valuation instead of hiding them in a black box.
+- Builds bull and bear thesis material around the company narrative.
+- Gives you a chat workspace to develop your own investment narrative and thesis.
+- Lets you test your own view by changing assumptions and recalculating value.
+- Runs locally so your keys, prompts, and analysis stay on your machine.
 
-To install and run StockValuation.io on your machine using our automated script:
+## Why It Exists
+
+Most valuation tools either give you a spreadsheet or a black-box target price. StockValuation.io is built for transparent reasoning: the assumptions, narrative, and valuation logic are visible so you can decide what you believe.
+
+## Demo
+
+<a href="https://video.golpoai.com/share/34af4546-fb30-49cb-a956-0f59d985382a" target="_blank" rel="noopener noreferrer">Watch the product video</a>
+
+![StockValuation.io Automated DCF Analysis](./assets/StockValuation-io-—-Automated-DCF-Analysis-03-05-2026_02_04_PM.png)
+
+## Quick Start
+
+Run the local app with the installer:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/stockvaluation-io/stockvaluation_io/main/install.sh | bash
 ```
 
-> **Note:** The script will check prerequisites, download the project if needed, bootstrap local secrets, and interactively prompt for your API keys. It supports **Anthropic, OpenAI, Gemini, Groq, and OpenRouter** for LLM access, plus **`TAVILY_API_KEY`** and **`CURRENCY_API_KEY`** before starting up the containers.
+Then open:
 
-### Why These Keys Are Required
+```text
+http://localhost:4200
+```
 
-- **LLM key (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `GROQ_API_KEY`, or `OPENROUTER_API_KEY`):** This is needed for the AI features. Without it, the app can still run, but it will not generate the narrative, explain the assumptions, or help you build an investment thesis in chat.
-- **`TAVILY_API_KEY`:** This is needed for live web search. Without it, the app cannot pull in recent company news, earnings coverage, or other outside research used in the analysis.
-- **`CURRENCY_API_KEY`:** This is needed for exchange rates. Without it, the app cannot properly handle companies where the stock price and financial statements use different currencies.
+The installer checks prerequisites, downloads the project if needed, bootstraps local secrets, and prompts for API keys.
 
-Need these APIs?
+## API Keys
 
-- **Tavily (Web Search):** Create a free account at [tavily.com](https://tavily.com)
-- **CurrencyBeacon (FX Rates):** Create a free account at [currencybeacon.com](https://currencybeacon.com)
+For the full experience, add:
 
-## Product Video
+- One LLM key: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `GROQ_API_KEY`, or `OPENROUTER_API_KEY`.
+- `TAVILY_API_KEY` for live company research and recent news.
+- `CURRENCY_API_KEY` for exchange-rate handling when market price and statements use different currencies.
 
-<a href="https://video.golpoai.com/share/34af4546-fb30-49cb-a956-0f59d985382a" target="_blank" rel="noopener noreferrer">Watch the product video</a>
+You can create free accounts at [tavily.com](https://tavily.com) and [currencybeacon.com](https://currencybeacon.com).
 
-
-![StockValuation.io Automated DCF Analysis](./assets/StockValuation-io-—-Automated-DCF-Analysis-03-05-2026_02_04_PM.png)
-
-## What Runs Locally
-
-| Service | Purpose | Local URL |
-| :--- | :--- | :--- |
-| `frontend` | Main UI | `http://localhost:4200` |
-| `valuation-service` | Core valuation API | `http://localhost:8081` |
-| `valuation-agent` | Orchestration/research API | `http://localhost:5001` |
-| `bullbeargpt` | Notebook/chat API | `http://localhost:5002` |
-| `postgres` | Local persistence | `localhost:4322` |
-
-## Common Failure Reasons
+## Current Limits
 
 - The system depends on Yahoo Finance data. If Yahoo Finance does not provide the required company data, the valuation can fail.
 - Historical coverage is limited because Yahoo Finance typically provides only about 5 years of history.
@@ -59,16 +65,9 @@ Need these APIs?
 - Do not deploy these defaults directly to internet-facing environments.
 - Never commit `.env` with real credentials.
 
-## Project Layout
+## Star The Project
 
-
-- `frontend/` UI
-- `valuation-service/` core valuation engine
-- `valuation-agent/` orchestration layer
-- `bullbeargpt/` notebook/chat
-- `yfinance/` market data facade
-- `docker/` local DB init/seed scripts
-- `local_data/` runtime data generated locally
+If StockValuation.io helps you learn valuation or build better investment theses, star the repo. It is the clearest signal that the project is worth keeping up to date.
 
 ## Cite
 > Note: If this project is helpful to you, then please star. Otherwise, I would not know if I should keep this up-to-date. This project requires a consistent data update.
