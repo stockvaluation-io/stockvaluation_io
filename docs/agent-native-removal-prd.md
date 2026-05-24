@@ -13,10 +13,12 @@ Create a phased removal plan for legacy product surfaces while treating the agen
 The supported product after removal is:
 
 1. A local installer that installs or updates skills and MCP configuration.
-2. A local service command surface that can start, stop, and report status for the valuation service stack.
+2. A Docker-backed local service command surface that can start, stop, and report status for the valuation service stack.
 3. A local MCP server exposing structured valuation tools.
 4. A deterministic valuation service that owns valuation math.
 5. A skill pack that instructs the user's agent to write educational reports from MCP JSON.
+
+For v1, Docker Desktop or a compatible Docker Engine with Compose support is a hard runtime requirement. The installer must not install Java, Postgres, yfinance, or database seed data natively on the user's machine. Those dependencies run inside the Docker-managed local stack.
 
 The removal plan must keep the following invariant: after each phase, a fresh agent-native setup can value MSFT through MCP and can produce a no-advice educational report without Angular UI, BullBearGPT, or a valuation-writing CLI.
 
@@ -52,6 +54,10 @@ The removal plan must keep the following invariant: after each phase, a fresh ag
 28. As a QA tester, I want Codex or Claude event logs to show only MCP calls and agent messages during valuation, so that no hidden UI or CLI valuation path is used.
 29. As a QA tester, I want scenario tests for large-cap, international, mature, and high-variance tickers, so that recalculation behavior is not MSFT-only.
 30. As a QA tester, I want report scans to catch recommendation language, so that policy regressions are visible.
+31. As an agent user, I want the installer to clearly state that Docker is required for the local valuation runtime, so that I know the prerequisite before starting.
+32. As an agent user, I want environment checks to detect Docker, Docker Compose, daemon reachability, required ports, and local secrets, so that setup failures are actionable.
+33. As an agent user, I want service startup to fail clearly when Docker is unavailable, so that the system does not imply a native Java/Postgres fallback.
+34. As a maintainer, I want Docker to remain the only v1 runtime path, so that support, tests, and documentation stay focused on one reproducible local stack.
 
 ## Implementation Decisions
 
@@ -73,16 +79,21 @@ The removal plan must keep the following invariant: after each phase, a fresh ag
 16. Make agent-native smoke checks the release confidence path.
 17. Keep live-data checks separate from deterministic contract tests when possible.
 18. Treat QA event logs as evidence only after secret and prompt-safety review.
+19. Require Docker Desktop or compatible Docker Engine with Compose for v1 runtime startup.
+20. Do not install Java, Postgres, yfinance, or seed SQL as host-native dependencies in v1.
+21. Limit `sv service start` to the Docker-managed agent-native stack: Postgres, yfinance, and valuation-service.
+22. Make Docker availability, Docker daemon reachability, required ports, and required local environment values part of `check-env`.
+23. Document native/no-Docker runtime as a possible future product phase, not part of this release.
 
 ## Removal Phases
 
 1. Phase 0: Inventory and safeguards.
 
-   Identify all references to Angular UI, BullBearGPT, legacy orchestration, valuation-writing CLI paths, legacy skill packs, product docs, runtime defaults, environment variables, and CI jobs. Classify each as agent-native product, valuation-service dependency, local development support, legacy surface, or removal candidate.
+   Identify all references to Angular UI, BullBearGPT, legacy orchestration, valuation-writing CLI paths, legacy skill packs, product docs, runtime defaults, environment variables, Docker prerequisites, and CI jobs. Classify each as agent-native product, valuation-service dependency, local development support, legacy surface, or removal candidate.
 
 2. Phase 1: Detach runtime defaults from legacy product surfaces.
 
-   Ensure install, service lifecycle, smoke checks, and documentation lead users through the agent-native flow only. The default startup path must support MCP valuation without presenting UI or BullBearGPT as product requirements.
+   Ensure install, service lifecycle, smoke checks, and documentation lead users through the agent-native flow only. The default startup path must support MCP valuation through Docker without presenting UI, BullBearGPT, or native Java/Postgres installation as product requirements.
 
 3. Phase 2: Remove BullBearGPT from the product path.
 
@@ -110,15 +121,17 @@ After every removal phase, the following end-to-end checks must pass before cont
 
 1. A fresh setup can install or update the StockValuation skill pack.
 2. A fresh setup can install or update MCP configuration for the user's agent.
-3. The local service lifecycle can start and report status for the valuation runtime.
-4. `stockvaluation.health` returns structured readiness status.
-5. MCP tool discovery includes all seven required StockValuation tools.
-6. `stockvaluation.value_ticker` returns structured DCF JSON for MSFT.
-7. `stockvaluation.recalculate` returns transparent requested, mapped, unsupported, and effective assumptions.
-8. At least one explicit failure path returns a stable failure category and concise explanation.
-9. The installed skill causes the agent to write an educational report from MCP JSON.
-10. Automated report scanning finds no recommendation-language regression.
-11. Agent event logs show no Angular UI, BullBearGPT, or valuation-writing CLI path.
+3. `check-env` clearly detects Docker availability, Docker Compose support, Docker daemon reachability, required ports, and required local environment values.
+4. If Docker is missing or stopped, service startup fails with a concise actionable error and does not imply a native fallback.
+5. With Docker available, the local service lifecycle starts and reports status for the valuation runtime.
+6. `stockvaluation.health` returns structured readiness status.
+7. MCP tool discovery includes all seven required StockValuation tools.
+8. `stockvaluation.value_ticker` returns structured DCF JSON for MSFT.
+9. `stockvaluation.recalculate` returns transparent requested, mapped, unsupported, and effective assumptions.
+10. At least one explicit failure path returns a stable failure category and concise explanation.
+11. The installed skill causes the agent to write an educational report from MCP JSON.
+12. Automated report scanning finds no recommendation-language regression.
+13. Agent event logs show no Angular UI, BullBearGPT, native valuation runtime, or valuation-writing CLI path.
 
 ## Testing Decisions
 
@@ -134,6 +147,8 @@ After every removal phase, the following end-to-end checks must pass before cont
 10. Release checks should include MSFT MCP valuation and should report live-data or environment blockers exactly.
 11. TSM-style currency conversion failures should remain regression-tested so the failure does not fall back to a generic service error.
 12. International and scenario recalculation cases should be retained to avoid an MSFT-only product gate.
+13. Docker prerequisite tests should cover missing Docker binary, stopped daemon, missing Compose support, occupied ports, and missing required environment values.
+14. Tests should assert that v1 documentation and CLI behavior do not advertise or attempt a native Java/Postgres runtime.
 
 ## Out of Scope
 
@@ -145,9 +160,11 @@ After every removal phase, the following end-to-end checks must pass before cont
 6. Replacing the valuation model.
 7. Hiding data-quality, currency, or unsupported-company failures behind generic success output.
 8. Requiring users to run legacy services for the agent-native valuation path.
+9. Supporting a no-Docker native runtime in v1.
+10. Installing Java, Postgres, yfinance, or seed SQL directly on the host machine.
 
 ## Further Notes
 
-The removal program is only complete when the simplified product can still run end to end from a clean local setup: install skills, install MCP config, start the local valuation runtime, call MCP tools, receive MSFT DCF JSON, recalculate scenarios, handle explicit failures, and produce an educational no-advice report through the user's agent.
+The removal program is only complete when the simplified product can still run end to end from a clean local setup with Docker available: install skills, install MCP config, validate Docker and environment prerequisites, start the Docker-backed local valuation runtime, call MCP tools, receive MSFT DCF JSON, recalculate scenarios, handle explicit failures, and produce an educational no-advice report through the user's agent.
 
 The most important risk is accidental dependency removal. Live market data, currency conversion, and non-US ticker coverage are inherently less stable than contract tests, so the release process should distinguish code regressions from external data or configuration blockers.
