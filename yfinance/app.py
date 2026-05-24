@@ -17,8 +17,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 DEFAULT_CORS_ORIGINS = [
-    "http://localhost:4200",
-    "http://127.0.0.1:4200",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]

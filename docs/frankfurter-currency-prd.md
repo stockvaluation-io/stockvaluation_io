@@ -316,8 +316,8 @@ python3.11 scripts/agent_native_qa.py --output-dir /tmp/stockvaluation-frankfurt
 
 Expected:
 
-- No UI.
-- No BullBearGPT.
+- No separate application surface.
+- No report-writing service.
 - No `sv value`.
 - No native runtime path.
 - TSM is no longer blocked by missing `CURRENCY_API_KEY`.

@@ -10,7 +10,7 @@ import java.util.Arrays;
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
-    @Value("${cors.allowed-origins:http://localhost:4200,http://127.0.0.1:4200,http://localhost:3000,http://127.0.0.1:3000}")
+    @Value("${cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000}")
     private String allowedOriginsRaw;
 
     @Value("${cors.allow-all:false}")
@@ -25,8 +25,6 @@ public class CorsConfig implements WebMvcConfigurer {
 
         if (allowedOrigins.length == 1 && "*".equals(allowedOrigins[0]) && !allowAll) {
             allowedOrigins = new String[]{
-                    "http://localhost:4200",
-                    "http://127.0.0.1:4200",
                     "http://localhost:3000",
                     "http://127.0.0.1:3000"
             };

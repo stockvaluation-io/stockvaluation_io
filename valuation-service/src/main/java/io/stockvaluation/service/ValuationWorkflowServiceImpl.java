@@ -45,7 +45,7 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                         boolean addStory) {
                 try {
                         if (addStory) {
-                                log.info("GET /{}/valuation (UI ENDPOINT - WITH STORY)", ticker);
+                                log.info("GET /{}/valuation (WITH STORY)", ticker);
                         } else {
                                 log.info("POST /{}/valuation (MINIMAL OVERRIDE PATTERN)", ticker);
                                 log.info("   Received {} override parameter(s)",
@@ -2051,8 +2051,7 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                         overrideCount++;
                 }
 
-                // Copy segments provided by caller (valuation-agent) for multi-segment DCF
-                // breakdown and weighting.
+                // Copy caller-provided segments for multi-segment DCF breakdown and weighting.
                 if (overrides.getSegments() != null
                                 && overrides.getSegments().getSegments() != null
                                 && !overrides.getSegments().getSegments().isEmpty()) {

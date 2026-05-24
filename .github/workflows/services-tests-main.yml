@@ -35,6 +35,34 @@ jobs:
       - name: Installer smoke
         run: ./scripts/test_install.sh
 
+      - name: MCP stdio smoke
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+          import sys
+
+          request = {"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}
+          proc = subprocess.run(
+              [sys.executable, "-m", "stockvaluation_agent_native.mcp_server"],
+              input=json.dumps(request) + "\n",
+              text=True,
+              capture_output=True,
+              check=True,
+          )
+          response = json.loads(proc.stdout)
+          names = {tool["name"] for tool in response["result"]["tools"]}
+          required = {
+              "stockvaluation.health",
+              "stockvaluation.value_ticker",
+              "stockvaluation.recalculate",
+          }
+          missing = required - names
+          if missing:
+              raise SystemExit(f"Missing MCP tools: {sorted(missing)}")
+          print(f"MCP tools/list smoke passed with {len(names)} tools")
+          PY
+
   valuation-service-tests:
     name: valuation-service tests
     runs-on: ubuntu-latest

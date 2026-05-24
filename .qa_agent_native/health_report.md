@@ -1,1 +1,0 @@
-{"ok":true,"tool":"stockvaluation.health","service_status":"UP","mcp_name":"stockvaluation-agent-native","mcp_version":"0.1.0"}

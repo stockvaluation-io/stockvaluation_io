@@ -339,8 +339,7 @@ public class SegmentWeightedParameterService {
 
         // IMPORTANT:
         // Use FinancialDataInput as the source of truth so caller overrides
-        // (valuation-agent
-        // or UI) remain effective even in segment-aware runs.
+        // remain effective even in segment-aware runs.
         // CompanyDataDTO is used only as fallback.
         Double revenueGrowthNextPct = coalesce(
                 financialDataInput.getRevenueNextYear(),

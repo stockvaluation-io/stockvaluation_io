@@ -79,14 +79,27 @@ def test_default_readme_documents_docker_only_agent_native_runtime():
     assert "sv value" not in lower
 
 
-def test_compose_hides_legacy_surfaces_behind_non_default_profiles():
+def test_removed_legacy_product_directories_are_absent():
+    for directory in ["frontend", "bullbeargpt", "valuation-agent", "shared"]:
+        assert not (REPO_ROOT / directory).exists()
+
+
+def test_compose_exposes_only_agent_native_runtime_services():
     compose = (REPO_ROOT / "docker-compose.local.yml").read_text(encoding="utf-8")
 
-    assert 'profiles: ["legacy-orchestration"]' in compose
-    assert 'profiles: ["legacy-bullbeargpt"]' in compose
-    assert 'profiles: ["legacy-ui"]' in compose
-    assert "BULLBEARGPT_SECRET_KEY:?BULLBEARGPT_SECRET_KEY is required" not in compose
-    assert "VALUATION_AGENT_SECRET_KEY:?VALUATION_AGENT_SECRET_KEY is required" not in compose
+    assert "postgres:" in compose
+    assert "yfinance:" in compose
+    assert "valuation-service:" in compose
+    assert "valuation-agent:" not in compose
+    assert "bullbeargpt:" not in compose
+    assert "frontend:" not in compose
+    assert "frontend-node-modules" not in compose
+    assert "legacy-orchestration" not in compose
+    assert "legacy-bullbeargpt" not in compose
+    assert "legacy-ui" not in compose
+    assert "BULLBEARGPT_SECRET_KEY" not in compose
+    assert "VALUATION_AGENT_SECRET_KEY" not in compose
+    assert "OPENAI_API_KEY" not in compose
 
 
 def test_compose_uses_keyless_frankfurter_currency_provider():

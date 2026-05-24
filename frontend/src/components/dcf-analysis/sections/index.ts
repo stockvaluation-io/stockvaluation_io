@@ -1,1 +1,0 @@
-export * from './new-results-page/new-results-page.component';

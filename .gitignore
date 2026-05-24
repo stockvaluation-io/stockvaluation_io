@@ -40,7 +40,6 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-/shared/prompt_dump_from_container/
 clawhub-skills/
 
 # --- Java / Maven ---
@@ -79,6 +78,7 @@ pg-data/
 # --- Project Specific ---
 .omx/
 .etl/
+.qa_agent_native/
 internal_doc/
 */prompt_dump_from_container/
 prompt_dump/
@@ -95,4 +95,3 @@ prompt_dump/
 **/.angular/
 **/__pycache__/
 *.pyc
-frontend/.angular/

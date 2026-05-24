@@ -59,7 +59,7 @@ public class ValuationOutputDTO {
     /**
      * UUID of the valuation record in Supabase.
      * Set by yfinance after saving to valuations table.
-     * Used by frontend to pass to chat/notebook for context loading.
+     * Returned for downstream agent or persistence context.
      */
     @JsonProperty("valuation_id")
     private String valuationId;
