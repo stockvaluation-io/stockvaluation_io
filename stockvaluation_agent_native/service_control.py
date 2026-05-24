@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import http.client
 import json
 import os
 import shutil
@@ -134,7 +135,7 @@ class ServiceController:
         try:
             with request.urlopen("http://localhost:8081/actuator/health", timeout=5) as response:
                 return {"reachable": True, "httpStatus": response.status}
-        except (error.URLError, TimeoutError) as exc:
+        except (error.URLError, TimeoutError, http.client.RemoteDisconnected) as exc:
             return {"reachable": False, "error": str(exc)}
 
     def _read_env_file(self) -> dict[str, str]:

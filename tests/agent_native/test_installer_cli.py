@@ -1,3 +1,4 @@
+import http.client
 import json
 from pathlib import Path
 
@@ -238,6 +239,32 @@ def test_status_uses_compose_ps_for_agent_native_services_only(tmp_path):
     assert set(status["compose"]["services"]) == {"postgres", "yfinance", "valuation-service"}
     assert "frontend" not in json.dumps(status)
     assert "bullbeargpt" not in json.dumps(status)
+
+
+def test_status_reports_unreachable_when_health_probe_disconnects(tmp_path, monkeypatch):
+    def probe(command, cwd):
+        return CommandResult(
+            returncode=0,
+            stdout='{"Service":"valuation-service","State":"running"}',
+            stderr="",
+        )
+
+    def disconnect(*args, **kwargs):
+        raise http.client.RemoteDisconnected("Remote end closed connection without response")
+
+    monkeypatch.setattr("stockvaluation_agent_native.service_control.request.urlopen", disconnect)
+    controller = ServiceController(
+        project_dir=tmp_path,
+        probe_runner=probe,
+        docker_path_resolver=lambda _: "/usr/bin/docker",
+    )
+
+    status = controller.status()
+
+    assert status["valuationService"] == {
+        "reachable": False,
+        "error": "Remote end closed connection without response",
+    }
 
 
 def test_uninstall_removes_installed_skill_and_mcp_blocks(tmp_path):
