@@ -129,6 +129,8 @@ Classifies structured errors into agent-readable categories:
 - `missing_configuration`
 - `stale_reference_data`
 - `non_json_service_response`
+- `currency_conversion_failed`
+- `upstream_service_error`
 - `unknown_failure`
 
 Use it before explaining failures to the user.

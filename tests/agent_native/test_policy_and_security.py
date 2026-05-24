@@ -3,6 +3,8 @@ from pathlib import Path
 from stockvaluation_agent_native.installer import bundled_skill_dir
 from stockvaluation_agent_native.security import sanitize_for_agent
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
 
 def test_skill_pack_contains_required_agent_native_references():
     skill_dir = bundled_skill_dir()
@@ -66,12 +68,55 @@ def test_mcp_tool_reference_documents_required_tool_names():
         assert name in reference
 
 
+def test_default_readme_documents_docker_only_agent_native_runtime():
+    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    lower = readme.lower()
+
+    assert "docker desktop or a compatible docker engine with compose" in lower
+    assert "no native java/postgres/yfinance runtime is installed or supported for v1" in lower
+    assert "bullbeargpt" not in lower
+    assert "angular" not in lower
+    assert "sv value" not in lower
+
+
+def test_compose_hides_legacy_surfaces_behind_non_default_profiles():
+    compose = (REPO_ROOT / "docker-compose.local.yml").read_text(encoding="utf-8")
+
+    assert 'profiles: ["legacy-orchestration"]' in compose
+    assert 'profiles: ["legacy-bullbeargpt"]' in compose
+    assert 'profiles: ["legacy-ui"]' in compose
+    assert "BULLBEARGPT_SECRET_KEY:?BULLBEARGPT_SECRET_KEY is required" not in compose
+    assert "VALUATION_AGENT_SECRET_KEY:?VALUATION_AGENT_SECRET_KEY is required" not in compose
+
+
+def test_compose_uses_keyless_frankfurter_currency_provider():
+    compose = (REPO_ROOT / "docker-compose.local.yml").read_text(encoding="utf-8")
+
+    assert "CURRENCY_PROVIDER_BASE_URL: ${CURRENCY_PROVIDER_BASE_URL:-https://api.frankfurter.dev/v2}" in compose
+    assert "CURRENCY_API_KEY" not in compose
+    assert "api.currencybeacon.com" not in compose
+
+
+def test_env_example_lists_only_agent_native_required_secrets():
+    env_example = (REPO_ROOT / ".env.example").read_text(encoding="utf-8")
+
+    assert "POSTGRES_PASSWORD=" in env_example
+    assert "YFINANCE_SECRET_KEY=" in env_example
+    assert "VALUATION_SERVICE_JWT_SECRET=" in env_example
+    assert "CURRENCY_PROVIDER_BASE_URL=https://api.frankfurter.dev/v2" in env_example
+    assert "CURRENCY_API_KEY" not in env_example
+    assert "api.currencybeacon.com" not in env_example
+    assert "BULLBEARGPT_SECRET_KEY" not in env_example
+    assert "VALUATION_AGENT_SECRET_KEY" not in env_example
+    assert "OPENAI_API_KEY" not in env_example
+
+
 def test_sanitize_for_agent_redacts_env_and_nested_secret_values(monkeypatch):
-    monkeypatch.setenv("CURRENCY_API_KEY", "currency-live-secret")
+    monkeypatch.setenv("YFINANCE_SECRET_KEY", "yfinance-live-secret")
     monkeypatch.setenv("POSTGRES_PASSWORD", "postgres-live-secret")
 
     payload = {
-        "error": "CURRENCY_API_KEY=currency-live-secret failed",
+        "error": "YFINANCE_SECRET_KEY=yfinance-live-secret failed",
         "nested": {
             "password": "postgres-live-secret",
             "safe": "risk-free-rate",
@@ -80,7 +125,7 @@ def test_sanitize_for_agent_redacts_env_and_nested_secret_values(monkeypatch):
 
     clean = sanitize_for_agent(payload)
 
-    assert "currency-live-secret" not in str(clean)
+    assert "yfinance-live-secret" not in str(clean)
     assert "postgres-live-secret" not in str(clean)
     assert clean["nested"]["password"] == "[REDACTED]"
     assert clean["nested"]["safe"] == "risk-free-rate"

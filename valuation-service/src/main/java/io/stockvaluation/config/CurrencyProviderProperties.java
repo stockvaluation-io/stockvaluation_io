@@ -8,9 +8,8 @@ import org.springframework.stereotype.Component;
 @Component
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "currency.api")
-public class CurrencyApiProperties {
+@ConfigurationProperties(prefix = "currency.provider")
+public class CurrencyProviderProperties {
 
     private String baseUrl;
-    private String key;
 }

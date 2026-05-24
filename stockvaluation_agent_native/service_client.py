@@ -39,7 +39,7 @@ class ServiceHTTPError(ValuationServiceError):
 
 
 class ValuationServiceClient:
-    """Small stdlib-only client around the Java valuation API."""
+    """Small stdlib-only client around the local valuation-service API."""
 
     def __init__(self, base_url: str | None = None, timeout: int | None = None):
         configured = base_url or os.getenv("STOCKVALUATION_SERVICE_URL") or DEFAULT_SERVICE_URL

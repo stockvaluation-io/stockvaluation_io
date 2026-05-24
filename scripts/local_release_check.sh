@@ -9,7 +9,6 @@ MAX_INTRINSIC_DRIFT_PCT="${MAX_INTRINSIC_DRIFT_PCT:-8}"
 MAX_WACC_DRIFT_BPS="${MAX_WACC_DRIFT_BPS:-75}"
 MAX_TERMINAL_GROWTH_DRIFT_BPS="${MAX_TERMINAL_GROWTH_DRIFT_BPS:-50}"
 RUN_SMOKE=1
-SMOKE_MODE="${SMOKE_MODE:-agent-native}"
 
 usage() {
   cat <<'USAGE'
@@ -28,7 +27,6 @@ Options:
   --max-wacc-drift-bps N
   --max-terminal-growth-drift-bps N
   --skip-smoke
-  --legacy-smoke
 USAGE
 }
 
@@ -66,10 +64,6 @@ while [[ $# -gt 0 ]]; do
       RUN_SMOKE=0
       shift
       ;;
-    --legacy-smoke)
-      SMOKE_MODE="legacy"
-      shift
-      ;;
     -h|--help)
       usage
       exit 0
@@ -90,11 +84,7 @@ fi
 
 if [[ "$RUN_SMOKE" -eq 1 ]]; then
   echo "[release-check] running local smoke..."
-  if [[ "$SMOKE_MODE" == "agent-native" ]]; then
-    ./scripts/local_smoke.sh --agent-native
-  else
-    ./scripts/local_smoke.sh
-  fi
+  ./scripts/local_smoke.sh --agent-native --ticker MSFT
 fi
 
 PYTHON_BIN=""

@@ -5,7 +5,7 @@ import pytest
 
 from stockvaluation_agent_native import cli
 from stockvaluation_agent_native.installer import AgentInstaller
-from stockvaluation_agent_native.service_control import EnvironmentStatus, ServiceController
+from stockvaluation_agent_native.service_control import CommandResult, EnvironmentStatus, ServiceController
 
 
 def test_install_skills_is_idempotent_for_codex_and_claude(tmp_path):
@@ -64,12 +64,21 @@ def test_cli_exposes_only_install_service_check_and_uninstall_commands(capsys):
 
 def test_service_start_uses_hidden_service_plumbing_only(tmp_path):
     commands = []
+    (tmp_path / "docker-compose.local.yml").write_text("services: {}\n", encoding="utf-8")
 
     def runner(command, cwd):
         commands.append((command, cwd))
         return 0
 
-    controller = ServiceController(project_dir=tmp_path, runner=runner)
+    def probe(command, cwd):
+        return CommandResult(returncode=0, stdout="ok", stderr="")
+
+    controller = ServiceController(
+        project_dir=tmp_path,
+        runner=runner,
+        probe_runner=probe,
+        docker_path_resolver=lambda _: "/usr/bin/docker",
+    )
     controller.start()
 
     assert commands == [
@@ -91,22 +100,144 @@ def test_service_start_uses_hidden_service_plumbing_only(tmp_path):
     ]
 
 
+def test_service_start_fails_clearly_without_docker_and_does_not_run_compose(tmp_path, capsys):
+    commands = []
+    controller = ServiceController(
+        project_dir=tmp_path,
+        runner=lambda command, cwd: commands.append((command, cwd)) or 0,
+        docker_path_resolver=lambda _: None,
+    )
+
+    exit_code = controller.start()
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert commands == []
+    assert "Docker Desktop or a compatible Docker Engine with Compose is required" in captured.err
+    assert "native" not in captured.err.lower()
+
+
+def test_service_start_fails_clearly_without_compose_file(tmp_path, capsys):
+    controller = ServiceController(
+        project_dir=tmp_path,
+        runner=lambda command, cwd: 0,
+        probe_runner=lambda command, cwd: CommandResult(returncode=0, stdout="ok", stderr=""),
+        docker_path_resolver=lambda _: "/usr/bin/docker",
+    )
+
+    exit_code = controller.start()
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "Missing docker-compose.local.yml" in captured.err
+
+
 def test_check_env_reports_presence_without_printing_secret_values(tmp_path, capsys, monkeypatch):
     env_file = tmp_path / ".env"
     env_file.write_text(
-        "CURRENCY_API_KEY=currency-live-secret\nPOSTGRES_PASSWORD=postgres-secret\n",
+        "POSTGRES_PASSWORD=postgres-secret\nYFINANCE_SECRET_KEY=yfinance-live-secret\n",
         encoding="utf-8",
     )
-    controller = ServiceController(project_dir=tmp_path)
+    controller = ServiceController(
+        project_dir=tmp_path,
+        probe_runner=lambda command, cwd: CommandResult(returncode=0, stdout="ok", stderr=""),
+        docker_path_resolver=lambda _: "/usr/bin/docker",
+        port_checker=lambda host, port: True,
+    )
 
     status = controller.check_environment()
     EnvironmentStatus.print(status)
 
     output = capsys.readouterr().out
-    assert "CURRENCY_API_KEY: set" in output
     assert "POSTGRES_PASSWORD: set" in output
-    assert "currency-live-secret" not in output
+    assert "YFINANCE_SECRET_KEY: set" in output
+    assert "CURRENCY_API_KEY" not in output
     assert "postgres-secret" not in output
+    assert "yfinance-live-secret" not in output
+
+
+def test_check_env_detects_docker_compose_daemon_ports_and_placeholder_env(tmp_path):
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "\n".join(
+            [
+                "POSTGRES_PASSWORD=postgres-secret",
+                "DEFAULT_PASSWORD=CHANGE_ME",
+                "YFINANCE_SECRET_KEY=yfinance-secret",
+                "VALUATION_SERVICE_JWT_SECRET=jwt-secret",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    probe_calls = []
+
+    def probe(command, cwd):
+        probe_calls.append(command)
+        return CommandResult(returncode=0, stdout="ok", stderr="")
+
+    controller = ServiceController(
+        project_dir=tmp_path,
+        probe_runner=probe,
+        docker_path_resolver=lambda _: "/usr/bin/docker",
+        port_checker=lambda host, port: port != 8081,
+    )
+
+    status = controller.check_environment()
+
+    assert status.docker["binary"] is True
+    assert status.docker["compose"] is True
+    assert status.docker["daemon"] is True
+    assert status.values["POSTGRES_PASSWORD"] is True
+    assert status.values["DEFAULT_PASSWORD"] is False
+    assert "CURRENCY_API_KEY" not in status.values
+    assert status.ports["4322"]["available"] is True
+    assert status.ports["8081"]["available"] is False
+    assert ["docker", "compose", "version"] in probe_calls
+    assert ["docker", "info", "--format", "{{.ServerVersion}}"] in probe_calls
+
+
+def test_status_uses_compose_ps_for_agent_native_services_only(tmp_path):
+    probe_calls = []
+
+    def probe(command, cwd):
+        probe_calls.append(command)
+        return CommandResult(
+            returncode=0,
+            stdout='\n'.join(
+                [
+                    '{"Service":"postgres","State":"running"}',
+                    '{"Service":"yfinance","State":"running"}',
+                    '{"Service":"valuation-service","State":"running"}',
+                ]
+            ),
+            stderr="",
+        )
+
+    controller = ServiceController(
+        project_dir=tmp_path,
+        probe_runner=probe,
+        docker_path_resolver=lambda _: "/usr/bin/docker",
+    )
+
+    status = controller.status()
+
+    assert probe_calls == [
+        [
+            "docker",
+            "compose",
+            "-f",
+            "docker-compose.local.yml",
+            "ps",
+            "--format",
+            "json",
+            "postgres",
+            "yfinance",
+            "valuation-service",
+        ]
+    ]
+    assert set(status["compose"]["services"]) == {"postgres", "yfinance", "valuation-service"}
+    assert "frontend" not in json.dumps(status)
+    assert "bullbeargpt" not in json.dumps(status)
 
 
 def test_uninstall_removes_installed_skill_and_mcp_blocks(tmp_path):

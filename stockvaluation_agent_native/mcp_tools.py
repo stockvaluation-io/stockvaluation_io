@@ -590,6 +590,8 @@ def service_exception_payload(tool: str, exc: Exception, ticker: str | None = No
         )
     if isinstance(exc, ServiceHTTPError):
         category = classify_failure(exc.message)
+        if category == "unknown_failure" and exc.status >= 500:
+            category = "upstream_service_error"
         return error_payload(
             tool,
             failure_code_for_category(category),
@@ -657,11 +659,16 @@ def classify_failure(message: str) -> str:
         and any(term in lowered for term in ("conversion failed", "differs", "convert", "exchange-rate"))
     ):
         return "currency_conversion_failed"
+    if (
+        ("frankfurter" in lowered or "currency provider" in lowered)
+        and any(term in lowered for term in ("unavailable", "failed", "missing", "rate", "loading"))
+    ):
+        return "currency_conversion_failed"
     if any(term in lowered for term in ("financial company", "financial sector", "bank", "insurance", "unsupported")):
         return "unsupported_company"
     if "insufficient" in lowered or "missing financial" in lowered or "not enough financial" in lowered:
         return "insufficient_financial_data"
-    if any(term in lowered for term in ("currency_api_key", "configuration", "environment variable", "required")):
+    if any(term in lowered for term in ("configuration", "environment variable", "required")):
         return "missing_configuration"
     if "stale" in lowered and "reference" in lowered:
         return "stale_reference_data"
@@ -669,6 +676,8 @@ def classify_failure(message: str) -> str:
         return "non_json_service_response"
     if "connection" in lowered or "refused" in lowered or "unreachable" in lowered or "timed out" in lowered:
         return "missing_local_service"
+    if "upstream" in lowered or "dependency" in lowered or "service error" in lowered:
+        return "upstream_service_error"
     return "unknown_failure"
 
 
@@ -681,6 +690,7 @@ def failure_code_for_category(category: str) -> str:
         "non_json_service_response": "NON_JSON_SERVICE_RESPONSE",
         "missing_local_service": "MISSING_LOCAL_SERVICE",
         "currency_conversion_failed": "CURRENCY_CONVERSION_FAILED",
+        "upstream_service_error": "UPSTREAM_SERVICE_ERROR",
     }.get(category, "VALUATION_SERVICE_ERROR")
 
 
@@ -692,7 +702,8 @@ def recovery_for_category(category: str) -> dict[str, Any]:
         "stale_reference_data": "Show the stale-data warning and treat growth anchors as directional.",
         "non_json_service_response": "Ask the user to run `sv service status`; the service may be returning an error page.",
         "missing_local_service": "Ask the user to run `sv service start` and then retry the MCP call.",
-        "currency_conversion_failed": "Explain that valuation-service could not safely complete currency conversion. Ask the user to verify CURRENCY_API_KEY and currency API availability, then retry; do not manually convert and invent the valuation.",
+        "currency_conversion_failed": "Explain that valuation-service could not safely complete currency conversion. Ask the user to verify Frankfurter currency provider availability, then retry; do not manually convert and invent the valuation.",
+        "upstream_service_error": "Tell the user the local valuation service returned an upstream error. Ask them to run `sv service status`, retry once, and preserve the failure category if it repeats.",
         "invalid_ticker": "Ask for a valid public ticker symbol.",
         "unsupported_overrides": "Ask before retrying with only governed scenario override fields.",
         "unknown_failure": "Summarize the failure and ask the user whether to run service status checks.",

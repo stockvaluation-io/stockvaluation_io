@@ -28,6 +28,8 @@ usage() {
   cat <<'EOF'
 Usage: ./install.sh [command]
 
+Docker Desktop or a compatible Docker Engine with Compose is required for service commands.
+
 Commands:
   install        Install/update StockValuation skills and MCP config (default)
   install-skills Install/update skills only

@@ -16,8 +16,25 @@ class RequiredRuntimePropertiesValidatorTest {
         env.setProperty("spring.datasource.url", "jdbc:h2:mem:test");
         env.setProperty("spring.datasource.username", "sa");
         env.setProperty("spring.datasource.password", "pass");
-        env.setProperty("currency.api.base-url", "http://currency.com");
-        env.setProperty("currency.api.key", "key123");
+        env.setProperty("currency.provider.base-url", "https://api.frankfurter.dev/v2");
+        env.setProperty("default.username", "user");
+        env.setProperty("default.password", "pass");
+        env.setProperty("default.firstname", "John");
+        env.setProperty("default.lastname", "Doe");
+        env.setProperty("default.contact", "contact");
+
+        RequiredRuntimePropertiesValidator validator = new RequiredRuntimePropertiesValidator(env);
+        assertDoesNotThrow(validator::validate);
+    }
+
+    @Test
+    void validate_doesNotRequireCurrencyApiKey() {
+        MockEnvironment env = new MockEnvironment();
+        env.setProperty("provider.yfinance.base-url", "http://example.com");
+        env.setProperty("spring.datasource.url", "jdbc:h2:mem:test");
+        env.setProperty("spring.datasource.username", "sa");
+        env.setProperty("spring.datasource.password", "pass");
+        env.setProperty("currency.provider.base-url", "https://api.frankfurter.dev/v2");
         env.setProperty("default.username", "user");
         env.setProperty("default.password", "pass");
         env.setProperty("default.firstname", "John");
@@ -45,8 +62,7 @@ class RequiredRuntimePropertiesValidatorTest {
         env.setProperty("spring.datasource.url", "jdbc:h2:mem:test");
         env.setProperty("spring.datasource.username", "sa");
         env.setProperty("spring.datasource.password", "${unresolved.password}"); // unresolved
-        env.setProperty("currency.api.base-url", "http://currency.com");
-        env.setProperty("currency.api.key", "key123");
+        env.setProperty("currency.provider.base-url", "https://api.frankfurter.dev/v2");
         env.setProperty("default.username", "user");
         env.setProperty("default.password", "pass");
         env.setProperty("default.firstname", "John");

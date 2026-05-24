@@ -259,6 +259,20 @@ def test_currency_conversion_failure_has_specific_agent_readable_shape():
     assert result["structuredContent"]["error"]["code"] == "CURRENCY_CONVERSION_FAILED"
     assert result["structuredContent"]["failureCategory"] == "currency_conversion_failed"
     assert "currency conversion" in result["structuredContent"]["recovery"]["agentAction"].lower()
+    assert "CURRENCY_API_KEY" not in result["structuredContent"]["recovery"]["agentAction"]
+
+
+def test_generic_http_5xx_failure_is_upstream_service_error():
+    class UpstreamFailure(FakeClient):
+        def value_ticker(self, ticker, overrides=None):
+            raise ServiceHTTPError(503, "valuation dependency returned an unexpected service error")
+
+    result = MCPToolRegistry(UpstreamFailure()).call("stockvaluation.value_ticker", {"ticker": "MSFT"})
+
+    assert result["isError"] is True
+    assert result["structuredContent"]["error"]["code"] == "UPSTREAM_SERVICE_ERROR"
+    assert result["structuredContent"]["failureCategory"] == "upstream_service_error"
+    assert result["structuredContent"]["recovery"]["agentAction"]
 
 
 def test_explain_failure_extracts_nested_error_message_without_echoing_raw_json():
@@ -300,12 +314,25 @@ def test_explain_failure_extracts_nested_error_message_from_json_string_payload(
     assert not result["structuredContent"]["message"].startswith("{")
 
 
+def test_explain_failure_classifies_frankfurter_provider_failures_as_currency_conversion():
+    registry = MCPToolRegistry(FakeClient())
+
+    result = registry.call(
+        "stockvaluation.explain_failure",
+        {"error": {"message": "Frankfurter currency provider unavailable while loading USD base rates"}},
+    )
+
+    assert result["isError"] is False
+    assert result["structuredContent"]["failureCategory"] == "currency_conversion_failed"
+    assert "currency conversion" in result["structuredContent"]["recovery"]["agentAction"].lower()
+
+
 @pytest.mark.parametrize(
     ("message", "category"),
     [
         ("Financial companies are unsupported", "unsupported_company"),
         ("insufficient financial data for ticker", "insufficient_financial_data"),
-        ("CURRENCY_API_KEY is required", "missing_configuration"),
+        ("DEFAULT_PASSWORD is required", "missing_configuration"),
         ("reference data is stale", "stale_reference_data"),
     ],
 )

@@ -20,8 +20,6 @@ Managed keys:
   POSTGRES_PASSWORD
   DEFAULT_PASSWORD
   YFINANCE_SECRET_KEY
-  VALUATION_AGENT_SECRET_KEY
-  BULLBEARGPT_SECRET_KEY
   VALUATION_SERVICE_JWT_SECRET
 EOF
 }
@@ -114,8 +112,6 @@ ensure_secret() {
 ensure_secret "POSTGRES_PASSWORD"
 ensure_secret "DEFAULT_PASSWORD"
 ensure_secret "YFINANCE_SECRET_KEY"
-ensure_secret "VALUATION_AGENT_SECRET_KEY"
-ensure_secret "BULLBEARGPT_SECRET_KEY"
 ensure_secret "VALUATION_SERVICE_JWT_SECRET"
 
 echo "Local secret bootstrap complete: ${ENV_FILE}"

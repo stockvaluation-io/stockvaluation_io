@@ -2,34 +2,27 @@
 set -euo pipefail
 
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.local.yml}"
-TICKER="${TICKER:-AAPL}"
-RUN_FULL=0
-RUN_AGENT_NATIVE=0
+TICKER="${TICKER:-MSFT}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/local_smoke.sh [--agent-native] [--full] [--ticker SYMBOL]
+Usage: ./scripts/local_smoke.sh [--agent-native] [--ticker SYMBOL]
 
-Checks:
-  - valuation-agent health (host :5001)
-  - yfinance health (inside docker network)
-  - valuation-service /{ticker}/valuation endpoint (host :8081)
+Checks the Docker-backed agent-native product path only:
+  - yfinance health inside the Docker network
+  - valuation-service /{ticker}/valuation endpoint on host :8081
+  - MCP stockvaluation.health through stdio
+  - MCP stockvaluation.value_ticker through stdio
 
-Optional:
-  --agent-native  Check only the agent-native product path: yfinance, valuation-service, and MCP value_ticker
-  --full    Run valuation-agent /api-s/valuate (requires LLM keys and takes longer)
-  --ticker  Ticker to use for functional checks (default: AAPL)
+Options:
+  --agent-native  Accepted for compatibility; this is now the only smoke path
+  --ticker        Ticker to use for functional checks (default: MSFT)
 EOF
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --agent-native)
-      RUN_AGENT_NATIVE=1
-      shift
-      ;;
-    --full)
-      RUN_FULL=1
       shift
       ;;
     --ticker)
@@ -59,30 +52,39 @@ need_cmd() {
   }
 }
 
+find_python() {
+  if command -v python3.11 >/dev/null 2>&1; then
+    command -v python3.11
+    return
+  fi
+  if command -v python3 >/dev/null 2>&1; then
+    command -v python3
+    return
+  fi
+  echo "Missing required command: python3.11 or python3" >&2
+  exit 1
+}
+
 need_cmd curl
 need_cmd docker
-need_cmd python3
+PYTHON_BIN="$(find_python)"
 
 json_status_check() {
   local name="$1"
   local payload_file="$2"
-  python3 - "$name" "$payload_file" <<'PY'
+  "$PYTHON_BIN" - "$name" "$payload_file" <<'PY'
 import json, sys
 name, path = sys.argv[1], sys.argv[2]
 with open(path, "r", encoding="utf-8") as f:
     data = json.load(f)
-if isinstance(data, dict) and data.get("status") == "healthy":
-    print(f"[OK] {name}: status=healthy")
+if isinstance(data, dict) and data.get("status") in {"healthy", "UP"}:
+    print(f"[OK] {name}: status={data.get('status')}")
     sys.exit(0)
-print(f"[WARN] {name}: unexpected payload shape", file=sys.stderr)
+print(f"[FAIL] {name}: unexpected payload shape", file=sys.stderr)
 print(json.dumps(data, indent=2)[:1000], file=sys.stderr)
 sys.exit(1)
 PY
 }
-
-echo "== Local Smoke Test =="
-echo "compose file: $COMPOSE_FILE"
-echo "ticker: $TICKER"
 
 run_yfinance_health() {
   echo "yfinance health (internal via docker exec)"
@@ -95,24 +97,37 @@ run_yfinance_health() {
 run_valuation_service_check() {
   echo "valuation-service /{ticker}/valuation API (host)"
   tmp_java="$(mktemp)"
-  java_code="$(
-    curl -sS \
-      -o "$tmp_java" \
-      -w "%{http_code}" \
-      --max-time 120 \
-      -H "Content-Type: application/json" \
-      -X POST "http://localhost:8081/api/v1/automated-dcf-analysis/${TICKER}/valuation" \
-      -d '{}'
-  )"
+  java_code="000"
+  curl_rc=1
+  for attempt in $(seq 1 30); do
+    set +e
+    java_code="$(
+      curl -sS \
+        -o "$tmp_java" \
+        -w "%{http_code}" \
+        --max-time 120 \
+        -H "Content-Type: application/json" \
+        -X POST "http://localhost:8081/api/v1/automated-dcf-analysis/${TICKER}/valuation" \
+        -d '{}'
+    )"
+    curl_rc=$?
+    set -e
+    if [[ "$curl_rc" -eq 0 && "$java_code" == "200" ]]; then
+      break
+    fi
+    if [[ "$attempt" -lt 30 ]]; then
+      sleep 2
+    fi
+  done
 
-  if [[ "$java_code" != "200" ]]; then
-    echo "[FAIL] valuation-service baseline DCF returned HTTP $java_code" >&2
+  if [[ "$curl_rc" -ne 0 || "$java_code" != "200" ]]; then
+    echo "[FAIL] valuation-service baseline DCF returned curl=$curl_rc HTTP $java_code" >&2
     cat "$tmp_java" >&2
     rm -f "$tmp_java"
     exit 1
   fi
 
-  python3 - "$tmp_java" <<'PY'
+  "$PYTHON_BIN" - "$tmp_java" <<'PY'
 import json, sys
 with open(sys.argv[1], "r", encoding="utf-8") as f:
     payload = json.load(f)
@@ -126,107 +141,47 @@ PY
   rm -f "$tmp_java"
 }
 
-run_mcp_value_ticker_check() {
-  echo "MCP stockvaluation.value_ticker (stdio)"
+run_mcp_call_check() {
+  local tool="$1"
+  local arguments="$2"
+  local tmp_mcp
   tmp_mcp="$(mktemp)"
   printf '%s\n' \
-    "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"stockvaluation.value_ticker\",\"arguments\":{\"ticker\":\"${TICKER}\"}}}" \
-    | python3 -m stockvaluation_agent_native.mcp_server > "$tmp_mcp"
-  python3 - "$tmp_mcp" <<'PY'
+    "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"${tool}\",\"arguments\":${arguments}}}" \
+    | "$PYTHON_BIN" -m stockvaluation_agent_native.mcp_server > "$tmp_mcp"
+  "$PYTHON_BIN" - "$tmp_mcp" "$tool" <<'PY'
 import json, sys
-with open(sys.argv[1], "r", encoding="utf-8") as f:
+path, tool = sys.argv[1], sys.argv[2]
+with open(path, "r", encoding="utf-8") as f:
     response = json.load(f)
 result = response.get("result") or {}
 structured = result.get("structuredContent") or {}
 if structured.get("ok") is not True:
-    raise SystemExit("[FAIL] MCP value_ticker did not return ok=true")
-dcf = structured.get("dcf") or {}
-if dcf.get("estimatedValuePerShare") is None:
-    raise SystemExit("[FAIL] MCP value_ticker missing DCF estimatedValuePerShare")
-print(
-    f"[OK] MCP value_ticker ticker={structured.get('ticker')} "
-    f"company={dcf.get('companyName')} intrinsic={dcf.get('estimatedValuePerShare')}"
-)
+    raise SystemExit(f"[FAIL] {tool} did not return ok=true")
+if tool == "stockvaluation.value_ticker":
+    dcf = structured.get("dcf") or {}
+    if dcf.get("estimatedValuePerShare") is None:
+        raise SystemExit("[FAIL] MCP value_ticker missing DCF estimatedValuePerShare")
+    print(
+        f"[OK] MCP value_ticker ticker={structured.get('ticker')} "
+        f"company={dcf.get('companyName')} intrinsic={dcf.get('estimatedValuePerShare')}"
+    )
+else:
+    service = structured.get("service") or {}
+    print(f"[OK] {tool}: service status={service.get('status')}")
 PY
   rm -f "$tmp_mcp"
 }
 
-if [[ "$RUN_AGENT_NATIVE" -eq 1 ]]; then
-  echo "[1/3] yfinance health"
-  run_yfinance_health
-  echo "[2/3] valuation-service baseline DCF"
-  run_valuation_service_check
-  echo "[3/3] MCP value_ticker"
-  run_mcp_value_ticker_check
-  echo "Agent-native smoke test passed."
-  exit 0
-fi
-
-echo "[1/4] valuation-agent health (host)"
-tmp_agent="$(mktemp)"
-curl -fsS --max-time 10 "http://localhost:5001/health" > "$tmp_agent"
-json_status_check "valuation-agent" "$tmp_agent"
-rm -f "$tmp_agent"
-
-echo "[2/4] yfinance health"
+echo "== Agent-Native Local Smoke Test =="
+echo "compose file: $COMPOSE_FILE"
+echo "ticker: $TICKER"
+echo "[1/4] yfinance health"
 run_yfinance_health
-
-echo "[3/4] valuation-service baseline DCF"
+echo "[2/4] valuation-service baseline DCF"
 run_valuation_service_check
-
-if [[ "$RUN_FULL" -eq 1 ]]; then
-  echo "[4/4] valuation-agent full orchestration (/api-s/valuate) [slow]"
-  tmp_full="$(mktemp)"
-  full_code="$(
-    curl -sS \
-      -o "$tmp_full" \
-      -w "%{http_code}" \
-      --max-time 300 \
-      -H "Content-Type: application/json" \
-      -H "X-Local-User: local-smoke" \
-      -X POST "http://localhost:5001/api-s/valuate" \
-      -d "{\"ticker\":\"${TICKER}\"}"
-  )"
-
-  if [[ "$full_code" != "200" ]]; then
-    echo "[FAIL] valuation-agent /api-s/valuate returned HTTP $full_code" >&2
-    cat "$tmp_full" >&2
-    rm -f "$tmp_full"
-    exit 1
-  fi
-
-  python3 - "$tmp_full" <<'PY'
-import json, sys
-with open(sys.argv[1], "r", encoding="utf-8") as f:
-    payload = json.load(f)
-vid = payload.get("valuation_id")
-aid = payload.get("audit_run_id")
-ticker = payload.get("ticker")
-if not vid:
-    raise SystemExit("[FAIL] /api-s/valuate response missing valuation_id")
-segments = payload.get("segments") or []
-dcf = payload.get("dcf") or {}
-financial = dcf.get("financialDTO") or {}
-if isinstance(segments, list) and len(segments) > 0:
-    revenues_by_sector = financial.get("revenuesBySector") or {}
-    growth_by_sector = financial.get("revenueGrowthRateBySector") or {}
-    income_by_sector = financial.get("ebitOperatingIncomeSector") or {}
-    if not isinstance(revenues_by_sector, dict) or not revenues_by_sector:
-        raise SystemExit("[FAIL] /api-s/valuate returned segments but revenuesBySector is empty")
-    if not isinstance(growth_by_sector, dict) or not growth_by_sector:
-        raise SystemExit("[FAIL] /api-s/valuate returned segments but revenueGrowthRateBySector is empty")
-    if not isinstance(income_by_sector, dict) or not income_by_sector:
-        raise SystemExit("[FAIL] /api-s/valuate returned segments but ebitOperatingIncomeSector is empty")
-    print(
-        f"[OK] valuation-agent /api-s/valuate ticker={ticker} valuation_id={vid} "
-        f"audit_run_id={aid} sectors={len(revenues_by_sector)}"
-    )
-else:
-    print(f"[OK] valuation-agent /api-s/valuate ticker={ticker} valuation_id={vid} audit_run_id={aid}")
-PY
-  rm -f "$tmp_full"
-else
-  echo "[4/4] full orchestration skipped (use --full to enable)"
-fi
-
-echo "Smoke test passed."
+echo "[3/4] MCP health"
+run_mcp_call_check "stockvaluation.health" "{}"
+echo "[4/4] MCP value_ticker"
+run_mcp_call_check "stockvaluation.value_ticker" "{\"ticker\":\"${TICKER}\"}"
+echo "Agent-native smoke test passed."

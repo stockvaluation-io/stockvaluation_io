@@ -26,6 +26,8 @@ The CLI is operational glue only. It does not value companies, write valuation r
 
 From a local checkout:
 
+Docker Desktop or a compatible Docker Engine with Compose is required for the v1 local runtime. No native Java/Postgres/yfinance runtime is installed or supported for v1.
+
 ```bash
 ./install.sh install
 ./install.sh check-env
@@ -63,6 +65,8 @@ The canonical local runtime is `docker-compose.local.yml`. The agent-native serv
 - `valuation-service`
 
 Required local environment values are documented in `.env.example`. Use `scripts/bootstrap_local_secrets.sh` as the safe starting point for generated local secrets. Do not commit `.env`.
+
+Currency conversion is handled inside `valuation-service` with the keyless Frankfurter provider. The default provider base URL is `https://api.frankfurter.dev/v2`; no currency API key is required for v1.
 
 ## Current Limits
 

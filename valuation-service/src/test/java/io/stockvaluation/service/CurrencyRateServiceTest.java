@@ -1,6 +1,6 @@
 package io.stockvaluation.service;
 
-import io.stockvaluation.config.CurrencyApiProperties;
+import io.stockvaluation.config.CurrencyProviderProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -8,14 +8,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,80 +25,91 @@ class CurrencyRateServiceTest {
     private RestTemplate restTemplate;
 
     @Mock
-    private CurrencyApiProperties currencyApiProperties;
+    private CurrencyProviderProperties currencyProviderProperties;
 
     @Test
-    void fetchExchangeRatesFallsBackToEcbWhenApiKeyIsMissing() {
-        when(currencyApiProperties.getKey()).thenReturn(" ");
-        when(restTemplate.getForObject(anyString(), eq(String.class))).thenReturn("""
-                <?xml version="1.0" encoding="UTF-8"?>
-                <gesmes:Envelope xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01"
-                    xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref">
-                  <Cube><Cube time="2026-04-23">
-                    <Cube currency="USD" rate="1.20"/>
-                    <Cube currency="INR" rate="100.00"/>
-                    <Cube currency="SEK" rate="11.00"/>
-                  </Cube></Cube>
-                </gesmes:Envelope>
-                """);
+    void fetchExchangeRatesLoadsFrankfurterRates() {
+        when(currencyProviderProperties.getBaseUrl()).thenReturn("https://api.frankfurter.dev/v2");
+        when(restTemplate.getForEntity(eq("https://api.frankfurter.dev/v2/rates?base=USD"), eq(List.class)))
+                .thenReturn(ResponseEntity.ok(List.of(
+                        Map.of("date", "2026-05-22", "base", "USD", "quote", "TWD", "rate", 31.515),
+                        Map.of("date", "2026-05-22", "base", "USD", "quote", "EUR", "rate", 0.89),
+                        Map.of("date", "2026-05-22", "base", "USD", "quote", "INR", "rate", 85.14),
+                        Map.of("date", "2026-05-22", "base", "USD", "quote", "SEK", "rate", 9.61)
+                )));
 
-        CurrencyRateService service = new CurrencyRateService(restTemplate, currencyApiProperties);
+        CurrencyRateService service = new CurrencyRateService(restTemplate, currencyProviderProperties);
         service.fetchExchangeRates();
 
         assertTrue(service.isReady());
-        assertEquals(12.0, service.convertCurrency("INR", "USD", 1000.0), 1e-9);
-        assertEquals(109.0909090909, service.convertCurrency("SEK", "USD", 1000.0), 1e-6);
+        assertEquals(315.15, service.convertCurrency("USD", "TWD", 10.0), 1e-9);
+        assertEquals(10.0, service.convertCurrency("TWD", "USD", 315.15), 1e-9);
     }
 
     @Test
-    void fetchExchangeRatesLeavesRatesEmptyWhenConfiguredAndFallbackFail() {
-        when(currencyApiProperties.getKey()).thenReturn(" ");
-        when(restTemplate.getForObject(anyString(), eq(String.class))).thenThrow(new RuntimeException("down"));
+    void fetchExchangeRatesKeepsPreviousRatesWhenRefreshFails() {
+        when(currencyProviderProperties.getBaseUrl()).thenReturn("https://api.frankfurter.dev/v2");
+        when(restTemplate.getForEntity(eq("https://api.frankfurter.dev/v2/rates?base=USD"), eq(List.class)))
+                .thenReturn(ResponseEntity.ok(List.of(
+                        Map.of("date", "2026-05-22", "base", "USD", "quote", "TWD", "rate", 31.515)
+                )))
+                .thenThrow(new RuntimeException("frankfurter down"));
 
-        CurrencyRateService service = new CurrencyRateService(restTemplate, currencyApiProperties);
+        CurrencyRateService service = new CurrencyRateService(restTemplate, currencyProviderProperties);
+        service.fetchExchangeRates();
         service.fetchExchangeRates();
 
-        assertFalse(service.isReady());
+        assertTrue(service.isReady());
+        assertEquals(315.15, service.convertCurrency("USD", "TWD", 10.0), 1e-9);
     }
 
     @Test
-    void initLoadsRatesAndConvertCurrencyUsesUsdBase() {
-        when(currencyApiProperties.getKey()).thenReturn("secret");
-        when(currencyApiProperties.getBaseUrl()).thenReturn("https://api.example.com/latest");
-        when(restTemplate.getForEntity(eq("https://api.example.com/latest?apikey=secret"), eq(Map.class)))
-                .thenReturn(ResponseEntity.ok(Map.of("data", Map.of("USD", 1.0, "SEK", 10.0, "EUR", 0.9))));
+    void fetchExchangeRatesKeepsPreviousRatesWhenRefreshPayloadHasNoQuotes() {
+        when(currencyProviderProperties.getBaseUrl()).thenReturn("https://api.frankfurter.dev/v2");
+        when(restTemplate.getForEntity(eq("https://api.frankfurter.dev/v2/rates?base=USD"), eq(List.class)))
+                .thenReturn(ResponseEntity.ok(List.of(
+                        Map.of("date", "2026-05-22", "base", "USD", "quote", "TWD", "rate", 31.515)
+                )))
+                .thenReturn(ResponseEntity.ok(List.of()));
 
-        CurrencyRateService service = new CurrencyRateService(restTemplate, currencyApiProperties);
+        CurrencyRateService service = new CurrencyRateService(restTemplate, currencyProviderProperties);
+        service.fetchExchangeRates();
+        service.fetchExchangeRates();
+
+        assertTrue(service.isReady());
+        assertEquals(315.15, service.convertCurrency("USD", "TWD", 10.0), 1e-9);
+    }
+
+    @Test
+    void convertCurrencyThrowsWhenFrankfurterMissingCurrency() {
+        when(currencyProviderProperties.getBaseUrl()).thenReturn("https://api.frankfurter.dev/v2");
+        when(restTemplate.getForEntity(eq("https://api.frankfurter.dev/v2/rates?base=USD"), eq(List.class)))
+                .thenReturn(ResponseEntity.ok(List.of(
+                        Map.of("date", "2026-05-22", "base", "USD", "quote", "EUR", "rate", 0.89)
+                )));
+
+        CurrencyRateService service = new CurrencyRateService(restTemplate, currencyProviderProperties);
+        service.fetchExchangeRates();
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.convertCurrency("USD", "TWD", 10.0));
+        assertTrue(ex.getMessage().contains("Missing currency rate"));
+        assertTrue(ex.getMessage().contains("TWD"));
+    }
+
+    @Test
+    void initLoadsRatesFromFrankfurterRatesEndpoint() {
+        when(currencyProviderProperties.getBaseUrl()).thenReturn("https://api.frankfurter.dev/v2");
+        when(restTemplate.getForEntity(eq("https://api.frankfurter.dev/v2/rates?base=USD"), eq(List.class)))
+                .thenReturn(ResponseEntity.ok(List.of(
+                        Map.of("date", "2026-05-22", "base", "USD", "quote", "SEK", "rate", 9.61)
+                )));
+
+        CurrencyRateService service = new CurrencyRateService(restTemplate, currencyProviderProperties);
         service.init();
 
-        assertTrue(service.isReady());
-        assertEquals(100.0, service.convertCurrency("USD", "SEK", 10.0), 1e-9);
-        assertEquals(10.0, service.convertCurrency("SEK", "SEK", 10.0), 1e-9);
-    }
-
-    @Test
-    void fetchExchangeRatesIgnoresUnexpectedPayloads() {
-        when(currencyApiProperties.getKey()).thenReturn("secret");
-        when(currencyApiProperties.getBaseUrl()).thenReturn("https://api.example.com/latest");
-        when(restTemplate.getForEntity(anyString(), eq(Map.class)))
-                .thenReturn(ResponseEntity.ok(Map.of("data", Map.of("USD", "invalid"))));
-
-        CurrencyRateService service = new CurrencyRateService(restTemplate, currencyApiProperties);
-        service.fetchExchangeRates();
-
-        assertFalse(service.isReady());
-    }
-
-    @Test
-    void convertCurrencyThrowsWhenEitherRateIsMissing() {
-        when(currencyApiProperties.getKey()).thenReturn("secret");
-        when(currencyApiProperties.getBaseUrl()).thenReturn("https://api.example.com/latest");
-        when(restTemplate.getForEntity(anyString(), eq(Map.class)))
-                .thenReturn(ResponseEntity.ok(Map.of("data", Map.of("USD", 1.0))));
-
-        CurrencyRateService service = new CurrencyRateService(restTemplate, currencyApiProperties);
-        service.fetchExchangeRates();
-
-        assertThrows(IllegalArgumentException.class, () -> service.convertCurrency("USD", "SEK", 10.0));
+        verify(restTemplate).getForEntity("https://api.frankfurter.dev/v2/rates?base=USD", List.class);
+        assertEquals(96.1, service.convertCurrency("USD", "SEK", 10.0), 1e-9);
     }
 }

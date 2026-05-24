@@ -1,6 +1,6 @@
 package io.stockvaluation;
 
-import io.stockvaluation.config.CurrencyApiProperties;
+import io.stockvaluation.config.CurrencyProviderProperties;
 import io.stockvaluation.config.SyntheticRatingProperties;
 import io.stockvaluation.config.ValuationTemplateProperties;
 import io.stockvaluation.config.YFinanceProviderProperties;
@@ -190,11 +190,9 @@ class CoverageSmokeTest {
         syntheticRatingProperties.setDefaultCountry("Sweden");
         assertEquals("Sweden", syntheticRatingProperties.getDefaultCountry());
 
-        CurrencyApiProperties currencyApiProperties = new CurrencyApiProperties();
-        currencyApiProperties.setBaseUrl("https://example.com");
-        currencyApiProperties.setKey("secret");
-        assertEquals("https://example.com", currencyApiProperties.getBaseUrl());
-        assertEquals("secret", currencyApiProperties.getKey());
+        CurrencyProviderProperties currencyProviderProperties = new CurrencyProviderProperties();
+        currencyProviderProperties.setBaseUrl("https://example.com");
+        assertEquals("https://example.com", currencyProviderProperties.getBaseUrl());
 
         YFinanceProviderProperties providerProperties = new YFinanceProviderProperties();
         providerProperties.setBaseUrl("https://yfinance.example.com");
