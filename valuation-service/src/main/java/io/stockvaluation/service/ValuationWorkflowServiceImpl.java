@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -1043,12 +1044,77 @@ public class ValuationWorkflowServiceImpl implements ValuationWorkflowService {
                                 || discovered.get().getSegments().size() <= 1) {
                         return;
                 }
-                financialDataInput.setSegments(discovered.get());
+                financialDataInput.setSegments(ensureCuratedSegmentsIfNeeded(ticker, discovered.get()));
                 adjustedParameters.add("segments");
                 log.info("Attached discovered segment package for {} with {} segment row(s)",
                                 ticker,
                                 discovered.get().getSegments().size());
         }
+
+        
+        /**
+         * If SEC table discovery returns segments without mappable sector keys, fall back
+         * to curated mega-cap segment packages so researched mode can weight industries.
+         */
+        private SegmentResponseDTO ensureCuratedSegmentsIfNeeded(String ticker, SegmentResponseDTO discovered) {
+                if (discovered == null || discovered.getSegments() == null || discovered.getSegments().isEmpty()) {
+                        SegmentResponseDTO curated = curatedSegmentsForTicker(ticker);
+                        return curated != null ? curated : discovered;
+                }
+                long mapped = discovered.getSegments().stream()
+                                .filter(s -> s != null && s.getSector() != null && !s.getSector().isBlank())
+                                .count();
+                if (mapped >= 2) {
+                        return discovered;
+                }
+                SegmentResponseDTO curated = curatedSegmentsForTicker(ticker);
+                if (curated != null) {
+                        log.info("Replacing weakly-mapped discovered segments for {} with curated package ({} rows)",
+                                        ticker, curated.getSegments().size());
+                        return curated;
+                }
+                return discovered;
+        }
+
+        private SegmentResponseDTO curatedSegmentsForTicker(String ticker) {
+                if (ticker == null) {
+                        return null;
+                }
+                String t = ticker.trim().toUpperCase(Locale.ROOT);
+                List<SegmentResponseDTO.Segment> segments = new ArrayList<>();
+                if ("MSFT".equals(t)) {
+                        // FY shares approximate recent Microsoft segment mix (cloud-heavy).
+                        segments.add(seg("software-infrastructure", "Software (System & Application)",
+                                        "Intelligent Cloud", 0.43));
+                        segments.add(seg("software-application", "Software (System & Application)",
+                                        "Productivity and Business Processes", 0.33));
+                        segments.add(seg("consumer-electronics", "Electronics (Consumer & Office)",
+                                        "More Personal Computing", 0.24));
+                } else if ("GOOGL".equals(t) || "GOOG".equals(t)) {
+                        segments.add(seg("internet-content-information", "Software (Internet)", "Google Services", 0.84));
+                        segments.add(seg("software-infrastructure", "Software (System & Application)", "Google Cloud", 0.12));
+                        segments.add(seg("consumer-electronics", "Electronics (Consumer & Office)", "Other Bets", 0.04));
+                } else if ("AMZN".equals(t)) {
+                        segments.add(seg("internet-retail", "Retail (General)", "North America", 0.39));
+                        segments.add(seg("internet-retail", "Retail (General)", "International", 0.22));
+                        segments.add(seg("software-infrastructure", "Software (System & Application)", "AWS", 0.39));
+                } else {
+                        return null;
+                }
+                return new SegmentResponseDTO(segments);
+        }
+
+        private SegmentResponseDTO.Segment seg(String sector, String industry, String component, double share) {
+                SegmentResponseDTO.Segment s = new SegmentResponseDTO.Segment();
+                s.setSector(sector);
+                s.setIndustry(industry);
+                s.setComponents(List.of(component));
+                s.setMappingScore(1.0);
+                s.setRevenueShare(share);
+                s.setOperatingMargin(null);
+                return s;
+        }
+
 
         private boolean hasSegmentPackage(FinancialDataInput financialDataInput) {
                 return financialDataInput != null

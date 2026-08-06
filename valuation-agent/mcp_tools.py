@@ -559,10 +559,15 @@ class MCPToolRegistry:
 
     def call(self, name: str, arguments: dict[str, Any] | None = None) -> dict[str, Any]:
         args = arguments or {}
-        if name not in self._handlers:
+        handler = self._handlers.get(name)
+        if handler is None:
+            # Some MCP clients (e.g. mcporter) send the bare tool name while the
+            # server advertises namespaced tools (stockvaluation.<tool>).
+            handler = self._handlers.get(f"stockvaluation.{name}")
+        if handler is None:
             content = error_payload(name, "UNKNOWN_TOOL", "Unknown StockValuation tool.", "unknown_tool")
             return tool_result(content, is_error=True)
-        content = self._handlers[name](args)
+        content = handler(args)
         return tool_result(content, is_error=not bool(content.get("ok")))
 
     def _start_tracked_run(
@@ -587,6 +592,7 @@ class MCPToolRegistry:
             return
         payload["run_id"] = run["run_id"]
         payload["workflow_state"] = self.run_store.workflow_state(run)
+        return run
 
     def _resolve_run(self, args: dict[str, Any], tool: str) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
         run_id = _string_or_none(args.get("run_id") or args.get("runId"))
@@ -767,13 +773,34 @@ class MCPToolRegistry:
         try:
             valuation = self.service_client.value_ticker(ticker)
             payload = valuation_success_payload(tool, ticker, valuation)
-            self._start_tracked_run(
+            run = self._start_tracked_run(
                 payload,
                 workflow_type="ticker",
                 subject=ticker,
                 tool=tool,
                 anchors=anchors_from_valuation_baseline(valuation),
             )
+            if run is not None:
+                try:
+                    run["valuation_snapshot"] = sanitize_for_agent(
+                        {
+                            "valuation": valuation,
+                            "assumptionTransparency": (
+                                valuation.get("assumptionTransparency")
+                                if isinstance(valuation, dict)
+                                else None
+                            ),
+                            "provenance": extract_source_provenance(valuation),
+                            "segments": (
+                                (valuation.get("financialDTO") or {}).get("revenuesBySector")
+                                if isinstance(valuation, dict)
+                                else None
+                            ),
+                        }
+                    )
+                    self.run_store.update_run(run)
+                except OSError:
+                    pass
             return payload
         except ValuationServiceError as exc:
             return service_exception_payload(tool, exc, ticker=ticker)
@@ -794,13 +821,34 @@ class MCPToolRegistry:
                 valuation,
                 {"researchedBaselineMode": True, "requestPolicyMode": "researched_baseline"},
             )
-            self._start_tracked_run(
+            run = self._start_tracked_run(
                 payload,
                 workflow_type="ticker",
                 subject=ticker,
                 tool=tool,
                 anchors=anchors_from_valuation_baseline(valuation),
             )
+            if run is not None:
+                try:
+                    run["valuation_snapshot"] = sanitize_for_agent(
+                        {
+                            "valuation": valuation,
+                            "assumptionTransparency": (
+                                valuation.get("assumptionTransparency")
+                                if isinstance(valuation, dict)
+                                else None
+                            ),
+                            "provenance": extract_source_provenance(valuation),
+                            "segments": (
+                                (valuation.get("financialDTO") or {}).get("revenuesBySector")
+                                if isinstance(valuation, dict)
+                                else None
+                            ),
+                        }
+                    )
+                    self.run_store.update_run(run)
+                except OSError:
+                    pass
             return payload
         except ValuationServiceError as exc:
             return service_exception_payload(tool, exc, ticker=ticker)
@@ -1081,6 +1129,13 @@ class MCPToolRegistry:
                 # The MCP layer knows prospectus scenario recalculation is
                 # supported; do not depend on the agent remembering the flag.
                 planner_args.setdefault("prospectus_recalculate_supported", True)
+            snapshot = _dict(run.get("valuation_snapshot"))
+            if not planner_args.get("evidence_packet") and snapshot:
+                # Auto-build a compact evidence packet from the stored baseline so
+                # guided planning works without the caller hand-feeding evidence.
+                planner_args["evidence_packet"] = _auto_evidence_packet_from_snapshot(
+                    _string_or_none(args.get("ticker")), snapshot
+                )
         plan = build_guided_question_plan(planner_args)
         if run is not None:
             anchored_fields = sorted(
@@ -1112,6 +1167,7 @@ class MCPToolRegistry:
             "policy": policy_metadata(),
         }
         return self._finish_tracked(payload, run, tool)
+
 
     def _apply_guided_answers(self, args: dict[str, Any]) -> dict[str, Any]:
         tool = "stockvaluation.apply_guided_answers"
@@ -1649,6 +1705,116 @@ COHERENCE_PRIORITY = {
     "growth_reinvestment_mismatch": 2,
     "optimistic_stack": 3,
 }
+
+
+def _auto_evidence_packet_from_snapshot(ticker: str | None, snapshot: dict[str, Any]) -> dict[str, Any]:
+    """Build a planner-ready evidence packet from a stored researched baseline.
+
+    Derives driver-specific evidence rows from the deterministic valuation output
+    (assumption transparency + provenance), so plan_guided_questions works without
+    hand-fed evidence. Source metadata always points at the filing/Yahoo provider
+    used by the baseline, not at the user.
+    """
+    transparency = _dict(snapshot.get("assumptionTransparency"))
+    operating = _dict(transparency.get("operatingAssumptions"))
+    discount = _dict(transparency.get("discountRate"))
+    provenance = _dict(snapshot.get("provenance"))
+    def _text_or_empty(value: Any) -> str:
+        return value if isinstance(value, str) else ("" if value is None else str(value))
+
+    source_date = _text_or_empty(
+        provenance.get("sourceDate")
+        or provenance.get("source_date")
+        or ""
+    )
+    source_class = _text_or_empty(
+        provenance.get("sourceClass")
+        or provenance.get("source_class")
+        or "service_baseline"
+    )
+    source_url = (
+        "https://www.sec.gov/"
+        if "filing" in source_class.lower()
+        else ""
+    )
+    source_title = (
+        "SEC primary filing (company facts)"
+        if "filing" in source_class.lower()
+        else "Provider-normalized financial data"
+    )
+
+    def row(driver: str, summary: str, confidence: str = "high", material: bool = True) -> dict[str, Any]:
+        return {
+            "driver": driver,
+            "evidence_summary": summary,
+            "fact": summary,
+            "source_url": source_url,
+            "source_date": source_date or "unknown",
+            "source_title": source_title,
+            "confidence": confidence,
+            "material": material,
+        }
+
+    items = []
+    growth = _number_or_none(
+        _first_present(
+            operating.get("revenueGrowthRateYears2To5"),
+            operating.get("revenueGrowthRate"),
+        )
+    )
+    if growth is not None:
+        items.append(
+            row(
+                "revenue_growth",
+                f"Baseline revenue growth {growth}% from the researched baseline; runway beyond near-term evidence is the open question.",
+            )
+        )
+    margin = _number_or_none(
+        _first_present(
+            operating.get("operatingMarginNextYear"),
+            operating.get("targetOperatingMargin"),
+        )
+    )
+    if margin is not None:
+        items.append(
+            row(
+                "operating_margin",
+                f"Baseline operating margin {margin}% from the researched baseline; margin path to maturity is the open question.",
+            )
+        )
+    s2c = _number_or_none(
+        _first_present(
+            operating.get("salesToCapitalYears1To5"),
+            operating.get("salesToCapital"),
+        )
+    )
+    if s2c is not None:
+        items.append(
+            row(
+                "reinvestment_sales_to_capital",
+                f"Baseline sales-to-capital {s2c} from the researched baseline; reinvestment intensity is the open question.",
+                confidence="medium",
+            )
+        )
+    coc = _number_or_none(
+        _first_present(
+            discount.get("initialCostOfCapital"),
+            discount.get("costOfCapital"),
+        )
+    )
+    rf = _number_or_none(discount.get("riskFreeRate"))
+    if coc is not None:
+        detail = f"Cost of capital {coc}%"
+        if rf is not None:
+            detail += f" with risk-free rate {rf}%"
+        detail += " from the researched baseline; discount-rate risk is the open question."
+        items.append(row("risk_wacc", detail))
+    return {
+        "schema_version": "evidence_packet.v1",
+        "ticker": ticker or "",
+        "source_type": "service_baseline",
+        "evidence_items": items,
+    }
 
 
 def coherence_answer_fingerprint(judgment: dict[str, Any]) -> str:

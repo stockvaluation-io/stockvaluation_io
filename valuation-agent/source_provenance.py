@@ -213,12 +213,31 @@ def _reconciliation_warnings(value: Any) -> list[dict[str, Any]]:
         normalized_value = _number_or_none(item.get("normalized_value"))
         filing_value = _number_or_none(item.get("filing_value"))
         threshold = _number_or_none(item.get("threshold_pct"))
+        status = str(item.get("status") or "").strip()
         if normalized_value is None or filing_value is None:
             continue
         threshold = threshold if threshold is not None else 0.05
         denominator = max(abs(filing_value), 1.0)
         difference_pct = abs(normalized_value - filing_value) / denominator
         if difference_pct <= threshold:
+            continue
+        if status in {"definitional_difference", "definitional_difference_lease"}:
+            # Known provider-definition difference (e.g. SEC debt includes lease
+            # liabilities; normalized reports interest-bearing debt only).
+            warnings.append(
+                sanitize_for_agent(
+                    {
+                        "field": str(item.get("field") or "").strip(),
+                        "status": "definitional_difference",
+                        "normalized_value": normalized_value,
+                        "filing_value": filing_value,
+                        "difference_pct": round(difference_pct, 4),
+                        "threshold_pct": threshold,
+                        "source_class": str(item.get("source_class") or "").strip(),
+                        "source_date": str(item.get("source_date") or "").strip(),
+                    }
+                )
+            )
             continue
         warnings.append(
             sanitize_for_agent(

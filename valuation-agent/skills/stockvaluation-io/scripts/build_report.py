@@ -160,6 +160,22 @@ def _fmt_multiple(value) -> str:
     return f"{number:,.2f}x"
 
 
+
+def _fmt_growth_ratio(value) -> str:
+    """Yahoo revenueGrowth is a ratio (0.177 = 17.7%); render as percent."""
+    number = _number(value)
+    if number is None:
+        return "—"
+    return f"{number * 100:,.1f}%"
+
+def _fmt_pe(value) -> str:
+    """P/E multiples from Yahoo are already ratio units (e.g. 27.6)."""
+    number = _number(value)
+    if number is None:
+        return "—"
+    return f"{number:,.1f}x"
+
+
 def _fmt_count(value) -> str:
     return _fmt_compact_number(value)
 
@@ -718,6 +734,41 @@ def _priced_in_pressure_section(data: dict) -> list[str]:
     if rows:
         lines.extend(_table(["Operating margin", "Implied growth", "Value/share", "Status", "Note"], rows))
     return lines
+
+
+def _peer_multiples_section(data: dict) -> list[str]:
+    """Render the peer comparable multiples table when peer rows are present.
+
+    Input shape (produced by scripts/peer_multiples.py):
+      peers: [{ticker, price, trailing_pe, forward_pe, ev_ebitda,
+               revenue_growth, gross_margin, operating_margin, market_cap, error?}]
+    Missing metrics render as "—" instead of dropping the row, so the table
+    shape is stable even with a degraded quote.
+    """
+    rows = data.get("peers")
+    if not isinstance(rows, list) or not rows:
+        return []
+    header = ["Ticker", "Price", "Trailing P/E", "Forward P/E", "EV/EBITDA", "Rev growth"]
+    table_rows = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        ticker = _text(row.get("ticker")) or "?"
+        if row.get("error"):
+            table_rows.append([ticker, "n/a", "n/a", "n/a", "n/a", "n/a"])
+            continue
+        price = _fmt_per_share(row.get("price"), _currency(data))
+        table_rows.append([
+            ticker,
+            price or "—",
+            _fmt_pe(row.get("trailing_pe")),
+            _fmt_pe(row.get("forward_pe")),
+            _fmt_multiple(row.get("ev_ebitda")) or "—",
+            _fmt_growth_ratio(row.get("revenue_growth")),
+        ])
+    if not table_rows:
+        return []
+    return ["## Peer Multiples", ""] + _table(header, table_rows)
 
 
 def _service_key_drivers_section(data: dict) -> list[str]:
@@ -1284,6 +1335,7 @@ def build_report_markdown(data: dict) -> str:
 
     for builder in (
         _service_key_drivers_section,
+        _peer_multiples_section,
         _market_implied_section,
         _priced_in_expectations_section,
         _sensitivity_grid_section,
