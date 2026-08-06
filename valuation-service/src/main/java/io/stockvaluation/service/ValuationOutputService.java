@@ -59,6 +59,44 @@ public class ValuationOutputService {
     private static final double MAX_SOLVED_REVENUE_GROWTH_PERCENT = 200.0;
     private static final int REVENUE_SOLVER_ITERATIONS = 80;
 
+
+        /**
+     * Jackson rejects null map keys. Segment packages sometimes omit sector labels;
+     * fall back to a stable placeholder before writing by-sector maps.
+     */
+    
+    /** Convert a rate that may be decimal (0.046) or percent (4.6) into percent units (4.6). */
+    private double toPercentUnit(Double value, double fallbackPercent) {
+        if (value == null || !Double.isFinite(value)) {
+            return fallbackPercent;
+        }
+        double v = value;
+        // values like 460 are almost certainly percent*100 mistakes; scale back
+        while (Math.abs(v) > 100.0) {
+            v = v / 100.0;
+        }
+        // values like 0.046 are decimals
+        if (Math.abs(v) <= 1.0) {
+            v = v * 100.0;
+        }
+        return v;
+    }
+
+private String normalizeSectorKey(SegmentResponseDTO.Segment segment) {
+        if (segment == null) {
+            return "unknown_segment";
+        }
+        String sector = segment.getSector();
+        if (sector != null && !sector.isBlank()) {
+            return sector.trim();
+        }
+        Double share = segment.getRevenueShare();
+        if (share != null) {
+            return "unmapped_segment_" + df.format(share);
+        }
+        return "unmapped_segment";
+    }
+
     // company data calculation method
     public CompanyDTO calculateCompanyData(FinancialDTO financialDTO, FinancialDataInput valuationInputDTO,
             OptionValueResultDTO optionValueResultDTO, LeaseResultDTO leaseResultDTO) {
@@ -525,44 +563,49 @@ public class ValuationOutputService {
 
         Double[] costOfCapital = new Double[arrayLength];
 
-        // Keep cost of capital in percentage format (e.g., 10.07 for 10.07%)
-        // It will be divided by 100 in calculateDiscountFactor
-
-        // Use segment-weighted parameters if available, otherwise fall back to
-        // company-level parameters
-        // initialCostCapital is multiplied by 100 in controller (10.07 → 1007), so
-        // divide to get back to percentage
-        Double initialCostofCapital = SegmentParameterContext.getParameterOrDefault(
+        // Keep cost of capital in percentage format (e.g., 10.07 for 10.07%).
+        // Upstream callers mix decimal / percent / percent*100; normalize once here.
+        Double rawInitial = SegmentParameterContext.getParameterOrDefault(
                 SegmentWeightedParameters::getWeightedInitialCostCapital,
-                financialDataInput.getInitialCostCapital()) / 100;
+                financialDataInput.getInitialCostCapital());
+        Double initialCostofCapital = toPercentUnit(rawInitial, 10.0);
 
-        Double riskFreeRateAdjusted = financialDataInput.getRiskFreeRate();
-        if (financialDataInput.getSegments() == null ||
-                financialDataInput.getSegments().getSegments() == null ||
-                financialDataInput.getSegments().getSegments().size() <= 1) {
-            riskFreeRateAdjusted = financialDataInput.getRiskFreeRate() / 100;
-        }
-
-        // CRITICAL FIX: riskFreeRate is already in percentage format (4.6), no need to
-        // divide by 100
-        Double riskFreeRate = SegmentParameterContext.getParameterOrDefault(
+        Double rawRiskFree = SegmentParameterContext.getParameterOrDefault(
                 SegmentWeightedParameters::getRiskFreeRate,
-                riskFreeRateAdjusted);
+                financialDataInput.getRiskFreeRate());
+        Double riskFreeRate = toPercentUnit(rawRiskFree, 4.6);
 
         String countryOfIncorporation = resolveCountryOfIncorporation(financialDataInput);
-        Double equityRiskPremium = commonService.resolveEquityRiskPremiumForCountry(countryOfIncorporation);
+        // ERP config is percent (e.g. 4.23 + country CRP)
+        Double equityRiskPremium = toPercentUnit(
+                commonService.resolveEquityRiskPremiumForCountry(countryOfIncorporation),
+                4.5);
 
-        // Calculate terminal cost: riskFreeRate + country ERP, where country ERP
-        // is configured mature-market ERP plus country risk premium.
+        // Terminal WACC ≈ Rf + country ERP (percent units)
         Double terminalCostOfCapital = riskFreeRate + equityRiskPremium;
 
-        if (financialDataInput.getOverrideAssumptionCostCapital().getIsOverride()) {
-            terminalCostOfCapital = financialDataInput.getOverrideAssumptionCostCapital().getOverrideCost();
-        } else {
-            if (financialDataInput.getOverrideAssumptionRiskFreeRate().getIsOverride()) {
-                terminalCostOfCapital = financialDataInput.getOverrideAssumptionRiskFreeRate().getOverrideCost()
-                        + equityRiskPremium;
-            }
+        if (financialDataInput.getOverrideAssumptionCostCapital() != null
+                && financialDataInput.getOverrideAssumptionCostCapital().getIsOverride()) {
+            terminalCostOfCapital = toPercentUnit(
+                    financialDataInput.getOverrideAssumptionCostCapital().getOverrideCost(),
+                    terminalCostOfCapital);
+        } else if (financialDataInput.getOverrideAssumptionRiskFreeRate() != null
+                && financialDataInput.getOverrideAssumptionRiskFreeRate().getIsOverride()) {
+            terminalCostOfCapital = toPercentUnit(
+                    financialDataInput.getOverrideAssumptionRiskFreeRate().getOverrideCost(),
+                    riskFreeRate)
+                    + equityRiskPremium;
+        }
+
+        // Guardrail: terminal CoC must stay in a sane percent band
+        if (!Double.isFinite(terminalCostOfCapital) || terminalCostOfCapital < 1.0 || terminalCostOfCapital > 30.0) {
+            log.warn("Terminal CoC {} outside [1,30]; clamping via Rf+ERP normalize (rf={}, erp={})",
+                    terminalCostOfCapital, riskFreeRate, equityRiskPremium);
+            terminalCostOfCapital = Math.min(30.0, Math.max(1.0, riskFreeRate + equityRiskPremium));
+        }
+        if (!Double.isFinite(initialCostofCapital) || initialCostofCapital < 1.0 || initialCostofCapital > 40.0) {
+            log.warn("Initial CoC {} outside [1,40]; falling back to max(terminal, 8)", initialCostofCapital);
+            initialCostofCapital = Math.max(terminalCostOfCapital, 8.0);
         }
 
         int adjustmentYears = projectionYears / 2;
@@ -576,6 +619,8 @@ public class ValuationOutputService {
             }
         }
         costOfCapital[terminalIndex] = terminalCostOfCapital;
+        log.info("CoC path normalized: initial={}%, terminal={}%, rf={}%, erp={}%",
+                initialCostofCapital, terminalCostOfCapital, riskFreeRate, equityRiskPremium);
         return costOfCapital;
     }
 
@@ -677,11 +722,8 @@ public class ValuationOutputService {
             }
         }
         Double riskFreeRateCap = riskFreeRate;
-        if (financialDataInput.getSegments() != null &&
-                financialDataInput.getSegments().getSegments() != null &&
-                financialDataInput.getSegments().getSegments().size() > 1) {
-            riskFreeRateCap = riskFreeRate * 100; // Convert to percentage format for segments
-        }
+        // riskFreeRate may be decimal or percent depending on segment context; normalize to percent
+        riskFreeRateCap = toPercentUnit(riskFreeRate, DEFAULT_TERMINAL_GROWTH_CAP_PERCENT);
         Double effectiveTerminalYear = financialDataInput.getTerminalGrowthRate() != null
                 ? terminalYear
                 : Math.min(terminalYear, riskFreeRateCap);
@@ -1221,7 +1263,7 @@ public class ValuationOutputService {
         double totalWeight = 0.0;
 
         for (SegmentResponseDTO.Segment segment : financialDataInput.getSegments().getSegments()) {
-            String sectorKey = segment.getSector();
+            String sectorKey = normalizeSectorKey(segment);
             Double revenueShare = segment.getRevenueShare();
 
             if (revenueShare == null || revenueShare == 0) {
@@ -1427,7 +1469,7 @@ public class ValuationOutputService {
         }
 
         for (SegmentResponseDTO.Segment segment : financialDataInput.getSegments().getSegments()) {
-            String sectorKey = segment.getSector();
+            String sectorKey = normalizeSectorKey(segment);
             Double[] segmentRevenues = new Double[arrayLength];
             Double[] segmentGrowthRates = new Double[arrayLength];
 
@@ -1732,7 +1774,7 @@ public class ValuationOutputService {
 
             // Sum up income and revenue from all sectors
             for (SegmentResponseDTO.Segment segment : financialDataInput.getSegments().getSegments()) {
-                String sectorKey = segment.getSector();
+                String sectorKey = normalizeSectorKey(segment);
                 Double[] sectorRevenues = financialDTO.getRevenuesBySector().get(sectorKey);
                 Double[] sectorIncome = financialDTO.getEbitOperatingIncomeSector().get(sectorKey);
 
@@ -1795,7 +1837,7 @@ public class ValuationOutputService {
 
         // Sum reinvestment and FCFF from all sectors
         for (SegmentResponseDTO.Segment segment : financialDataInput.getSegments().getSegments()) {
-            String sectorKey = segment.getSector();
+            String sectorKey = normalizeSectorKey(segment);
             Double[] sectorReinvestment = financialDTO.getReinvestmentBySector().get(sectorKey);
             Double[] sectorFcff = financialDTO.getFcffBySector().get(sectorKey);
             Double[] sectorPvFcff = financialDTO.getPvFcffBySector().get(sectorKey);
@@ -1821,7 +1863,7 @@ public class ValuationOutputService {
             double weightedRoic = 0.0;
 
             for (SegmentResponseDTO.Segment segment : financialDataInput.getSegments().getSegments()) {
-                String sectorKey = segment.getSector();
+                String sectorKey = normalizeSectorKey(segment);
                 Double[] sectorInvestedCapital = financialDTO.getInvestedCapitalBySector().get(sectorKey);
                 Double[] sectorRoic = financialDTO.getRoicBySector().get(sectorKey);
 
@@ -1871,7 +1913,7 @@ public class ValuationOutputService {
         int lastProjectionIndex = arrayLength - 2;
 
         for (SegmentResponseDTO.Segment segment : financialDataInput.getSegments().getSegments()) {
-            String sectorKey = segment.getSector();
+            String sectorKey = normalizeSectorKey(segment);
             Double[] segmentRevenues = financialDTO.getRevenuesBySector().get(sectorKey);
             if (segmentRevenues == null) {
                 continue;
@@ -1980,7 +2022,7 @@ public class ValuationOutputService {
         Double[] nol = calculateNOL(financialDTO.getEbitOperatingIncome(), financialDataInput);
 
         for (SegmentResponseDTO.Segment segment : financialDataInput.getSegments().getSegments()) {
-            String sectorKey = segment.getSector();
+            String sectorKey = normalizeSectorKey(segment);
             Double[] segmentRevenues = financialDTO.getRevenuesBySector().get(sectorKey);
             Double[] segmentOperatingIncome = financialDTO.getEbitOperatingIncomeSector().get(sectorKey);
 
