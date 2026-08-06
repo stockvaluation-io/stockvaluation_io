@@ -1936,7 +1936,11 @@ def _question_count_rationale(
 def _evidence_items(context: dict[str, Any]) -> list[dict[str, Any]]:
     packet = _dict(context.get("evidence_packet") or context.get("evidencePacket"))
     direct_items = _list(context.get("evidence_items") or context.get("evidenceItems"))
-    packet_items = _list(packet.get("evidence_items") or packet.get("evidenceItems"))
+    packet_items = _list(
+        packet.get("evidence_items")
+        or packet.get("evidenceItems")
+        or packet.get("items")
+    )
     return [item for item in [*direct_items, *packet_items] if isinstance(item, dict)]
 
 

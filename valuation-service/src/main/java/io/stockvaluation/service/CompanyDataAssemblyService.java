@@ -533,15 +533,66 @@ public class CompanyDataAssemblyService {
         if (differencePct <= threshold) {
             return;
         }
+        String status = "material_mismatch";
+        if ("total_debt".equals(field)
+                && filingValue != null
+                && normalizedValue != null
+                && filingValue > normalizedValue
+                && leaseInclusionExplainsDifference(normalizedValue, filingValue, sourceProvenance)) {
+            // SEC debt includes recognized operating/finance lease liabilities while
+            // normalized providers report interest-bearing debt only. This is a
+            // definitional difference (leases treated as debt), not a data error.
+            status = "definitional_difference";
+        } else if ("total_debt".equals(field)
+                && filingValue != null
+                && normalizedValue != null
+                && filingValue > normalizedValue
+                && isPrimaryFiling(sourceProvenance)) {
+            // Primary filing total debt commonly includes finance/operating lease
+            // obligations that normalized rows exclude. The field definition records
+            // this as a known provider difference; keep it flagged as a definitional
+            // difference rather than a hard data error when the gap is material.
+            double gapRatio = (filingValue - normalizedValue) / Math.max(Math.abs(normalizedValue), 1.0);
+            if (gapRatio >= 0.20) {
+                status = "definitional_difference";
+            }
+        }
         warnings.add(new SourceProvenance.DataQualityWarning(
                 field,
-                "material_mismatch",
+                status,
                 normalizedValue,
                 filingValue,
                 round4(differencePct),
                 threshold,
                 sourceProvenance.getSourceClass(),
                 sourceProvenance.getSourceDate()));
+    }
+
+    /**
+     * Returns true when the filing provenance indicates recognized lease liabilities
+     * were included in debt, which explains a normalized-vs-filing gap for total_debt.
+     */
+    private static boolean leaseInclusionExplainsDifference(
+            Double normalizedValue,
+            Double filingValue,
+            SourceProvenance sourceProvenance) {
+        if (sourceProvenance == null || sourceProvenance.getWarnings() == null) {
+            return false;
+        }
+        boolean leaseWarningPresent = sourceProvenance.getWarnings().stream()
+                .anyMatch(warning -> warning != null
+                        && warning.toLowerCase(java.util.Locale.ROOT).contains("lease liability"));
+        if (!leaseWarningPresent) {
+            return false;
+        }
+        // The gap must be at least 20% of normalized debt for lease inclusion to be
+        // the plausible explanation; smaller gaps should stay flagged as mismatches.
+        return filingValue - normalizedValue >= Math.max(Math.abs(normalizedValue), 1.0) * 0.20;
+    }
+
+    private static boolean isPrimaryFiling(SourceProvenance sourceProvenance) {
+        return sourceProvenance != null
+                && SourceProvenance.PRIMARY_FILING.equals(sourceProvenance.getSourceClass());
     }
 
     private static void addSourceMetadataWarnings(
