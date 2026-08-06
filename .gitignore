@@ -111,3 +111,4 @@ HANDOFF.md
 .claude/rate-limit-state.json
 .claude/stop-failure-events.jsonl
 .claude/quota-blocked.json
+docker-compose.logging-override.yml
