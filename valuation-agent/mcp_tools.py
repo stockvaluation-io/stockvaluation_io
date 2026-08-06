@@ -559,10 +559,15 @@ class MCPToolRegistry:
 
     def call(self, name: str, arguments: dict[str, Any] | None = None) -> dict[str, Any]:
         args = arguments or {}
-        if name not in self._handlers:
+        handler = self._handlers.get(name)
+        if handler is None:
+            # Some MCP clients (e.g. mcporter) send the bare tool name while the
+            # server advertises namespaced tools (stockvaluation.<tool>).
+            handler = self._handlers.get(f"stockvaluation.{name}")
+        if handler is None:
             content = error_payload(name, "UNKNOWN_TOOL", "Unknown StockValuation tool.", "unknown_tool")
             return tool_result(content, is_error=True)
-        content = self._handlers[name](args)
+        content = handler(args)
         return tool_result(content, is_error=not bool(content.get("ok")))
 
     def _start_tracked_run(
